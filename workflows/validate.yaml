@@ -15,5 +15,6 @@ jobs:
         uses: "hacs/action@main"
         with:
           category: "integration"
-          repository: 0xAHA/Midea-Heat-Pump-HA
+          repository: 0xAHA/solar-bar-card
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
