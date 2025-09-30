@@ -42,13 +42,11 @@ class SolarBarCard extends HTMLElement {
       export_entity,
       forecast_entity,
       show_header = false,
-      show_weather = false,
       show_stats = false,
       show_legend = true,
       show_legend_values = true,
       show_bar_label = true,
       header_title = 'Solar Power',
-      weather_entity = null,
       use_solcast = false,
       auto_entities = false,
       growatt_device = null,
@@ -367,7 +365,7 @@ class SolarBarCard extends HTMLElement {
           <div class="card-header">
             <div class="card-header-left">
               ${show_header ? `
-                <span>☀️</span>
+                <ha-icon icon="mdi:solar-panel" style="width: 24px; height: 24px;"></ha-icon>
                 <span>${header_title}</span>
               ` : ''}
             </div>
@@ -523,9 +521,9 @@ class SolarBarCard extends HTMLElement {
 
   getSolcastForecast() {
     const solcastPatterns = [
-      'sensor.solcast_pv_forecast_forecast_today',
-      'sensor.solcast_forecast_today',
-      'sensor.solcast_pv_forecast_today'
+      'sensor.solcast_pv_forecast_power_now',
+      'sensor.solcast_forecast_power_now',
+      'sensor.solcast_power_now'
     ];
     
     for (const pattern of solcastPatterns) {
@@ -534,8 +532,9 @@ class SolarBarCard extends HTMLElement {
       }
     }
     
+    // Fallback: search for any solcast sensor with "power" and "now"
     const solcastSensors = Object.keys(this._hass.states).filter(entityId => 
-      entityId.includes('solcast') && entityId.includes('forecast')
+      entityId.includes('solcast') && entityId.includes('power') && entityId.includes('now')
     );
     
     if (solcastSensors.length > 0) {
@@ -851,4 +850,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
 });
 
-console.info('%c🌞 Solar Bar Card v8.4 loaded! Responsive stats grid', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v1.0.1 loaded! Responsive stats grid', 'color: #FFC107; font-weight: bold;');
