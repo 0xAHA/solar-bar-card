@@ -14,6 +14,6 @@ jobs:
       - name: HACS validation
         uses: "hacs/action@main"
         with:
-          category: "integration"
+          category: "plugin"
           repository: 0xAHA/solar-bar-card
           github_token: ${{ secrets.GITHUB_TOKEN }}
