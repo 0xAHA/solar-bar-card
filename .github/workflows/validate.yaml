@@ -15,5 +15,3 @@ jobs:
         uses: "hacs/action@main"
         with:
           category: "plugin"
-          repository: 0xAHA/solar-bar-card
-          github_token: ${{ secrets.GITHUB_TOKEN }}
