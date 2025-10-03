@@ -167,7 +167,7 @@ class SolarBarCard extends HTMLElement {
         }
 
         ha-card {
-          padding: 8px;
+          padding: 4px 8px;
         }
 
         .card-header {
@@ -223,7 +223,7 @@ class SolarBarCard extends HTMLElement {
         }
 
         .solar-bar-container {
-          margin: 4px 0;
+          margin: 2px 0;
         }
 
         .solar-bar-label {
@@ -624,10 +624,10 @@ class SolarBarCard extends HTMLElement {
   }
 
   getCardSize() {
-    if (!this.config) return 2;
+    if (!this.config) return 1;
     
     // Base size (bar + padding) = ~50px = 1 unit
-    let size = 1;
+    let size = 0.8;
     
     // Header or weather adds ~26px = 0.5 units (they share the same row)
     if (this.config.show_header || this.config.show_weather) size += 0.5;
@@ -636,12 +636,12 @@ class SolarBarCard extends HTMLElement {
     if (this.config.show_stats) size += 1.2;
     
     // Bar label adds ~22px = 0.4 units
-    if (this.config.show_bar_label) size += 0.4;
+    if (this.config.show_bar_label) size += 0.3;
     
     // Legend adds ~30px = 0.6 units
-    if (this.config.show_legend) size += 0.6;
+    if (this.config.show_legend) size += 0.4;
     
-    return Math.ceil(size);
+    return Math.max(1, size);
   }
 
   getGridOptions() {
@@ -961,4 +961,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
 });
 
-console.info('%c🌞 Solar Bar Card v1.7.0 loaded! Smart EV potential calculation', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v1.0.3 loaded! Smart EV potential calculation', 'color: #FFC107; font-weight: bold;');
