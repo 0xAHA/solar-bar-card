@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-1.0.3-blue.svg)
+![Version](https://img.shields.io/badge/Version-1.0.4-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -16,6 +16,7 @@
 ## ✨ Features
 
 ### 🎨 Visual Power Distribution
+
 - **Color-coded bar** showing real-time power allocation
 - **Green** for solar self-consumption
 - **Red** for grid import (when consuming more than solar produces)
@@ -26,27 +27,33 @@
 - **Yellow dotted line** for solar forecast
 
 ### 🌙 Smart Idle Detection
+
 - Automatically detects when solar system is in standby mode
 - Shows "Solar system in standby mode" message
 - Prevents displaying stale data overnight
 
 ### 🚗 Intelligent EV Charger Support
+
 - Show potential charging capacity (smart calculation accounts for current export)
 - Display actual charging power when actively charging
 - EV potential only shows additional power needed beyond current export
 
 ### 🌤️ Weather Integration
+
 - Dynamic weather icons (☀️ sunny, 🌧️ rainy, ⛈️ stormy, etc.)
 - Supports both weather entities and temperature sensors
 - Displays in top-right corner
 
 ### 📊 Solar Forecast
+
 - Integration with Solcast (auto-detection)
 - Support for custom forecast sensors
 - Visual lightning bolt indicator on bar
 
 ### 🎛️ Flexible Display
+
 Toggle any component on/off:
+
 - Header with title
 - Individual power statistics (4 tiles)
 - Power distribution label
@@ -55,6 +62,7 @@ Toggle any component on/off:
 - Bar segment values
 
 ### 📱 Responsive Design
+
 - Adapts to Sections view
 - Works in Masonry view
 - Dynamic card sizing
@@ -129,26 +137,28 @@ use_solcast: true
 
 ## ⚙️ Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `inverter_size` | number | `10` | 🔋 Maximum solar system capacity (kW) |
-| `production_entity` | string | `null` | ☀️ Solar production power sensor (required) |
-| `self_consumption_entity` | string | `null` | 🏠 Home power consumption sensor (required) |
-| `export_entity` | string | `null` | ⚡ Grid export power sensor (required) |
-| `import_entity` | string | `null` | 📥 Grid import power sensor (optional) |
-| `ev_charger_sensor` | string | `null` | 🔌 Active EV charger power sensor (optional) |
-| `car_charger_load` | number | `0` | 🚗 EV charger capacity in kW (for potential display) |
-| `use_solcast` | boolean | `false` | ☁️ Auto-detect Solcast forecast sensor |
-| `forecast_entity` | string | `null` | 📈 Solar forecast power sensor |
-| `show_header` | boolean | `false` | 📝 Display card title |
-| `header_title` | string | `"Solar Power"` | 🏷️ Custom title text |
-| `show_weather` | boolean | `false` | 🌡️ Display current temperature |
-| `weather_entity` | string | `null` | 🌤️ Weather or temperature sensor |
-| `show_stats` | boolean | `false` | 📊 Display power statistics tiles |
-| `show_legend` | boolean | `true` | 🎨 Display color-coded legend |
-| `show_legend_values` | boolean | `true` | 🔢 Show kW values in legend |
-| `show_bar_label` | boolean | `true` | 🏷️ Show power distribution label above bar |
-| `show_bar_values` | boolean | `true` | 📊 Show kW values on bar segments |
+
+| Option                    | Type    | Default         | Description                                          |
+| --------------------------- | --------- | ----------------- | ------------------------------------------------------ |
+| `inverter_size`           | number  | `10`            | 🔋 Maximum solar system capacity (kW)                |
+| `production_entity`       | string  | `null`          | ☀️ Solar production power sensor (required)        |
+| `self_consumption_entity` | string  | `null`          | 🏠 Home power consumption sensor (required)          |
+| `grid_power_entity`       | string  | `null`          | ⚡ Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors. (optional/alternative)             |
+| `export_entity`           | string  | `null`          | ⚡ Grid export power sensor (optional/alternative)                |
+| `import_entity`           | string  | `null`          | 📥 Grid import power sensor (optional/alternative)              |
+| `ev_charger_sensor`       | string  | `null`          | 🔌 Active EV charger power sensor (optional)         |
+| `car_charger_load`        | number  | `0`             | 🚗 EV charger capacity in kW (for potential display) |
+| `use_solcast`             | boolean | `false`         | ☁️ Auto-detect Solcast forecast sensor             |
+| `forecast_entity`         | string  | `null`          | 📈 Solar forecast power sensor                       |
+| `show_header`             | boolean | `false`         | 📝 Display card title                                |
+| `header_title`            | string  | `"Solar Power"` | 🏷️ Custom title text                               |
+| `show_weather`            | boolean | `false`         | 🌡️ Display current temperature                     |
+| `weather_entity`          | string  | `null`          | 🌤️ Weather or temperature sensor                   |
+| `show_stats`              | boolean | `false`         | 📊 Display power statistics tiles                    |
+| `show_legend`             | boolean | `true`          | 🎨 Display color-coded legend                        |
+| `show_legend_values`      | boolean | `true`          | 🔢 Show kW values in legend                          |
+| `show_bar_label`          | boolean | `true`          | 🏷️ Show power distribution label above bar         |
+| `show_bar_values`         | boolean | `true`          | 📊 Show kW values on bar segments                    |
 
 ---
 
@@ -156,15 +166,16 @@ use_solcast: true
 
 ### Segments
 
-| Color | Meaning | When Shown |
-|-------|---------|------------|
-| 🟢 **Green** | Solar self-consumption | Solar power used by your home |
-| 🔴 **Red** | Grid import | Power imported from grid (when home needs more than solar) |
-| 🔵 **Blue** | Grid export | Power sent to the grid |
-| 🟠 **Soft Amber** | EV charging (active) | When EV is actually charging |
-| ⬜ **Light Grey** | EV potential | Additional charger capacity available |
-| 🔳 **Semi-transparent** | Unused capacity | Available inverter capacity |
-| ⚡ **Yellow dotted line** | Solar forecast | Predicted solar production |
+
+| Color                    | Meaning                | When Shown                                                 |
+| -------------------------- | ------------------------ | ------------------------------------------------------------ |
+| 🟢**Green**              | Solar self-consumption | Solar power used by your home                              |
+| 🔴**Red**                | Grid import            | Power imported from grid (when home needs more than solar) |
+| 🔵**Blue**               | Grid export            | Power sent to the grid                                     |
+| 🟠**Soft Amber**         | EV charging (active)   | When EV is actually charging                               |
+| ⬜**Light Grey**         | EV potential           | Additional charger capacity available                      |
+| 🔳**Semi-transparent**   | Unused capacity        | Available inverter capacity                                |
+| ⚡**Yellow dotted line** | Solar forecast         | Predicted solar production                                 |
 
 ---
 
@@ -178,6 +189,7 @@ weather_entity: weather.home
 ```
 
 **Supported weather states:**
+
 - ☀️ Sunny
 - ⛅ Partly cloudy
 - ☁️ Cloudy
@@ -226,10 +238,13 @@ When `ev_charger_sensor` reports > 0W, the EV power is already included in consu
 ## 📈 Solar Forecast Integration
 
 ### Solcast (Auto-Detection)
+
 ```yaml
 use_solcast: true
 ```
+
 Automatically finds Solcast forecast sensors like:
+
 - `sensor.solcast_pv_forecast_power_now`
 - `sensor.solcast_forecast_power_now`
 - `sensor.solcast_power_now`
@@ -237,6 +252,7 @@ Automatically finds Solcast forecast sensors like:
 **Note:** The forecast indicator only appears when the forecasted power exceeds your current production.
 
 ### Custom Forecast
+
 ```yaml
 forecast_entity: sensor.your_forecast_power_sensor
 ```
@@ -254,6 +270,7 @@ The forecast appears as a **yellow vertical dotted line with lightning bolt** (�
 3. **Check console:** F12 → Console tab for errors
 
 ### ❌ Wrong Values Displayed
+
 - ✅ Ensure sensors report in **W** or **kW** units
 - ✅ Card automatically converts W → kW
 - ✅ Verify entity IDs are correct
@@ -279,6 +296,7 @@ This converts kWh accumulation → instantaneous kW power!
 ## 🎯 Example Configurations
 
 ### Minimalist
+
 ```yaml
 type: custom:solar-bar-card
 inverter_size: 10
@@ -291,6 +309,7 @@ show_bar_values: false
 ```
 
 ### Dashboard Hero
+
 ```yaml
 type: custom:solar-bar-card
 inverter_size: 13.2
@@ -312,6 +331,7 @@ use_solcast: true
 ```
 
 ### EV Focus
+
 ```yaml
 type: custom:solar-bar-card
 inverter_size: 10
@@ -333,6 +353,7 @@ show_bar_values: false
 ## 🤝 Contributing
 
 Contributions welcome! Feel free to:
+
 - 🐛 Report bugs
 - 💡 Suggest features
 - 🔧 Submit pull requests
@@ -358,6 +379,7 @@ MIT License - see LICENSE file for details
 ## 📊 Version History
 
 **v1.0.2** (Current)
+
 - ✨ Manual entity configuration (removed Growatt auto-detection)
 - 📥 Added grid import sensor support
 - 🌙 Idle/standby state detection
@@ -369,6 +391,7 @@ MIT License - see LICENSE file for details
 - 🔧 Refined stats tiles (shows either import OR export)
 
 **v1.0.0**
+
 - ✨ Initial release
 - 🚗 EV charger support
 - 🌤️ Weather integration
