@@ -7,9 +7,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
-![1759352588844.png](./1759352588844.png)
-
-![1759352724115.png](./1759352724115.png)
+ ![1759611909382.png](./1759611909382.png)
 
 ---
 
@@ -138,27 +136,27 @@ use_solcast: true
 ## ⚙️ Configuration Options
 
 
-| Option                    | Type    | Default         | Description                                          |
-| --------------------------- | --------- | ----------------- | ------------------------------------------------------ |
-| `inverter_size`           | number  | `10`            | 🔋 Maximum solar system capacity (kW)                |
-| `production_entity`       | string  | `null`          | ☀️ Solar production power sensor (required)        |
-| `self_consumption_entity` | string  | `null`          | 🏠 Home power consumption sensor (required)          |
-| `grid_power_entity`       | string  | `null`          | ⚡ Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors. (optional/alternative)             |
-| `export_entity`           | string  | `null`          | ⚡ Grid export power sensor (optional/alternative)                |
-| `import_entity`           | string  | `null`          | 📥 Grid import power sensor (optional/alternative)              |
-| `ev_charger_sensor`       | string  | `null`          | 🔌 Active EV charger power sensor (optional)         |
-| `car_charger_load`        | number  | `0`             | 🚗 EV charger capacity in kW (for potential display) |
-| `use_solcast`             | boolean | `false`         | ☁️ Auto-detect Solcast forecast sensor             |
-| `forecast_entity`         | string  | `null`          | 📈 Solar forecast power sensor                       |
-| `show_header`             | boolean | `false`         | 📝 Display card title                                |
-| `header_title`            | string  | `"Solar Power"` | 🏷️ Custom title text                               |
-| `show_weather`            | boolean | `false`         | 🌡️ Display current temperature                     |
-| `weather_entity`          | string  | `null`          | 🌤️ Weather or temperature sensor                   |
-| `show_stats`              | boolean | `false`         | 📊 Display power statistics tiles                    |
-| `show_legend`             | boolean | `true`          | 🎨 Display color-coded legend                        |
-| `show_legend_values`      | boolean | `true`          | 🔢 Show kW values in legend                          |
-| `show_bar_label`          | boolean | `true`          | 🏷️ Show power distribution label above bar         |
-| `show_bar_values`         | boolean | `true`          | 📊 Show kW values on bar segments                    |
+| Option                    | Type    | Default         | Description                                                                                                                   |
+| --------------------------- | --------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `inverter_size`           | number  | `10`            | 🔋 Maximum solar system capacity (kW)                                                                                         |
+| `production_entity`       | string  | `null`          | ☀️ Solar production power sensor (required)                                                                                 |
+| `self_consumption_entity` | string  | `null`          | 🏠 Home power consumption sensor (required)                                                                                   |
+| `grid_power_entity`       | string  | `null`          | ⚡ Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors. (optional/alternative) |
+| `export_entity`           | string  | `null`          | ⚡ Grid export power sensor (optional/alternative)                                                                            |
+| `import_entity`           | string  | `null`          | 📥 Grid import power sensor (optional/alternative)                                                                            |
+| `ev_charger_sensor`       | string  | `null`          | 🔌 Active EV charger power sensor (optional)                                                                                  |
+| `car_charger_load`        | number  | `0`             | 🚗 EV charger capacity in kW (for potential display)                                                                          |
+| `use_solcast`             | boolean | `false`         | ☁️ Auto-detect Solcast forecast sensor                                                                                      |
+| `forecast_entity`         | string  | `null`          | 📈 Solar forecast power sensor                                                                                                |
+| `show_header`             | boolean | `false`         | 📝 Display card title                                                                                                         |
+| `header_title`            | string  | `"Solar Power"` | 🏷️ Custom title text                                                                                                        |
+| `show_weather`            | boolean | `false`         | 🌡️ Display current temperature                                                                                              |
+| `weather_entity`          | string  | `null`          | 🌤️ Weather or temperature sensor                                                                                            |
+| `show_stats`              | boolean | `false`         | 📊 Display power statistics tiles                                                                                             |
+| `show_legend`             | boolean | `true`          | 🎨 Display color-coded legend                                                                                                 |
+| `show_legend_values`      | boolean | `true`          | 🔢 Show kW values in legend                                                                                                   |
+| `show_bar_label`          | boolean | `true`          | 🏷️ Show power distribution label above bar                                                                                  |
+| `show_bar_values`         | boolean | `true`          | 📊 Show kW values on bar segments                                                                                             |
 
 ---
 
