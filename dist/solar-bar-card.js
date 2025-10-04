@@ -30,6 +30,7 @@ class SolarBarCard extends HTMLElement {
       car_charger_load: 0,
       ev_charger_sensor: null,
       import_entity: null,
+      grid_power_entity: null,
       ...config
     };
     this.updateCard();
@@ -44,6 +45,7 @@ class SolarBarCard extends HTMLElement {
       self_consumption_entity,
       export_entity,
       import_entity = null,
+      grid_power_entity = null,
       forecast_entity,
       show_header = false,
       show_weather = false,
@@ -118,8 +120,21 @@ class SolarBarCard extends HTMLElement {
     // Use manually configured entities
     solarProduction = this.getSensorValue(production_entity) || 0;
     selfConsumption = this.getSensorValue(self_consumption_entity) || 0;
-    exportPower = this.getSensorValue(export_entity) || 0;
-    gridImportPower = this.getSensorValue(import_entity) || 0;
+    
+    // Handle grid power - can be a single sensor (positive=export, negative=import) or separate sensors
+    if (grid_power_entity) {
+      const gridPower = this.getSensorValue(grid_power_entity) || 0;
+      if (gridPower > 0) {
+        exportPower = gridPower;
+        gridImportPower = 0;
+      } else {
+        exportPower = 0;
+        gridImportPower = Math.abs(gridPower);
+      }
+    } else {
+      exportPower = this.getSensorValue(export_entity) || 0;
+      gridImportPower = this.getSensorValue(import_entity) || 0;
+    }
 
     let forecastSolar = 0;
     if (use_solcast && !forecast_entity) {
@@ -143,6 +158,11 @@ class SolarBarCard extends HTMLElement {
     // EV potential should only show power beyond what's being exported (since export would be consumed first)
     const evDisplayPower = isActuallyCharging ? 0 : Math.max(0, car_charger_load - exportPower);
     
+    // Calculate excess solar for EV ready indicator
+    const excessSolar = solarProduction - selfConsumption;
+    const evReadyHalf = car_charger_load > 0 && !isActuallyCharging && excessSolar >= (car_charger_load * 0.5);
+    const evReadyFull = car_charger_load > 0 && !isActuallyCharging && excessSolar >= car_charger_load;
+    
     // Calculate used capacity and remaining unused capacity
     const usedCapacityKw = selfConsumption + exportPower;
     const unusedCapacityKw = Math.max(0, inverter_size - usedCapacityKw - evDisplayPower);
@@ -160,10 +180,11 @@ class SolarBarCard extends HTMLElement {
       <style>
         :host {
           display: block;
-          --solar-usage-color: #4CAF50;
-          --solar-export-color: #2196F3;
-          --solar-available-color: #FF9800;
-          --solar-anticipated-color: #FFC107;
+          --solar-usage-color: #A5D6A7;
+          --solar-export-color: #90CAF9;
+          --solar-available-color: #FFB74D;
+          --solar-anticipated-color: #FFE082;
+          --solar-import-color: #FFAB91;
         }
 
         ha-card {
@@ -266,15 +287,15 @@ class SolarBarCard extends HTMLElement {
         }
 
         .usage-segment {
-          background: linear-gradient(90deg, var(--solar-usage-color), #66BB6A);
+          background: linear-gradient(90deg, var(--solar-usage-color), #C8E6C9);
         }
 
         .grid-import-segment {
-          background: linear-gradient(90deg, #F44336, #EF5350);
+          background: linear-gradient(90deg, var(--solar-import-color), #FFCCBC);
         }
 
         .export-segment {
-          background: linear-gradient(90deg, var(--solar-export-color), #42A5F5);
+          background: linear-gradient(90deg, var(--solar-export-color), #BBDEFB);
         }
 
         .car-charger-segment {
@@ -288,10 +309,28 @@ class SolarBarCard extends HTMLElement {
         }
 
         .ev-charging-segment {
-          background: linear-gradient(90deg, #FF9800, #FFB74D);
+          background: linear-gradient(90deg, #FFB74D, #FFCC80);
           opacity: 0.9;
           color: white;
           text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .ev-ready-indicator {
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 20px;
+          z-index: 3;
+          filter: drop-shadow(0 0 3px rgba(0,0,0,0.3));
+        }
+
+        .ev-ready-indicator.half-charge {
+          color: #FFB74D;
+        }
+
+        .ev-ready-indicator.full-charge {
+          color: #81C784;
         }
 
         .idle-state {
@@ -321,7 +360,7 @@ class SolarBarCard extends HTMLElement {
             transparent 8px
           );
           box-shadow: 0 0 6px var(--solar-anticipated-color);
-          z-index: 10;
+          z-index: 1;
           pointer-events: none;
         }
 
@@ -398,7 +437,7 @@ class SolarBarCard extends HTMLElement {
         }
 
         .usage-color { background: var(--solar-usage-color); }
-        .grid-import-color { background: #F44336; }
+        .grid-import-color { background: var(--solar-import-color); }
         .export-color { background: var(--solar-export-color); }
         .car-charger-color { background: #E0E0E0; opacity: 0.8; }
         .anticipated-color { background: var(--solar-anticipated-color); }
@@ -478,6 +517,12 @@ class SolarBarCard extends HTMLElement {
                 ${evPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                 ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
               </div>
+              ${evReadyHalf ? `
+                <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}" 
+                     title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
+                  <ha-icon icon="mdi:car-electric"></ha-icon>
+                </div>
+              ` : ''}
               ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
                 <div class="forecast-indicator" 
                      style="left: ${anticipatedPercent}%" 
@@ -705,6 +750,25 @@ class SolarBarCard extends HTMLElement {
         }
       },
       {
+        name: "grid_power_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "power"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["W", "kW", "MW"]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
         name: "export_entity",
         selector: {
           entity: {
@@ -887,6 +951,7 @@ class SolarBarCard extends HTMLElement {
         self_consumption_entity: "Self Consumption Sensor",
         export_entity: "Export to Grid Sensor",
         import_entity: "Import from Grid Sensor",
+        grid_power_entity: "Combined Grid Power Sensor",
         ev_charger_sensor: "EV Charger Power Sensor",
         car_charger_load: "EV Charger Capacity",
         use_solcast: "Auto-detect Solcast",
@@ -911,6 +976,7 @@ class SolarBarCard extends HTMLElement {
         self_consumption_entity: "Sensor showing power used by your home",
         export_entity: "Sensor showing power exported to the grid",
         import_entity: "Sensor showing power imported from the grid",
+        grid_power_entity: "Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors",
         ev_charger_sensor: "Actual EV charger power sensor (optional - shows when actively charging)",
         car_charger_load: "EV charger capacity in kW to show potential usage (grey bar when not charging)",
         use_solcast: "Automatically detect Solcast forecast sensors",
@@ -961,4 +1027,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
 });
 
-console.info('%c🌞 Solar Bar Card v1.0.3 loaded! Smart EV potential calculation', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v1.0.4 loaded! Much softer, pastel color palette', 'color: #FFC107; font-weight: bold;');
