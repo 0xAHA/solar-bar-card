@@ -31,6 +31,7 @@ class SolarBarCard extends HTMLElement {
       ev_charger_sensor: null,
       import_entity: null,
       grid_power_entity: null,
+      invert_grid_power: false,
       ...config
     };
     this.updateCard();
@@ -46,6 +47,7 @@ class SolarBarCard extends HTMLElement {
       export_entity,
       import_entity = null,
       grid_power_entity = null,
+      invert_grid_power = false,
       forecast_entity,
       show_header = false,
       show_weather = false,
@@ -123,7 +125,13 @@ class SolarBarCard extends HTMLElement {
     
     // Handle grid power - can be a single sensor (positive=export, negative=import) or separate sensors
     if (grid_power_entity) {
-      const gridPower = this.getSensorValue(grid_power_entity) || 0;
+      let gridPower = this.getSensorValue(grid_power_entity) || 0;
+      
+      // Invert if needed (for systems that report from meter perspective)
+      if (invert_grid_power) {
+        gridPower = -gridPower;
+      }
+      
       if (gridPower > 0) {
         exportPower = gridPower;
         gridImportPower = 0;
@@ -769,6 +777,13 @@ class SolarBarCard extends HTMLElement {
         }
       },
       {
+        name: "invert_grid_power",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
         name: "export_entity",
         selector: {
           entity: {
@@ -952,6 +967,7 @@ class SolarBarCard extends HTMLElement {
         export_entity: "Export to Grid Sensor",
         import_entity: "Import from Grid Sensor",
         grid_power_entity: "Combined Grid Power Sensor",
+        invert_grid_power: "Invert Grid Power Values",
         ev_charger_sensor: "EV Charger Power Sensor",
         car_charger_load: "EV Charger Capacity",
         use_solcast: "Auto-detect Solcast",
@@ -977,6 +993,7 @@ class SolarBarCard extends HTMLElement {
         export_entity: "Sensor showing power exported to the grid",
         import_entity: "Sensor showing power imported from the grid",
         grid_power_entity: "Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors",
+        invert_grid_power: "Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.",
         ev_charger_sensor: "Actual EV charger power sensor (optional - shows when actively charging)",
         car_charger_load: "EV charger capacity in kW to show potential usage (grey bar when not charging)",
         use_solcast: "Automatically detect Solcast forecast sensors",
@@ -1027,4 +1044,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
 });
 
-console.info('%c🌞 Solar Bar Card v1.0.4 loaded! Much softer, pastel color palette', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v1.0.5 loaded! Now with grid power inversion support', 'color: #FFC107; font-weight: bold;');
