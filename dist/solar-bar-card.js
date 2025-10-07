@@ -1044,4 +1044,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
 });
 
-console.info('%c🌞 Solar Bar Card v1.0.6 loaded! Now with grid power inversion support', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v1.0.7 loaded! Now with grid power inversion support', 'color: #FFC107; font-weight: bold;');

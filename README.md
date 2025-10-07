@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-1.0.6-blue.svg)
+![Version](https://img.shields.io/badge/Version-1.0.7-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -142,7 +142,7 @@ use_solcast: true
 | `production_entity`       | string  | `null`          | ☀️ Solar production power sensor (required)                                                                                 |
 | `self_consumption_entity` | string  | `null`          | 🏠 Home power consumption sensor (required)                                                                                   |
 | `grid_power_entity`       | string  | `null`          | ⚡ Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors. (optional/alternative) |
-| `invert_grid_power`       | boolean  | `false`          | ⚡ Inverts grid_power_entity sensor import/export value. (optional) |
+| `invert_grid_power`       | boolean | `false`         | ⚡ Inverts grid_power_entity sensor import/export value. (optional)                                                           |
 | `export_entity`           | string  | `null`          | ⚡ Grid export power sensor (optional/alternative)                                                                            |
 | `import_entity`           | string  | `null`          | 📥 Grid import power sensor (optional/alternative)                                                                            |
 | `ev_charger_sensor`       | string  | `null`          | 🔌 Active EV charger power sensor (optional)                                                                                  |
@@ -377,7 +377,7 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v1.0.6** (Current)
+**v1.0.7** (Current)
 
 - ✨ Invert Grid Power Values - Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.
 
