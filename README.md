@@ -377,7 +377,7 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v1.0.5** (Current)
+**v1.0.6** (Current)
 
 - ✨ Invert Grid Power Values - Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.
 
