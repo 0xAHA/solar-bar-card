@@ -142,6 +142,7 @@ use_solcast: true
 | `production_entity`       | string  | `null`          | ☀️ Solar production power sensor (required)                                                                                 |
 | `self_consumption_entity` | string  | `null`          | 🏠 Home power consumption sensor (required)                                                                                   |
 | `grid_power_entity`       | string  | `null`          | ⚡ Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors. (optional/alternative) |
+| `invert_grid_power`       | boolean  | `false`          | ⚡ Inverts grid_power_entity sensor import/export value. (optional) |
 | `export_entity`           | string  | `null`          | ⚡ Grid export power sensor (optional/alternative)                                                                            |
 | `import_entity`           | string  | `null`          | 📥 Grid import power sensor (optional/alternative)                                                                            |
 | `ev_charger_sensor`       | string  | `null`          | 🔌 Active EV charger power sensor (optional)                                                                                  |
@@ -375,6 +376,10 @@ MIT License - see LICENSE file for details
 ---
 
 ## 📊 Version History
+
+**v1.0.6** (Current)
+
+- ✨ Invert Grid Power Values - Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.
 
 **v1.0.2** (Current)
 
