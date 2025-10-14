@@ -3,11 +3,11 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-1.0.7-blue.svg)
+![Version](https://img.shields.io/badge/Version-1.0.8-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
-![1759611909382.png](./1759611909382.png)
+![1759611909382.png](https://claude.ai/chat/1759611909382.png)
 
 ---
 
@@ -15,56 +15,81 @@
 
 ### 🎨 Visual Power Distribution
 
-- **Color-coded bar** showing real-time power allocation
-- **Green** for solar self-consumption
-- **Red** for grid import (when consuming more than solar produces)
-- **Blue** for grid export
-- **Soft amber** for active EV charging
-- **Grey** for potential EV charging capacity
-- **Semi-transparent** for unused inverter capacity
-- **Yellow dotted line** for solar forecast
+* **Color-coded bar** showing real-time power allocation
+* **Green** for solar self-consumption
+* **Orange** for EV charging (solar + grid split)
+* **Red/Coral** for grid import
+* **Blue** for grid export
+* **Grey dashed** for potential EV charging capacity
+* **Semi-transparent** for unused inverter capacity
+* **Yellow dotted line** for solar forecast
+
+### 🎨 Customizable Color Palettes
+
+* **6 beautiful preset palettes** with soft pastel colors:
+  * 🌞 Classic Solar - Bright, traditional solar colors
+  * 🌸 Soft Meadow - Gentle pastels with spring vibes
+  * 🌊 Ocean Sunset - Warm sunset meets cool ocean
+  * 🌿 Garden Fresh - Natural greens and soft tones
+  * 🍑 Peachy Keen - Warm peach and lavender blend
+  * ☁️ Cloudy Day - Soft, cloudy sky palette
+* **Custom color overrides** - Override any individual color while keeping the palette
+* **Color picker integration** in the UI editor
+
+### ⚙️ Organized Configuration UI
+
+* **Expandable/collapsible sections** for clean organization:
+  * ⚙️ Basic Settings
+  * 🔌 Entity Configuration
+  * 🔮 Forecast Configuration
+  * 🎨 Appearance & Colors
+  * 👁️ Display Options
+* **Visual palette selector** with emoji icons
+* **Nested custom color overrides** within the Appearance section
 
 ### 🌙 Smart Idle Detection
 
-- Automatically detects when solar system is in standby mode
-- Shows "Solar system in standby mode" message
-- Prevents displaying stale data overnight
+* Automatically detects when solar system is in standby mode
+* Shows "Solar system in standby mode" message
+* Prevents displaying stale data overnight
 
 ### 🚗 Intelligent EV Charger Support
 
-- Show potential charging capacity (smart calculation accounts for current export)
-- Display actual charging power when actively charging
-- EV potential only shows additional power needed beyond current export
+* **Smart power flow visualization** - Automatically splits EV charging into solar (green) vs grid (orange)
+* **EV Ready Indicator** - Shows ⚡🚗 icon when excess solar can power your charger (half/full charge detection)
+* **Potential capacity display** - Shows additional charging capacity available (grey dashed bar)
+* **Active charging detection** - Displays actual charging power with proper color coding
 
 ### 🌤️ Weather Integration
 
-- Dynamic weather icons (☀️ sunny, 🌧️ rainy, ⛈️ stormy, etc.)
-- Supports both weather entities and temperature sensors
-- Displays in top-right corner
+* Dynamic weather icons (☀️ sunny, 🌧️ rainy, ⛈️ stormy, etc.)
+* Supports both weather entities and temperature sensors
+* Displays in top-right corner
 
 ### 📊 Solar Forecast
 
-- Integration with Solcast (auto-detection)
-- Support for custom forecast sensors
-- Visual lightning bolt indicator on bar
+* Integration with Solcast (auto-detection)
+* Support for custom forecast sensors
+* Visual lightning bolt indicator on bar
 
 ### 🎛️ Flexible Display
 
 Toggle any component on/off:
 
-- Header with title
-- Individual power statistics (4 tiles)
-- Power distribution label
-- Color-coded legend with values
-- Weather/temperature display
-- Bar segment values
+* Header with title
+* Individual power statistics (4 tiles)
+* Power distribution label
+* Color-coded legend with values
+* Weather/temperature display
+* Bar segment values
+* Tick marks with scale labels
 
 ### 📱 Responsive Design
 
-- Adapts to Sections view
-- Works in Masonry view
-- Dynamic card sizing
-- Mobile-friendly
+* Adapts to Sections view
+* Works in Masonry view
+* Dynamic card sizing
+* Mobile-friendly
 
 ---
 
@@ -84,15 +109,15 @@ Toggle any component on/off:
 
 ### Method 2: Manual Installation
 
-1. Download `solar-bar-card.js` from [latest release](https://github.com/0xAHA/solar-bar-card/releases)
-2. Copy to `<config>/www/solar-bar-card.js`
+1. Download `solar-bar-card.js` and `solar-bar-card-palettes.js` from [latest release](https://github.com/0xAHA/solar-bar-card/releases)
+2. Copy both files to `<config>/www/`
 3. Add resource to dashboard:
    ```yaml
-   resources:
-     - url: /local/solar-bar-card.js
-       type: module
+   resources:  - url: /local/solar-bar-card.js    type: module
    ```
 4. Restart Home Assistant
+
+**Note:** Both `.js` files are required as of v1.0.8 for the color palette system.
 
 ---
 
@@ -109,6 +134,19 @@ export_entity: sensor.grid_export_power
 import_entity: sensor.grid_import_power
 ```
 
+### With Color Palette
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+import_entity: sensor.grid_import_power
+color_palette: ocean-sunset
+show_legend: true
+```
+
 ### Full Featured Setup
 
 ```yaml
@@ -118,6 +156,7 @@ production_entity: sensor.solar_production_power
 self_consumption_entity: sensor.home_consumption
 export_entity: sensor.grid_export_power
 import_entity: sensor.grid_import_power
+color_palette: garden-fresh
 show_header: true
 header_title: "Solar Power"
 show_weather: true
@@ -125,7 +164,7 @@ weather_entity: weather.home
 show_stats: true
 show_legend: true
 show_legend_values: true
-show_bar_values: false
+show_bar_values: true
 ev_charger_sensor: sensor.ev_charger_power
 car_charger_load: 7.4
 use_solcast: true
@@ -136,28 +175,118 @@ use_solcast: true
 ## ⚙️ Configuration Options
 
 
-| Option                    | Type    | Default         | Description                                                                                                                   |
-| --------------------------- | --------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `inverter_size`           | number  | `10`            | 🔋 Maximum solar system capacity (kW)                                                                                         |
-| `production_entity`       | string  | `null`          | ☀️ Solar production power sensor (required)                                                                                 |
-| `self_consumption_entity` | string  | `null`          | 🏠 Home power consumption sensor (required)                                                                                   |
-| `grid_power_entity`       | string  | `null`          | ⚡ Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors. (optional/alternative) |
-| `invert_grid_power`       | boolean | `false`         | ⚡ Inverts grid_power_entity sensor import/export value. (optional)                                                           |
-| `export_entity`           | string  | `null`          | ⚡ Grid export power sensor (optional/alternative)                                                                            |
-| `import_entity`           | string  | `null`          | 📥 Grid import power sensor (optional/alternative)                                                                            |
-| `ev_charger_sensor`       | string  | `null`          | 🔌 Active EV charger power sensor (optional)                                                                                  |
-| `car_charger_load`        | number  | `0`             | 🚗 EV charger capacity in kW (for potential display)                                                                          |
-| `use_solcast`             | boolean | `false`         | ☁️ Auto-detect Solcast forecast sensor                                                                                      |
-| `forecast_entity`         | string  | `null`          | 📈 Solar forecast power sensor                                                                                                |
-| `show_header`             | boolean | `false`         | 📝 Display card title                                                                                                         |
-| `header_title`            | string  | `"Solar Power"` | 🏷️ Custom title text                                                                                                        |
-| `show_weather`            | boolean | `false`         | 🌡️ Display current temperature                                                                                              |
-| `weather_entity`          | string  | `null`          | 🌤️ Weather or temperature sensor                                                                                            |
-| `show_stats`              | boolean | `false`         | 📊 Display power statistics tiles                                                                                             |
-| `show_legend`             | boolean | `true`          | 🎨 Display color-coded legend                                                                                                 |
-| `show_legend_values`      | boolean | `true`          | 🔢 Show kW values in legend                                                                                                   |
-| `show_bar_label`          | boolean | `true`          | 🏷️ Show power distribution label above bar                                                                                  |
-| `show_bar_values`         | boolean | `true`          | 📊 Show kW values on bar segments                                                                                             |
+| Option                    | Type    | Default           | Description                                                                                                                   |
+| --------------------------- | --------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `inverter_size`           | number  | `10`              | 🔋 Maximum solar system capacity (kW)                                                                                         |
+| `production_entity`       | string  | `null`            | ☀️ Solar production power sensor (required)                                                                                 |
+| `self_consumption_entity` | string  | `null`            | 🏠 Home power consumption sensor (required)                                                                                   |
+| `grid_power_entity`       | string  | `null`            | ⚡ Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors. (optional/alternative) |
+| `invert_grid_power`       | boolean | `false`           | ⚡ Inverts grid_power_entity sensor import/export value. (optional)                                                           |
+| `export_entity`           | string  | `null`            | ⚡ Grid export power sensor (optional/alternative)                                                                            |
+| `import_entity`           | string  | `null`            | 📥 Grid import power sensor (optional/alternative)                                                                            |
+| `ev_charger_sensor`       | string  | `null`            | 🔌 Active EV charger power sensor (optional)                                                                                  |
+| `car_charger_load`        | number  | `0`               | 🚗 EV charger capacity in kW (for potential display)                                                                          |
+| `use_solcast`             | boolean | `false`           | ☁️ Auto-detect Solcast forecast sensor                                                                                      |
+| `forecast_entity`         | string  | `null`            | 📈 Solar forecast power sensor                                                                                                |
+| `color_palette`           | string  | `"classic-solar"` | 🎨 Preset color scheme (see Color Palettes section)                                                                           |
+| `custom_colors`           | object  | `{}`              | 🎨 Override individual colors (see Color Palettes section)                                                                    |
+| `show_header`             | boolean | `false`           | 📝 Display card title                                                                                                         |
+| `header_title`            | string  | `"Solar Power"`   | 🏷️ Custom title text                                                                                                        |
+| `show_weather`            | boolean | `false`           | 🌡️ Display current temperature                                                                                              |
+| `weather_entity`          | string  | `null`            | 🌤️ Weather or temperature sensor                                                                                            |
+| `show_stats`              | boolean | `false`           | 📊 Display power statistics tiles                                                                                             |
+| `show_legend`             | boolean | `true`            | 🎨 Display color-coded legend                                                                                                 |
+| `show_legend_values`      | boolean | `true`            | 🔢 Show kW values in legend                                                                                                   |
+| `show_bar_label`          | boolean | `true`            | 🏷️ Show power distribution label above bar                                                                                  |
+| `show_bar_values`         | boolean | `true`            | 📊 Show kW values on bar segments                                                                                             |
+
+---
+
+## 🎨 Color Palettes
+
+### Available Palettes
+
+The card includes 6 carefully designed soft pastel color palettes:
+
+
+| Palette         | Icon | Description                      | Best For                         |
+| ----------------- | ------ | ---------------------------------- | ---------------------------------- |
+| `classic-solar` | 🌞   | Bright, traditional solar colors | Clear, professional dashboards   |
+| `soft-meadow`   | 🌸   | Gentle pastels with spring vibes | Light, airy themes               |
+| `ocean-sunset`  | 🌊   | Warm sunset meets cool ocean     | Balanced, harmonious displays    |
+| `garden-fresh`  | 🌿   | Natural greens and soft tones    | Eco-friendly, natural aesthetics |
+| `peachy-keen`   | 🍑   | Warm peach and lavender blend    | Warm, inviting interfaces        |
+| `cloudy-day`    | ☁️ | Soft, cloudy sky palette         | Subtle, minimal designs          |
+| `custom`        | 🎨   | Define your own colors           | Complete customization           |
+
+### Using Presets
+
+Simply specify the palette key:
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+color_palette: ocean-sunset
+```
+
+### Custom Color Overrides
+
+Override specific colors while keeping the palette base:
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+color_palette: classic-solar
+custom_colors:
+  solar: '#FFA500'      # Override just solar to orange
+  ev_charge: '#FF6347'  # Override just EV to tomato red
+```
+
+### Fully Custom Colors
+
+Use the `custom` palette and define all colors:
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+color_palette: custom
+custom_colors:
+  solar: '#FFE082'
+  export: '#A5D6A7'
+  import: '#FFAB91'
+  self_usage: '#B39DDB'
+  ev_charge: '#81D4FA'
+```
+
+### Color Mappings
+
+
+| Color Key    | Used For                                           | Example Hex |
+| -------------- | ---------------------------------------------------- | ------------- |
+| `solar`      | Solar production, forecast indicator               | `#FFE082`   |
+| `export`     | Grid export (blue bar)                             | `#A5D6A7`   |
+| `import`     | Grid import (coral/red bar)                        | `#FFAB91`   |
+| `self_usage` | Solar self-consumption (green bar), EV ready icon  | `#B39DDB`   |
+| `ev_charge`  | EV charging (orange bar), EV ready icon half-power | `#81D4FA`   |
+
+### Using the Visual Editor
+
+In the Home Assistant UI editor:
+
+1. Add or edit the Solar Bar Card
+2. Expand the **🎨 Appearance & Colors** section
+3. Select a palette from the dropdown (shows emoji + name)
+4. Optionally expand **Custom Color Overrides** to tweak individual colors
+5. Use the color picker for visual selection
 
 ---
 
@@ -168,13 +297,25 @@ use_solcast: true
 
 | Color                    | Meaning                | When Shown                                                 |
 | -------------------------- | ------------------------ | ------------------------------------------------------------ |
-| 🟢**Green**              | Solar self-consumption | Solar power used by your home                              |
-| 🔴**Red**                | Grid import            | Power imported from grid (when home needs more than solar) |
+| 🟢**Green**              | Solar self-consumption | Solar power used by your home (excluding EV)               |
+| 🟠**Orange**             | EV charging            | EV power from solar (bright) or grid (darker)              |
+| 🔴**Coral/Red**          | Grid import            | Power imported from grid (home usage)                      |
 | 🔵**Blue**               | Grid export            | Power sent to the grid                                     |
-| 🟠**Soft Amber**         | EV charging (active)   | When EV is actually charging                               |
-| ⬜**Light Grey**         | EV potential           | Additional charger capacity available                      |
+| ⬜**Light Grey Dashed**  | EV potential           | Additional charger capacity available                      |
 | 🔳**Semi-transparent**   | Unused capacity        | Available inverter capacity                                |
 | ⚡**Yellow dotted line** | Solar forecast         | Predicted solar production                                 |
+| ⚡🚗**EV Ready Icon**    | Excess solar ready     | Appears when excess solar can power EV (green/orange glow) |
+
+### Power Flow Logic
+
+The card intelligently splits power consumption to show you exactly where your energy is coming from:
+
+* **Home consumption from solar** (green) - Your house running on sunshine
+* **Home consumption from grid** (coral) - Grid power for your house
+* **EV consumption from solar** (bright orange) - Your car charging on sunshine
+* **EV consumption from grid** (darker orange) - Grid power for your car
+
+This gives you instant visibility into how much of your consumption (home + EV) is solar-powered vs grid-powered!
 
 ---
 
@@ -189,16 +330,16 @@ weather_entity: weather.home
 
 **Supported weather states:**
 
-- ☀️ Sunny
-- ⛅ Partly cloudy
-- ☁️ Cloudy
-- 🌦️ Rainy
-- 🌧️ Pouring
-- ⛈️ Thunderstorm
-- 🌨️ Snowy
-- 🌫️ Fog
-- 💨 Windy
-- 🌙 Clear night
+* ☀️ Sunny
+* ⛅ Partly cloudy
+* ☁️ Cloudy
+* 🌦️ Rainy
+* 🌧️ Pouring
+* ⛈️ Thunderstorm
+* 🌨️ Snowy
+* 🌫️ Fog
+* 💨 Windy
+* 🌙 Clear night
 
 ### Temperature Sensor (Thermometer Icon)
 
@@ -211,26 +352,46 @@ weather_entity: sensor.outdoor_temperature
 
 ## 🚗 EV Charger Integration
 
-### Potential Capacity (Grey Bar)
+### Smart Power Flow Visualization
 
-Shows what *could* be used for EV charging:
-
-```yaml
-car_charger_load: 7.4
-```
-
-The grey bar intelligently shows only the **additional** power needed beyond what's currently being exported. For example, if you're exporting 2kW and have a 7.4kW charger, only 5.4kW grey bar is shown.
-
-### Active Charging (Colored Bar)
-
-Displays actual power when charging:
+When you have an active EV charger sensor, the card automatically splits the EV charging power into solar vs grid:
 
 ```yaml
-car_charger_load: 7.4
 ev_charger_sensor: sensor.ev_charger_power
+car_charger_load: 7.4
 ```
 
-When `ev_charger_sensor` reports > 0W, the EV power is already included in consumption, so no separate segment appears.
+**What you see:**
+
+* **Bright orange segment** - EV power coming from solar
+* **Darker orange segment** - EV power coming from grid
+* **Green segment** - Home consumption from solar (excluding EV)
+* **Coral segment** - Home consumption from grid (excluding EV)
+
+This gives you instant visibility into whether your EV is charging on sunshine or grid power!
+
+### EV Ready Indicator
+
+When excess solar is available and you're not currently charging:
+
+* **Orange ⚡🚗** - Excess solar can cover 50%+ of your EV charger capacity
+* **Green ⚡🚗** - Excess solar can fully power your EV charger
+
+Perfect for knowing when to plug in!
+
+### Potential Capacity (Grey Dashed Bar)
+
+Shows additional charging capacity available beyond current export:
+
+```yaml
+car_charger_load: 7.4
+```
+
+The grey dashed bar intelligently shows only the **additional** power needed. For example:
+
+* Currently exporting 2kW
+* Charger capacity is 7.4kW
+* Grey bar shows: 5.4kW (the extra power needed)
 
 ---
 
@@ -244,9 +405,9 @@ use_solcast: true
 
 Automatically finds Solcast forecast sensors like:
 
-- `sensor.solcast_pv_forecast_power_now`
-- `sensor.solcast_forecast_power_now`
-- `sensor.solcast_power_now`
+* `sensor.solcast_pv_forecast_power_now`
+* `sensor.solcast_forecast_power_now`
+* `sensor.solcast_power_now`
 
 **Note:** The forecast indicator only appears when the forecasted power exceeds your current production.
 
@@ -267,14 +428,28 @@ The forecast appears as a **yellow vertical dotted line with lightning bolt** (�
 1. **Clear browser cache:** `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
 2. **Verify resource:** Developer Tools → Resources
 3. **Check console:** F12 → Console tab for errors
+4. **Ensure both files are present:** Both `solar-bar-card.js` and `solar-bar-card-palettes.js` must be in `/config/www/`
+
+### 🎨 Colors Not Changing
+
+1. **Clear browser cache** - Color changes require a hard refresh
+2. **Verify both files are installed** - The palette system needs both `.js` files
+3. **Check palette name** - Must match exactly (e.g., `ocean-sunset` not `ocean_sunset`)
+4. **Inspect custom_colors format** - Must use hex format `#RRGGBB`
+
+### ⚙️ Expandable Sections Not Showing
+
+* **Check Home Assistant version** - Requires HA 2023.9 or later
+* The visual editor needs the `type: "expandable"` fields to render properly
+* You can still configure via YAML without the UI sections
 
 ### ❌ Wrong Values Displayed
 
-- ✅ Ensure sensors report in **W** or **kW** units
-- ✅ Card automatically converts W → kW
-- ✅ Verify entity IDs are correct
-- ✅ Check that `production_entity` is a power sensor (not energy/kWh)
-- ✅ Import sensor is optional but recommended for accurate grid import display
+* ✅ Ensure sensors report in **W** or **kW** units
+* ✅ Card automatically converts W → kW
+* ✅ Verify entity IDs are correct
+* ✅ Check that `production_entity` is a power sensor (not energy/kWh)
+* ✅ Import sensor is optional but recommended for accurate grid import display
 
 ### 📊 Using Cumulative Sensors (kWh)
 
@@ -283,9 +458,9 @@ If your inverter only provides **total energy** sensors, create derivative helpe
 1. **Settings** → **Devices & Services** → **Helpers**
 2. **Create Helper** → **Derivative**
 3. Configure:
-   - **Input sensor:** Your cumulative sensor
-   - **Time window:** 5 minutes
-   - **Unit time:** Hours
+   * **Input sensor:** Your cumulative sensor
+   * **Time window:** 5 minutes
+   * **Unit time:** Hours
 4. Use the derivative sensor in your card config
 
 This converts kWh accumulation → instantaneous kW power!
@@ -302,6 +477,7 @@ inverter_size: 10
 production_entity: sensor.solar_production_power
 self_consumption_entity: sensor.home_consumption
 export_entity: sensor.grid_export_power
+color_palette: cloudy-day
 show_legend: false
 show_bar_label: false
 show_bar_values: false
@@ -316,6 +492,7 @@ production_entity: sensor.solar_production_power
 self_consumption_entity: sensor.home_consumption
 export_entity: sensor.grid_export_power
 import_entity: sensor.grid_import_power
+color_palette: garden-fresh
 show_header: true
 header_title: "🏡 Home Solar"
 show_weather: true
@@ -323,7 +500,7 @@ weather_entity: weather.forecast_home
 show_stats: true
 show_legend: true
 show_legend_values: true
-show_bar_values: false
+show_bar_values: true
 ev_charger_sensor: sensor.wallbox_power
 car_charger_load: 11
 use_solcast: true
@@ -338,13 +515,33 @@ production_entity: sensor.solar_production_power
 self_consumption_entity: sensor.home_load
 export_entity: sensor.grid_export
 import_entity: sensor.grid_import
+color_palette: peachy-keen
 show_header: true
 header_title: "⚡ Solar + EV"
 ev_charger_sensor: sensor.ev_charger_power
 car_charger_load: 7.4
 show_legend: true
 show_stats: true
-show_bar_values: false
+show_bar_values: true
+custom_colors:
+  ev_charge: '#FF6B35'  # Make EV charging stand out
+```
+
+### Ocean Theme
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+color_palette: ocean-sunset
+show_header: true
+header_title: "☀️ Ocean Power"
+show_weather: true
+weather_entity: weather.home
+show_legend: true
+show_bar_label: true
 ```
 
 ---
@@ -353,11 +550,36 @@ show_bar_values: false
 
 Contributions welcome! Feel free to:
 
-- 🐛 Report bugs
-- 💡 Suggest features
-- 🔧 Submit pull requests
+* 🐛 Report bugs
+* 💡 Suggest features
+* 🎨 Submit new color palettes
+* 🔧 Submit pull requests
 
 Please [open an issue](https://github.com/0xAHA/solar-bar-card/issues) for discussion first.
+
+### Adding Your Own Palette
+
+Want to contribute a new color palette? Edit `solar-bar-card-palettes.js`:
+
+```javascript
+export const COLOR_PALETTES = {
+  'my-awesome-palette': {
+    name: 'My Awesome Palette',
+    icon: '✨',
+    description: 'Your amazing color scheme',
+    colors: {
+      solar: '#XXXXXX',
+      export: '#XXXXXX',
+      import: '#XXXXXX',
+      self_usage: '#XXXXXX',
+      ev_charge: '#XXXXXX'
+    }
+  },
+  // ... existing palettes
+};
+```
+
+Submit a PR with your palette for consideration!
 
 ---
 
@@ -369,37 +591,46 @@ MIT License - see LICENSE file for details
 
 ## 🙏 Credits
 
-- Inspired by the **pool-monitor-card**
-- Built for the **Home Assistant** community
-- Maintained by [@0xAHA](https://github.com/0xAHA)
+* Inspired by the **pool-monitor-card**
+* Built for the **Home Assistant** community
+* Maintained by [@0xAHA](https://github.com/0xAHA)
 
 ---
 
 ## 📊 Version History
 
-**v1.0.7** (Current)
+**v1.0.8** (Current)
 
-- ✨ Invert Grid Power Values - Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.
+* 🎨 **6 Beautiful Color Palettes** - Soft pastel themes with visual selector
+* 📁 **Expandable Configuration Sections** - Organized, collapsible UI editor
+* 🎨 **Custom Color Overrides** - Fine-tune individual colors while keeping palettes
+* 🌈 **Color Picker Integration** - Visual color selection in UI
+* 📦 **Separate Palette File** - Clean architecture with `solar-bar-card-palettes.js`
+* ✅ **Full Backward Compatibility** - Existing configs work without changes
 
-**v1.0.2** (Current)
+**v1.0.7**
 
-- ✨ Manual entity configuration (removed Growatt auto-detection)
-- 📥 Added grid import sensor support
-- 🌙 Idle/standby state detection
-- 🎨 Softer color scheme (amber EV charging)
-- 📊 Toggle for bar segment values
-- 🧮 Smart EV potential calculation (accounts for export)
-- ⚡ Improved Solcast integration (uses power_now sensor)
-- 📏 Tighter vertical spacing for better layout
-- 🔧 Refined stats tiles (shows either import OR export)
+* ✨ Invert Grid Power Values - Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.
+
+**v1.0.2**
+
+* ✨ Manual entity configuration (removed Growatt auto-detection)
+* 📥 Added grid import sensor support
+* 🌙 Idle/standby state detection
+* 🎨 Softer color scheme (amber EV charging)
+* 📊 Toggle for bar segment values
+* 🧮 Smart EV potential calculation (accounts for export)
+* ⚡ Improved Solcast integration (uses power_now sensor)
+* 📏 Tighter vertical spacing for better layout
+* 🔧 Refined stats tiles (shows either import OR export)
 
 **v1.0.0**
 
-- ✨ Initial release
-- 🚗 EV charger support
-- 🌤️ Weather integration
-- 📈 Solar forecast display
-- 🎨 Fully customizable display
+* ✨ Initial release
+* 🚗 EV charger support
+* 🌤️ Weather integration
+* 📈 Solar forecast display
+* 🎨 Fully customizable display
 
 ---
 
