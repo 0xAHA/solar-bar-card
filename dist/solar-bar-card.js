@@ -368,11 +368,11 @@ class SolarBarCard extends HTMLElement {
         }
 
         .ev-ready-indicator.half-charge {
-          color: var(--ev-charging-color);
+          color: #FFB74D;
         }
 
         .ev-ready-indicator.full-charge {
-          color: var(--solar-usage-color);
+          color: #81C784;
         }
 
         .idle-state {
@@ -560,7 +560,7 @@ class SolarBarCard extends HTMLElement {
               ${evReadyHalf ? `
                 <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}" 
                      title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
-                  ⚡🚗
+                  <ha-icon icon="mdi:car-electric"></ha-icon>
                 </div>
               ` : ''}
               ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
@@ -694,33 +694,24 @@ class SolarBarCard extends HTMLElement {
 
   static getConfigForm() {
     const SCHEMA = [
-      // ===== BASIC SETTINGS SECTION =====
+      // Basic Settings
       {
-        type: "expandable",
-        name: "basic_settings",
-        title: "⚙️ Basic Settings",
-        schema: [
-          {
-            name: "inverter_size",
-            default: 10,
-            selector: {
-              number: {
-                min: 1,
-                max: 100,
-                step: 0.1,
-                mode: "box",
-                unit_of_measurement: "kW"
-              }
-            }
+        name: "inverter_size",
+        default: 10,
+        selector: {
+          number: {
+            min: 1,
+            max: 100,
+            step: 0.1,
+            mode: "box",
+            unit_of_measurement: "kW"
           }
-        ]
+        }
       },
-      
-      // ===== ENTITY CONFIGURATION SECTION =====
+      // Entity Configuration
       {
-        type: "expandable",
-        name: "entity_config",
-        title: "🔌 Entity Configuration",
+        type: "grid",
+        name: "",
         schema: [
           {
             name: "production_entity",
@@ -759,33 +750,41 @@ class SolarBarCard extends HTMLElement {
                 ]
               }
             }
-          },
-          {
-            name: "grid_power_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
+          }
+        ]
+      },
+      // Grid Power Configuration
+      {
+        name: "grid_power_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "power"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["W", "kW", "MW"]
+                }
               }
-            }
-          },
-          {
-            name: "invert_grid_power",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
+            ]
+          }
+        }
+      },
+      {
+        name: "invert_grid_power",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      // Separate Import/Export Entities
+      {
+        type: "grid",
+        name: "",
+        schema: [
           {
             name: "export_entity",
             selector: {
@@ -823,7 +822,14 @@ class SolarBarCard extends HTMLElement {
                 ]
               }
             }
-          },
+          }
+        ]
+      },
+      // EV Charger Configuration
+      {
+        type: "grid",
+        name: "",
+        schema: [
           {
             name: "ev_charger_sensor",
             selector: {
@@ -858,12 +864,10 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      
-      // ===== FORECAST SECTION =====
+      // Solar Forecast Configuration
       {
-        type: "expandable",
-        name: "forecast_config",
-        title: "🔮 Forecast Configuration",
+        type: "grid",
+        name: "",
         schema: [
           {
             name: "use_solcast",
@@ -893,68 +897,21 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-
-      // ===== APPEARANCE & COLORS SECTION =====
+      // Color Palette
       {
-        type: "expandable",
-        name: "appearance_colors",
-        title: "🎨 Appearance & Colors",
-        schema: [
-          {
-            name: "color_palette",
-            default: "classic-solar",
-            selector: {
-              select: {
-                options: getPaletteOptions(),
-                mode: "dropdown"
-              }
-            }
-          },
-          {
-            type: "expandable",
-            name: "custom_colors_section",
-            title: "Custom Color Overrides",
-            schema: [
-              {
-                name: "custom_colors.solar",
-                selector: {
-                  color_rgb: {}
-                }
-              },
-              {
-                name: "custom_colors.export",
-                selector: {
-                  color_rgb: {}
-                }
-              },
-              {
-                name: "custom_colors.import",
-                selector: {
-                  color_rgb: {}
-                }
-              },
-              {
-                name: "custom_colors.self_usage",
-                selector: {
-                  color_rgb: {}
-                }
-              },
-              {
-                name: "custom_colors.ev_charge",
-                selector: {
-                  color_rgb: {}
-                }
-              }
-            ]
+        name: "color_palette",
+        default: "classic-solar",
+        selector: {
+          select: {
+            options: getPaletteOptions(),
+            mode: "dropdown"
           }
-        ]
+        }
       },
-
-      // ===== DISPLAY OPTIONS SECTION =====
+      // Header Configuration
       {
-        type: "expandable",
-        name: "display_options",
-        title: "👁️ Display Options",
+        type: "grid",
+        name: "",
         schema: [
           {
             name: "show_header",
@@ -969,7 +926,14 @@ class SolarBarCard extends HTMLElement {
             selector: {
               text: {}
             }
-          },
+          }
+        ]
+      },
+      // Weather Configuration
+      {
+        type: "grid",
+        name: "",
+        schema: [
           {
             name: "show_weather",
             default: false,
@@ -992,7 +956,14 @@ class SolarBarCard extends HTMLElement {
                 ]
               }
             }
-          },
+          }
+        ]
+      },
+      // Display Options
+      {
+        type: "grid",
+        name: "",
+        schema: [
           {
             name: "show_stats",
             default: false,
@@ -1006,7 +977,13 @@ class SolarBarCard extends HTMLElement {
             selector: {
               boolean: {}
             }
-          },
+          }
+        ]
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
           {
             name: "show_bar_values",
             default: true,
@@ -1020,15 +997,15 @@ class SolarBarCard extends HTMLElement {
             selector: {
               boolean: {}
             }
-          },
-          {
-            name: "show_legend_values",
-            default: true,
-            selector: {
-              boolean: {}
-            }
           }
         ]
+      },
+      {
+        name: "show_legend_values",
+        default: true,
+        selector: {
+          boolean: {}
+        }
       }
     ];
 
@@ -1137,4 +1114,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
 });
 
-console.info('%c🌞 Solar Bar Card v1.0.8loaded! Power flow visualization + Color palettes + Expandable config', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v1.1.0 loaded! Power flow visualization + Color palettes', 'color: #FFC107; font-weight: bold;');

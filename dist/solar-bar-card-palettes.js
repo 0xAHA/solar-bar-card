@@ -114,3 +114,13 @@ export function getPaletteOptions() {
     label: `${COLOR_PALETTES[key].icon} ${COLOR_PALETTES[key].name}`
   }));
 }
+
+// Apply selected palette colors as CSS variables
+export function applyPaletteColors(config) {
+  const colors = getCardColors(config);
+
+  // Set each palette color as a CSS variable
+  Object.entries(colors).forEach(([key, value]) => {
+    document.documentElement.style.setProperty(`--color-${key}`, value);
+  });
+}
