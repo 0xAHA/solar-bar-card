@@ -38,14 +38,15 @@
 
 ### ⚙️ Organized Configuration UI
 
-* **Expandable/collapsible sections** for clean organization:
-  * ⚙️ Basic Settings
-  * 🔌 Entity Configuration
-  * 🔮 Forecast Configuration
-  * 🎨 Appearance & Colors
-  * 👁️ Display Options
+* **Well-organized sections** with emoji visual grouping:
+  * ⚙️ Basic Settings - Inverter capacity
+  * 🔌 Entity Configuration - Power sensors
+  * 🚗 EV Charger - EV-related settings
+  * 🔮 Forecast - Solcast and custom forecast
+  * 🎨 Appearance & Colors - Palette, header, weather
+  * 👁️ Display Options - Stats, legend, bar options
 * **Visual palette selector** with emoji icons
-* **Nested custom color overrides** within the Appearance section
+* **Clear section headers** in helper text for easy navigation
 
 ### 🌙 Smart Idle Detection
 
@@ -601,9 +602,10 @@ MIT License - see LICENSE file for details
 
 **v1.0.9** (Current)
 
-* ✨ **Improved Configuration UI** - Properly organized expandable sections for cleaner config editing
-* 🎨 **Fixed Color Palette Selector** - Color palette is now easily accessible in the Appearance section
-* 📁 **Better Organization** - Entity, EV Charger, Forecast, Appearance, and Display sections now properly collapsible
+* ✨ **Improved Configuration UI** - Well-organized sections with emoji visual grouping
+* 🎨 **Fixed Color Palette Selector** - Color palette is now clearly visible and accessible
+* 📁 **Better Organization** - Entity, EV Charger, Forecast, Appearance, and Display sections with emoji icons (⚙️ 🔌 🚗 🔮 🎨 👁️)
+* ✅ **Universal Compatibility** - Works across all Home Assistant versions
 * ✅ **Full Backward Compatibility** - Existing configs work without changes
 
 **v1.0.8**
