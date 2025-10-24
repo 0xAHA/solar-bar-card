@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with collapsible config sections and color palettes
-// Version 1.1.0 - Integrated with power flow visualization
+// Version 1.0.9 - Organized config UI with expandable sections
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -507,10 +507,6 @@ class SolarBarCard extends HTMLElement {
               <div class="stat-value">${solarProduction.toFixed(1)} kW</div>
             </div>
             <div class="stat">
-              <div class="stat-label">System Capacity</div>
-              <div class="stat-value">${inverter_size} kW</div>
-            </div>
-            <div class="stat">
               <div class="stat-label">Total Usage</div>
               <div class="stat-value">${selfConsumption.toFixed(1)} kW</div>
             </div>
@@ -694,7 +690,7 @@ class SolarBarCard extends HTMLElement {
 
   static getConfigForm() {
     const SCHEMA = [
-      // Basic Settings
+      // ⚙️ BASIC SETTINGS
       {
         name: "inverter_size",
         default: 10,
@@ -708,7 +704,7 @@ class SolarBarCard extends HTMLElement {
           }
         }
       },
-      // Entity Configuration
+      // 🔌 ENTITY CONFIGURATION
       {
         type: "grid",
         name: "",
@@ -753,7 +749,6 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // Grid Power Configuration
       {
         name: "grid_power_entity",
         selector: {
@@ -780,7 +775,6 @@ class SolarBarCard extends HTMLElement {
           boolean: {}
         }
       },
-      // Separate Import/Export Entities
       {
         type: "grid",
         name: "",
@@ -825,7 +819,7 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // EV Charger Configuration
+      // 🚗 EV CHARGER
       {
         type: "grid",
         name: "",
@@ -864,7 +858,7 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // Solar Forecast Configuration
+      // 🔮 FORECAST
       {
         type: "grid",
         name: "",
@@ -897,7 +891,7 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // Color Palette
+      // 🎨 APPEARANCE & COLORS
       {
         name: "color_palette",
         default: "classic-solar",
@@ -908,7 +902,6 @@ class SolarBarCard extends HTMLElement {
           }
         }
       },
-      // Header Configuration
       {
         type: "grid",
         name: "",
@@ -929,7 +922,6 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // Weather Configuration
       {
         type: "grid",
         name: "",
@@ -959,7 +951,7 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // Display Options
+      // 👁️ DISPLAY OPTIONS
       {
         type: "grid",
         name: "",
@@ -1049,18 +1041,18 @@ class SolarBarCard extends HTMLElement {
 
     const computeHelper = (schema) => {
       const helpers = {
-        inverter_size: "Your solar system's maximum capacity in kW",
-        production_entity: "Sensor showing current solar production power",
+        inverter_size: "⚙️ BASIC SETTINGS — Your solar system's maximum capacity in kW",
+        production_entity: "🔌 ENTITY CONFIGURATION — Sensor showing current solar production power",
         self_consumption_entity: "Sensor showing power used by your home (includes EV charging if active)",
         export_entity: "Sensor showing power exported to the grid",
         import_entity: "Sensor showing power imported from the grid",
         grid_power_entity: "Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors",
         invert_grid_power: "Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.",
-        ev_charger_sensor: "Actual EV charger power sensor - automatically splits usage into solar vs grid",
+        ev_charger_sensor: "🚗 EV CHARGER — Actual EV charger power sensor - automatically splits usage into solar vs grid",
         car_charger_load: "EV charger capacity in kW to show potential usage (grey dashed bar when not charging)",
-        use_solcast: "Automatically detect Solcast forecast sensors",
+        use_solcast: "🔮 FORECAST — Automatically detect Solcast forecast sensors",
         forecast_entity: "Sensor showing solar forecast data (ignored if Solcast auto-detect is enabled)",
-        color_palette: "Choose a preset color scheme or select Custom to define your own",
+        color_palette: "🎨 APPEARANCE & COLORS — Choose a preset color scheme or select Custom to define your own",
         "custom_colors.solar": "Override the solar power color from the palette",
         "custom_colors.export": "Override the export power color from the palette",
         "custom_colors.import": "Override the import power color from the palette",
@@ -1070,7 +1062,7 @@ class SolarBarCard extends HTMLElement {
         header_title: "Custom title for the card header",
         show_weather: "Display current temperature in the top-right corner",
         weather_entity: "Weather entity or temperature sensor (auto-detects which type)",
-        show_stats: "Display individual power statistics above the bar",
+        show_stats: "👁️ DISPLAY OPTIONS — Display individual power statistics above the bar",
         show_legend: "Display color-coded legend below the bar",
         show_legend_values: "Show current kW values in the legend",
         show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
