@@ -1,0 +1,65 @@
+# Example Configuration for Solar Bar Card v2.0.0-beta
+# Copy this to your Lovelace dashboard and customize the entity names
+
+type: custom:solar-bar-card
+
+# System Capacity
+inverter_size: 12  # Your solar inverter size in kW
+
+# Solar & Consumption Entities
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+
+# Grid Power (choose ONE option)
+
+# Option 1: Combined grid sensor (positive=export, negative=import)
+grid_power_entity: sensor.grid_power
+invert_grid_power: false  # Set to true for Enphase/Powerly meters
+
+# Option 2: Separate import/export sensors (comment out grid_power_entity if using this)
+# export_entity: sensor.grid_export_power
+# import_entity: sensor.grid_import_power
+
+# 🔋 BATTERY CONFIGURATION (NEW in v2.0.0)
+# Required: Both power and SOC sensors needed
+battery_power_entity: sensor.battery_power        # +value = charging, -value = discharging
+battery_soc_entity: sensor.battery_state_of_charge  # % (0-100)
+battery_capacity: 13.5                            # Optional: Battery size in kWh
+show_battery_flow: true                           # Show animated flow lines
+battery_flow_animation_speed: 2                   # Seconds per animation cycle (0.5-5)
+
+# EV Charger (Optional)
+ev_charger_sensor: sensor.ev_charger_power
+car_charger_load: 7.4  # Your EV charger capacity in kW
+
+# Solar Forecast (Optional)
+use_solcast: true  # Auto-detect Solcast sensors
+# forecast_entity: sensor.solar_forecast  # Or use custom forecast sensor
+
+# Appearance & Colors
+color_palette: ocean-sunset  # Options: classic-solar, soft-meadow, ocean-sunset,
+                             #          garden-fresh, peachy-keen, cloudy-day, custom
+
+# Header & Weather
+show_header: true
+header_title: "⚡ Solar + Battery System"
+show_weather: true
+weather_entity: weather.home
+
+# Display Options
+show_stats: true            # Show power statistics tiles
+show_legend: true           # Show legend below bar
+show_legend_values: true    # Show kW values in legend
+show_bar_label: true        # Show "Power Flow 0-12kW" label
+show_bar_values: true       # Show kW values on bar segments
+
+# Custom Color Overrides (Optional)
+# Uncomment to override palette colors
+# custom_colors:
+#   solar: '#FFE082'
+#   export: '#A5D6A7'
+#   import: '#FFAB91'
+#   self_usage: '#B39DDB'
+#   ev_charge: '#81D4FA'
+#   battery_charge: '#80DEEA'
+#   battery_discharge: '#64B5F6'
