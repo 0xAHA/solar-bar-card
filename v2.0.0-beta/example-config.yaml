@@ -25,7 +25,8 @@ invert_grid_power: false  # Set to true for Enphase/Powerly meters
 battery_power_entity: sensor.battery_power        # +value = charging, -value = discharging
 battery_soc_entity: sensor.battery_state_of_charge  # % (0-100)
 battery_capacity: 13.5                            # Optional: Battery size in kWh
-show_battery_flow: true                           # Show animated flow lines
+show_battery_indicator: true                      # Show battery bar (hide to show only in stats/legend)
+show_battery_flow: true                           # Show animated flow lines (elbow-style connections)
 battery_flow_animation_speed: 2                   # Seconds per animation cycle (0.5-5)
 
 # EV Charger (Optional)
