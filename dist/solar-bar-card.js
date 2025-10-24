@@ -694,7 +694,7 @@ class SolarBarCard extends HTMLElement {
 
   static getConfigForm() {
     const SCHEMA = [
-      // Basic Settings
+      // ⚙️ BASIC SETTINGS
       {
         name: "inverter_size",
         default: 10,
@@ -708,58 +708,13 @@ class SolarBarCard extends HTMLElement {
           }
         }
       },
-      // Entity Configuration Section
+      // 🔌 ENTITY CONFIGURATION
       {
-        type: "expandable",
-        title: "🔌 Entity Configuration",
-        collapsed: false,
+        type: "grid",
+        name: "",
         schema: [
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "production_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "self_consumption_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          },
-          {
-            name: "grid_power_entity",
+            name: "production_entity",
             selector: {
               entity: {
                 filter: [
@@ -778,265 +733,275 @@ class SolarBarCard extends HTMLElement {
             }
           },
           {
-            name: "invert_grid_power",
+            name: "self_consumption_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        name: "grid_power_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "power"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["W", "kW", "MW"]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: "invert_grid_power",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "export_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "import_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      // 🚗 EV CHARGER
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "ev_charger_sensor",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "car_charger_load",
+            default: 0,
+            selector: {
+              number: {
+                min: 0,
+                max: 50,
+                step: 0.5,
+                mode: "box",
+                unit_of_measurement: "kW"
+              }
+            }
+          }
+        ]
+      },
+      // 🔮 FORECAST
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "use_solcast",
             default: false,
             selector: {
               boolean: {}
             }
           },
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "export_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "import_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      // EV Charger Configuration Section
-      {
-        type: "expandable",
-        title: "🚗 EV Charger",
-        collapsed: true,
-        schema: [
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "ev_charger_sensor",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "car_charger_load",
-                default: 0,
-                selector: {
-                  number: {
-                    min: 0,
-                    max: 50,
-                    step: 0.5,
-                    mode: "box",
-                    unit_of_measurement: "kW"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      // Solar Forecast Configuration Section
-      {
-        type: "expandable",
-        title: "🔮 Forecast Configuration",
-        collapsed: true,
-        schema: [
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "use_solcast",
-                default: false,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "forecast_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      },
-      // Appearance & Colors Section
-      {
-        type: "expandable",
-        title: "🎨 Appearance & Colors",
-        collapsed: true,
-        schema: [
-          {
-            name: "color_palette",
-            default: "classic-solar",
+            name: "forecast_entity",
             selector: {
-              select: {
-                options: getPaletteOptions(),
-                mode: "dropdown"
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
               }
+            }
+          }
+        ]
+      },
+      // 🎨 APPEARANCE & COLORS
+      {
+        name: "color_palette",
+        default: "classic-solar",
+        selector: {
+          select: {
+            options: getPaletteOptions(),
+            mode: "dropdown"
+          }
+        }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "show_header",
+            default: false,
+            selector: {
+              boolean: {}
             }
           },
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_header",
-                default: false,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "header_title",
-                default: "Solar Power",
-                selector: {
-                  text: {}
-                }
-              }
-            ]
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_weather",
-                default: false,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "weather_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "weather"
-                      },
-                      {
-                        domain: "sensor",
-                        device_class: "temperature"
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
+            name: "header_title",
+            default: "Solar Power",
+            selector: {
+              text: {}
+            }
           }
         ]
       },
-      // Display Options Section
       {
-        type: "expandable",
-        title: "👁️ Display Options",
-        collapsed: true,
+        type: "grid",
+        name: "",
         schema: [
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_stats",
-                default: false,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "show_bar_label",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              }
-            ]
+            name: "show_weather",
+            default: false,
+            selector: {
+              boolean: {}
+            }
           },
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_bar_values",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "show_legend",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
+            name: "weather_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "weather"
+                  },
+                  {
+                    domain: "sensor",
+                    device_class: "temperature"
+                  }
+                ]
               }
-            ]
+            }
+          }
+        ]
+      },
+      // 👁️ DISPLAY OPTIONS
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "show_stats",
+            default: false,
+            selector: {
+              boolean: {}
+            }
           },
           {
-            name: "show_legend_values",
+            name: "show_bar_label",
             default: true,
             selector: {
               boolean: {}
             }
           }
         ]
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "show_bar_values",
+            default: true,
+            selector: {
+              boolean: {}
+            }
+          },
+          {
+            name: "show_legend",
+            default: true,
+            selector: {
+              boolean: {}
+            }
+          }
+        ]
+      },
+      {
+        name: "show_legend_values",
+        default: true,
+        selector: {
+          boolean: {}
+        }
       }
     ];
 
@@ -1048,50 +1013,50 @@ class SolarBarCard extends HTMLElement {
 
     const computeLabel = (schema) => {
       const labels = {
-        inverter_size: "Inverter Size",
-        production_entity: "Solar Production Sensor",
-        self_consumption_entity: "Self Consumption Sensor",
-        export_entity: "Export to Grid Sensor",
-        import_entity: "Import from Grid Sensor",
-        grid_power_entity: "Combined Grid Power Sensor",
-        invert_grid_power: "Invert Grid Power Values",
-        ev_charger_sensor: "EV Charger Power Sensor",
-        car_charger_load: "EV Charger Capacity",
-        use_solcast: "Auto-detect Solcast",
-        forecast_entity: "Forecast Solar Sensor",
-        color_palette: "Color Palette",
+        inverter_size: "⚙️ Inverter Size",
+        production_entity: "🔌 Solar Production Sensor",
+        self_consumption_entity: "🔌 Self Consumption Sensor",
+        export_entity: "🔌 Export to Grid Sensor",
+        import_entity: "🔌 Import from Grid Sensor",
+        grid_power_entity: "🔌 Combined Grid Power Sensor",
+        invert_grid_power: "🔌 Invert Grid Power Values",
+        ev_charger_sensor: "🚗 EV Charger Power Sensor",
+        car_charger_load: "🚗 EV Charger Capacity",
+        use_solcast: "🔮 Auto-detect Solcast",
+        forecast_entity: "🔮 Forecast Solar Sensor",
+        color_palette: "🎨 Color Palette",
         "custom_colors.solar": "☀️ Solar Power Color",
         "custom_colors.export": "↗️ Export Power Color",
         "custom_colors.import": "↙️ Import Power Color",
         "custom_colors.self_usage": "🏠 Self Usage Color",
         "custom_colors.ev_charge": "🚗 EV Charge Color",
-        show_header: "Show Header",
-        header_title: "Header Title",
-        show_weather: "Show Weather/Temperature",
-        weather_entity: "Weather or Temperature Sensor",
-        show_stats: "Show Individual Stats",
-        show_legend: "Show Legend",
-        show_legend_values: "Show Legend Values",
-        show_bar_label: "Show Bar Label",
-        show_bar_values: "Show Bar Values"
+        show_header: "🎨 Show Header",
+        header_title: "🎨 Header Title",
+        show_weather: "🎨 Show Weather/Temperature",
+        weather_entity: "🎨 Weather or Temperature Sensor",
+        show_stats: "👁️ Show Individual Stats",
+        show_legend: "👁️ Show Legend",
+        show_legend_values: "👁️ Show Legend Values",
+        show_bar_label: "👁️ Show Bar Label",
+        show_bar_values: "👁️ Show Bar Values"
       };
       return labels[schema.name] || schema.name;
     };
 
     const computeHelper = (schema) => {
       const helpers = {
-        inverter_size: "Your solar system's maximum capacity in kW",
-        production_entity: "Sensor showing current solar production power",
+        inverter_size: "⚙️ BASIC SETTINGS — Your solar system's maximum capacity in kW",
+        production_entity: "🔌 ENTITY CONFIGURATION — Sensor showing current solar production power",
         self_consumption_entity: "Sensor showing power used by your home (includes EV charging if active)",
         export_entity: "Sensor showing power exported to the grid",
         import_entity: "Sensor showing power imported from the grid",
         grid_power_entity: "Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors",
         invert_grid_power: "Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.",
-        ev_charger_sensor: "Actual EV charger power sensor - automatically splits usage into solar vs grid",
+        ev_charger_sensor: "🚗 EV CHARGER — Actual EV charger power sensor - automatically splits usage into solar vs grid",
         car_charger_load: "EV charger capacity in kW to show potential usage (grey dashed bar when not charging)",
-        use_solcast: "Automatically detect Solcast forecast sensors",
+        use_solcast: "🔮 FORECAST — Automatically detect Solcast forecast sensors",
         forecast_entity: "Sensor showing solar forecast data (ignored if Solcast auto-detect is enabled)",
-        color_palette: "Choose a preset color scheme or select Custom to define your own",
+        color_palette: "🎨 APPEARANCE & COLORS — Choose a preset color scheme or select Custom to define your own",
         "custom_colors.solar": "Override the solar power color from the palette",
         "custom_colors.export": "Override the export power color from the palette",
         "custom_colors.import": "Override the import power color from the palette",
@@ -1101,7 +1066,7 @@ class SolarBarCard extends HTMLElement {
         header_title: "Custom title for the card header",
         show_weather: "Display current temperature in the top-right corner",
         weather_entity: "Weather entity or temperature sensor (auto-detects which type)",
-        show_stats: "Display individual power statistics above the bar",
+        show_stats: "👁️ DISPLAY OPTIONS — Display individual power statistics above the bar",
         show_legend: "Display color-coded legend below the bar",
         show_legend_values: "Show current kW values in the legend",
         show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
