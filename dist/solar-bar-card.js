@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with collapsible config sections and color palettes
-// Version 1.1.0 - Integrated with power flow visualization
+// Version 1.0.9 - Organized config UI with expandable sections
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -708,13 +708,58 @@ class SolarBarCard extends HTMLElement {
           }
         }
       },
-      // Entity Configuration
+      // Entity Configuration Section
       {
-        type: "grid",
-        name: "",
+        type: "expandable",
+        title: "🔌 Entity Configuration",
+        collapsed: false,
         schema: [
           {
-            name: "production_entity",
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "production_entity",
+                selector: {
+                  entity: {
+                    filter: [
+                      {
+                        domain: "sensor",
+                        device_class: "power"
+                      },
+                      {
+                        domain: "sensor",
+                        attributes: {
+                          unit_of_measurement: ["W", "kW", "MW"]
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                name: "self_consumption_entity",
+                selector: {
+                  entity: {
+                    filter: [
+                      {
+                        domain: "sensor",
+                        device_class: "power"
+                      },
+                      {
+                        domain: "sensor",
+                        attributes: {
+                          unit_of_measurement: ["W", "kW", "MW"]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            name: "grid_power_entity",
             selector: {
               entity: {
                 filter: [
@@ -733,279 +778,265 @@ class SolarBarCard extends HTMLElement {
             }
           },
           {
-            name: "self_consumption_entity",
+            name: "invert_grid_power",
+            default: false,
             selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
+              boolean: {}
             }
-          }
-        ]
-      },
-      // Grid Power Configuration
-      {
-        name: "grid_power_entity",
-        selector: {
-          entity: {
-            filter: [
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
               {
-                domain: "sensor",
-                device_class: "power"
+                name: "export_entity",
+                selector: {
+                  entity: {
+                    filter: [
+                      {
+                        domain: "sensor",
+                        device_class: "power"
+                      },
+                      {
+                        domain: "sensor",
+                        attributes: {
+                          unit_of_measurement: ["W", "kW", "MW"]
+                        }
+                      }
+                    ]
+                  }
+                }
               },
               {
-                domain: "sensor",
-                attributes: {
-                  unit_of_measurement: ["W", "kW", "MW"]
+                name: "import_entity",
+                selector: {
+                  entity: {
+                    filter: [
+                      {
+                        domain: "sensor",
+                        device_class: "power"
+                      },
+                      {
+                        domain: "sensor",
+                        attributes: {
+                          unit_of_measurement: ["W", "kW", "MW"]
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             ]
           }
-        }
+        ]
       },
+      // EV Charger Configuration Section
       {
-        name: "invert_grid_power",
-        default: false,
-        selector: {
-          boolean: {}
-        }
-      },
-      // Separate Import/Export Entities
-      {
-        type: "grid",
-        name: "",
+        type: "expandable",
+        title: "🚗 EV Charger",
+        collapsed: true,
         schema: [
           {
-            name: "export_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "ev_charger_sensor",
+                selector: {
+                  entity: {
+                    filter: [
+                      {
+                        domain: "sensor",
+                        device_class: "power"
+                      },
+                      {
+                        domain: "sensor",
+                        attributes: {
+                          unit_of_measurement: ["W", "kW", "MW"]
+                        }
+                      }
+                    ]
                   }
-                ]
-              }
-            }
-          },
-          {
-            name: "import_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
+                }
+              },
+              {
+                name: "car_charger_load",
+                default: 0,
+                selector: {
+                  number: {
+                    min: 0,
+                    max: 50,
+                    step: 0.5,
+                    mode: "box",
+                    unit_of_measurement: "kW"
                   }
-                ]
+                }
               }
-            }
+            ]
           }
         ]
       },
-      // EV Charger Configuration
+      // Solar Forecast Configuration Section
       {
-        type: "grid",
-        name: "",
+        type: "expandable",
+        title: "🔮 Forecast Configuration",
+        collapsed: true,
         schema: [
           {
-            name: "ev_charger_sensor",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "use_solcast",
+                default: false,
+                selector: {
+                  boolean: {}
+                }
+              },
+              {
+                name: "forecast_entity",
+                selector: {
+                  entity: {
+                    filter: [
+                      {
+                        domain: "sensor",
+                        device_class: "power"
+                      },
+                      {
+                        domain: "sensor",
+                        attributes: {
+                          unit_of_measurement: ["W", "kW", "MW"]
+                        }
+                      }
+                    ]
                   }
-                ]
+                }
               }
-            }
-          },
-          {
-            name: "car_charger_load",
-            default: 0,
-            selector: {
-              number: {
-                min: 0,
-                max: 50,
-                step: 0.5,
-                mode: "box",
-                unit_of_measurement: "kW"
-              }
-            }
+            ]
           }
         ]
       },
-      // Solar Forecast Configuration
+      // Appearance & Colors Section
       {
-        type: "grid",
-        name: "",
+        type: "expandable",
+        title: "🎨 Appearance & Colors",
+        collapsed: true,
         schema: [
           {
-            name: "use_solcast",
-            default: false,
+            name: "color_palette",
+            default: "classic-solar",
             selector: {
-              boolean: {}
+              select: {
+                options: getPaletteOptions(),
+                mode: "dropdown"
+              }
             }
           },
           {
-            name: "forecast_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "show_header",
+                default: false,
+                selector: {
+                  boolean: {}
+                }
+              },
+              {
+                name: "header_title",
+                default: "Solar Power",
+                selector: {
+                  text: {}
+                }
+              }
+            ]
+          },
+          {
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "show_weather",
+                default: false,
+                selector: {
+                  boolean: {}
+                }
+              },
+              {
+                name: "weather_entity",
+                selector: {
+                  entity: {
+                    filter: [
+                      {
+                        domain: "weather"
+                      },
+                      {
+                        domain: "sensor",
+                        device_class: "temperature"
+                      }
+                    ]
                   }
-                ]
+                }
               }
-            }
+            ]
           }
         ]
       },
-      // Color Palette
+      // Display Options Section
       {
-        name: "color_palette",
-        default: "classic-solar",
-        selector: {
-          select: {
-            options: getPaletteOptions(),
-            mode: "dropdown"
-          }
-        }
-      },
-      // Header Configuration
-      {
-        type: "grid",
-        name: "",
+        type: "expandable",
+        title: "👁️ Display Options",
+        collapsed: true,
         schema: [
           {
-            name: "show_header",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "header_title",
-            default: "Solar Power",
-            selector: {
-              text: {}
-            }
-          }
-        ]
-      },
-      // Weather Configuration
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "show_weather",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "weather_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "weather"
-                  },
-                  {
-                    domain: "sensor",
-                    device_class: "temperature"
-                  }
-                ]
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "show_stats",
+                default: false,
+                selector: {
+                  boolean: {}
+                }
+              },
+              {
+                name: "show_bar_label",
+                default: true,
+                selector: {
+                  boolean: {}
+                }
               }
-            }
-          }
-        ]
-      },
-      // Display Options
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "show_stats",
-            default: false,
-            selector: {
-              boolean: {}
-            }
+            ]
           },
           {
-            name: "show_bar_label",
+            type: "grid",
+            name: "",
+            schema: [
+              {
+                name: "show_bar_values",
+                default: true,
+                selector: {
+                  boolean: {}
+                }
+              },
+              {
+                name: "show_legend",
+                default: true,
+                selector: {
+                  boolean: {}
+                }
+              }
+            ]
+          },
+          {
+            name: "show_legend_values",
             default: true,
             selector: {
               boolean: {}
             }
           }
         ]
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "show_bar_values",
-            default: true,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "show_legend",
-            default: true,
-            selector: {
-              boolean: {}
-            }
-          }
-        ]
-      },
-      {
-        name: "show_legend_values",
-        default: true,
-        selector: {
-          boolean: {}
-        }
       }
     ];
 

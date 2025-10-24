@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-1.0.8-blue.svg)
+![Version](https://img.shields.io/badge/Version-1.0.9-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -599,10 +599,16 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v1.0.8** (Current)
+**v1.0.9** (Current)
+
+* ✨ **Improved Configuration UI** - Properly organized expandable sections for cleaner config editing
+* 🎨 **Fixed Color Palette Selector** - Color palette is now easily accessible in the Appearance section
+* 📁 **Better Organization** - Entity, EV Charger, Forecast, Appearance, and Display sections now properly collapsible
+* ✅ **Full Backward Compatibility** - Existing configs work without changes
+
+**v1.0.8**
 
 * 🎨 **6 Beautiful Color Palettes** - Soft pastel themes with visual selector
-* 📁 **Expandable Configuration Sections** - Organized, collapsible UI editor
 * 🎨 **Custom Color Overrides** - Fine-tune individual colors while keeping palettes
 * 🌈 **Color Picker Integration** - Visual color selection in UI
 * 📦 **Separate Palette File** - Clean architecture with `solar-bar-card-palettes.js`
