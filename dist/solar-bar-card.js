@@ -507,10 +507,6 @@ class SolarBarCard extends HTMLElement {
               <div class="stat-value">${solarProduction.toFixed(1)} kW</div>
             </div>
             <div class="stat">
-              <div class="stat-label">System Capacity</div>
-              <div class="stat-value">${inverter_size} kW</div>
-            </div>
-            <div class="stat">
               <div class="stat-label">Total Usage</div>
               <div class="stat-value">${selfConsumption.toFixed(1)} kW</div>
             </div>
@@ -1013,32 +1009,32 @@ class SolarBarCard extends HTMLElement {
 
     const computeLabel = (schema) => {
       const labels = {
-        inverter_size: "⚙️ Inverter Size",
-        production_entity: "🔌 Solar Production Sensor",
-        self_consumption_entity: "🔌 Self Consumption Sensor",
-        export_entity: "🔌 Export to Grid Sensor",
-        import_entity: "🔌 Import from Grid Sensor",
-        grid_power_entity: "🔌 Combined Grid Power Sensor",
-        invert_grid_power: "🔌 Invert Grid Power Values",
-        ev_charger_sensor: "🚗 EV Charger Power Sensor",
-        car_charger_load: "🚗 EV Charger Capacity",
-        use_solcast: "🔮 Auto-detect Solcast",
-        forecast_entity: "🔮 Forecast Solar Sensor",
-        color_palette: "🎨 Color Palette",
+        inverter_size: "Inverter Size",
+        production_entity: "Solar Production Sensor",
+        self_consumption_entity: "Self Consumption Sensor",
+        export_entity: "Export to Grid Sensor",
+        import_entity: "Import from Grid Sensor",
+        grid_power_entity: "Combined Grid Power Sensor",
+        invert_grid_power: "Invert Grid Power Values",
+        ev_charger_sensor: "EV Charger Power Sensor",
+        car_charger_load: "EV Charger Capacity",
+        use_solcast: "Auto-detect Solcast",
+        forecast_entity: "Forecast Solar Sensor",
+        color_palette: "Color Palette",
         "custom_colors.solar": "☀️ Solar Power Color",
         "custom_colors.export": "↗️ Export Power Color",
         "custom_colors.import": "↙️ Import Power Color",
         "custom_colors.self_usage": "🏠 Self Usage Color",
         "custom_colors.ev_charge": "🚗 EV Charge Color",
-        show_header: "🎨 Show Header",
-        header_title: "🎨 Header Title",
-        show_weather: "🎨 Show Weather/Temperature",
-        weather_entity: "🎨 Weather or Temperature Sensor",
-        show_stats: "👁️ Show Individual Stats",
-        show_legend: "👁️ Show Legend",
-        show_legend_values: "👁️ Show Legend Values",
-        show_bar_label: "👁️ Show Bar Label",
-        show_bar_values: "👁️ Show Bar Values"
+        show_header: "Show Header",
+        header_title: "Header Title",
+        show_weather: "Show Weather/Temperature",
+        weather_entity: "Weather or Temperature Sensor",
+        show_stats: "Show Individual Stats",
+        show_legend: "Show Legend",
+        show_legend_values: "Show Legend Values",
+        show_bar_label: "Show Bar Label",
+        show_bar_values: "Show Bar Values"
       };
       return labels[schema.name] || schema.name;
     };
