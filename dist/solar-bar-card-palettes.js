@@ -1,6 +1,6 @@
 // solar-bar-card-palettes.js
 // Color palette definitions for Solar Bar Card
-// Version 1.0.0
+// Version 1.0.9
 
 export const COLOR_PALETTES = {
   'classic-solar': {

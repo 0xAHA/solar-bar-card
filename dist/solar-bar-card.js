@@ -1106,4 +1106,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
 });
 
-console.info('%c🌞 Solar Bar Card v1.1.0 loaded! Power flow visualization + Color palettes', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v1.0.9 loaded! Power flow visualization + Color palettes', 'color: #FFC107; font-weight: bold;');
