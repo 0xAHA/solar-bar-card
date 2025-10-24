@@ -44,6 +44,7 @@ class SolarBarCard extends HTMLElement {
       battery_soc_entity: null,
       battery_capacity: 10,
       show_battery_flow: true,
+      show_battery_indicator: true,
       battery_flow_animation_speed: 2,
       ...config
     };
@@ -78,6 +79,7 @@ class SolarBarCard extends HTMLElement {
       battery_soc_entity = null,
       battery_capacity = 10,
       show_battery_flow = true,
+      show_battery_indicator = true,
       battery_flow_animation_speed = 2
     } = this.config;
 
@@ -258,20 +260,22 @@ class SolarBarCard extends HTMLElement {
     // Determine flow color and path
     let flowColor = '#4CAF50';
     let flowPath = '';
-    let showFlow = show_battery_flow && hasBattery && !batteryIdle;
+    let showFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
 
     if (showFlow) {
-      const barY = 200; // Y position of top of bar
-      const batteryY = 140; // Y position of bottom of battery indicator
+      const barY = 50; // Y position of top of bar (adjusted for smaller battery)
+      const batteryY = 36; // Y position of bottom of battery indicator (smaller bar)
       const batteryX = 250; // X position of center of battery
+      const elbowOffset = 30; // Offset for right-angle elbow
 
       if (batteryCharging) {
-        // Flow from bar to battery (charging)
+        // Flow from bar to battery (charging) - Right angle elbow
         flowColor = '#4CAF50';
         const chargeSourceX = (solarHomeEnd > 0 ? (solarHomeEnd / 2) : (solarHomePercent + solarEvPercent / 2)) / 100 * 500;
-        flowPath = `M ${chargeSourceX} ${barY} Q ${chargeSourceX} ${(barY + batteryY) / 2}, ${batteryX} ${batteryY}`;
+        // Create elbow: horizontal then vertical
+        flowPath = `M ${chargeSourceX} ${barY} L ${chargeSourceX} ${batteryY + elbowOffset} L ${batteryX} ${batteryY + elbowOffset} L ${batteryX} ${batteryY}`;
       } else if (batteryDischarging) {
-        // Flow from battery to bar (discharging)
+        // Flow from battery to bar (discharging) - Right angle elbow
         const isExporting = exportPower > 0.1;
         flowColor = isExporting ? '#FFC107' : '#2196F3';
 
@@ -284,7 +288,8 @@ class SolarBarCard extends HTMLElement {
           targetX = ((solarHomeEnd + gridHomeEnd) / 2 / 100) * 500;
         }
 
-        flowPath = `M ${batteryX} ${batteryY} Q ${(batteryX + targetX) / 2} ${(batteryY + barY) / 2}, ${targetX} ${barY}`;
+        // Create elbow: vertical then horizontal
+        flowPath = `M ${batteryX} ${batteryY} L ${batteryX} ${batteryY + elbowOffset} L ${targetX} ${batteryY + elbowOffset} L ${targetX} ${barY}`;
       }
     }
 
@@ -351,16 +356,6 @@ class SolarBarCard extends HTMLElement {
           position: relative;
         }
 
-        .stat.battery-stat.charging {
-          border: 2px solid var(--battery-charge-color);
-          box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
-        }
-
-        .stat.battery-stat.discharging {
-          border: 2px solid var(--battery-discharge-color);
-          box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
-        }
-
         .stat-label {
           color: var(--secondary-text-color);
           font-size: 12px;
@@ -376,63 +371,33 @@ class SolarBarCard extends HTMLElement {
         .battery-container {
           position: relative;
           width: 100%;
-          height: 120px;
           margin-bottom: 8px;
         }
 
         .battery-indicator {
-          position: absolute;
-          left: 50%;
-          top: 0;
-          transform: translateX(-50%);
-          background: var(--secondary-background-color);
-          border: 2px solid var(--divider-color);
-          border-radius: 12px;
-          padding: 8px 12px;
           display: flex;
-          flex-direction: column;
           align-items: center;
-          gap: 4px;
-          min-width: 100px;
-          z-index: 10;
+          justify-content: center;
+          gap: 8px;
+          background: var(--secondary-background-color);
+          border: 1px solid var(--divider-color);
+          border-radius: 16px;
+          padding: 0 12px;
+          height: 32px;
+          margin-bottom: 4px;
           transition: all 0.3s ease;
         }
 
         .battery-indicator.charging {
           border-color: var(--battery-charge-color);
-          animation: batteryPulse 2s ease-in-out infinite;
         }
 
         .battery-indicator.discharging {
           border-color: var(--battery-discharge-color);
-          animation: batteryPulse 2s ease-in-out infinite;
         }
 
         .battery-indicator.low-battery {
           border-color: #f44336;
-          animation: batteryPulseSlow 3s ease-in-out infinite;
-        }
-
-        @keyframes batteryPulse {
-          0%, 100% {
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
-            transform: translateX(-50%) scale(1);
-          }
-          50% {
-            box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
-            transform: translateX(-50%) scale(1.02);
-          }
-        }
-
-        @keyframes batteryPulseSlow {
-          0%, 100% {
-            box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
-            transform: translateX(-50%) scale(1);
-          }
-          50% {
-            box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
-            transform: translateX(-50%) scale(1.02);
-          }
         }
 
         .battery-icon-wrapper {
@@ -442,33 +407,33 @@ class SolarBarCard extends HTMLElement {
         }
 
         .battery-icon {
-          width: 32px;
-          height: 18px;
+          width: 24px;
+          height: 12px;
           border: 2px solid var(--primary-text-color);
-          border-radius: 3px;
+          border-radius: 2px;
           position: relative;
-          opacity: 0.8;
+          opacity: 0.7;
         }
 
         .battery-terminal {
           position: absolute;
-          right: -4px;
+          right: -3px;
           top: 50%;
           transform: translateY(-50%);
-          width: 4px;
-          height: 8px;
+          width: 3px;
+          height: 6px;
           background: var(--primary-text-color);
-          border-radius: 0 2px 2px 0;
-          opacity: 0.8;
+          border-radius: 0 1px 1px 0;
+          opacity: 0.7;
         }
 
         .battery-level {
           position: absolute;
-          left: 2px;
-          top: 2px;
-          bottom: 2px;
+          left: 1px;
+          top: 1px;
+          bottom: 1px;
           background: linear-gradient(90deg, #4CAF50, #8BC34A);
-          border-radius: 2px;
+          border-radius: 1px;
           transition: width 0.3s ease;
         }
 
@@ -481,25 +446,9 @@ class SolarBarCard extends HTMLElement {
         }
 
         .battery-soc {
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 600;
           color: var(--primary-text-color);
-        }
-
-        .battery-power {
-          font-size: 12px;
-          color: var(--secondary-text-color);
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .battery-power.charging {
-          color: var(--battery-charge-color);
-        }
-
-        .battery-power.discharging {
-          color: var(--battery-discharge-color);
         }
 
         .flow-line-container {
@@ -507,7 +456,7 @@ class SolarBarCard extends HTMLElement {
           top: 0;
           left: 0;
           width: 100%;
-          height: 100%;
+          height: 80px;
           pointer-events: none;
           z-index: 5;
         }
@@ -766,9 +715,9 @@ class SolarBarCard extends HTMLElement {
               <div class="stat-value">${solarProduction.toFixed(1)} kW</div>
             </div>
             ${hasBattery ? `
-              <div class="stat battery-stat ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : ''}">
+              <div class="stat battery-stat">
                 <div class="stat-label">Battery ${batterySOC}%</div>
-                <div class="stat-value">${batteryCharging ? '⚡⬆️' : batteryDischarging ? '⚡⬇️' : '⚡'} ${Math.abs(batteryPower).toFixed(1)} kW</div>
+                <div class="stat-value">${Math.abs(batteryPower).toFixed(1)} kW</div>
               </div>
             ` : ''}
             <div class="stat">
@@ -797,20 +746,19 @@ class SolarBarCard extends HTMLElement {
 
         ${hasBattery ? `
           <div class="battery-container">
-            <div class="battery-indicator ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : ''} ${batterySOC < 20 ? 'low-battery' : ''}">
-              <div class="battery-icon-wrapper">
-                <div class="battery-icon">
-                  <div class="battery-level ${batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
-                  <div class="battery-terminal"></div>
+            ${show_battery_indicator ? `
+              <div class="battery-indicator ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : ''} ${batterySOC < 20 ? 'low-battery' : ''}">
+                <div class="battery-icon-wrapper">
+                  <div class="battery-icon">
+                    <div class="battery-level ${batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
+                    <div class="battery-terminal"></div>
+                  </div>
+                  <div class="battery-soc">${batterySOC}%</div>
                 </div>
-                <div class="battery-soc">${batterySOC}%</div>
               </div>
-              <div class="battery-power ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : ''}">
-                ${batteryCharging ? '⬆️' : batteryDischarging ? '⬇️' : ''} ${Math.abs(batteryPower).toFixed(1)} kW
-              </div>
-            </div>
+            ` : ''}
             ${showFlow ? `
-              <svg class="flow-line-container" width="100%" height="100%" viewBox="0 0 500 220">
+              <svg class="flow-line-container" width="100%" height="80" viewBox="0 0 500 80">
                 <defs>
                   <filter id="glow">
                     <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -904,13 +852,13 @@ class SolarBarCard extends HTMLElement {
               ${hasBattery && batteryCharging ? `
                 <div class="legend-item">
                   <div class="legend-color battery-charge-color"></div>
-                  <span>Battery ⬆️${show_legend_values ? `: ${batteryPower.toFixed(1)}kW` : ''}</span>
+                  <span>Battery${show_legend_values ? `: ${batteryPower.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${hasBattery && batteryDischarging ? `
                 <div class="legend-item">
                   <div class="legend-color battery-discharge-color"></div>
-                  <span>Battery ⬇️${show_legend_values ? `: ${Math.abs(batteryPower).toFixed(1)}kW` : ''}</span>
+                  <span>Battery${show_legend_values ? `: ${Math.abs(batteryPower).toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${solarToHome > 0 ? `
@@ -1212,13 +1160,20 @@ class SolarBarCard extends HTMLElement {
             }
           },
           {
-            name: "show_battery_flow",
+            name: "show_battery_indicator",
             default: true,
             selector: {
               boolean: {}
             }
           }
         ]
+      },
+      {
+        name: "show_battery_flow",
+        default: true,
+        selector: {
+          boolean: {}
+        }
       },
       // 🚗 EV CHARGER
       {
@@ -1420,6 +1375,7 @@ class SolarBarCard extends HTMLElement {
         battery_power_entity: "Battery Power Sensor",
         battery_soc_entity: "Battery State of Charge Sensor",
         battery_capacity: "Battery Capacity",
+        show_battery_indicator: "Show Battery Bar",
         show_battery_flow: "Show Animated Flow Lines",
         ev_charger_sensor: "EV Charger Power Sensor",
         car_charger_load: "EV Charger Capacity",
@@ -1431,8 +1387,8 @@ class SolarBarCard extends HTMLElement {
         "custom_colors.import": "↙️ Import Power Color",
         "custom_colors.self_usage": "🏠 Self Usage Color",
         "custom_colors.ev_charge": "🚗 EV Charge Color",
-        "custom_colors.battery_charge": "🔋⬆️ Battery Charge Color",
-        "custom_colors.battery_discharge": "🔋⬇️ Battery Discharge Color",
+        "custom_colors.battery_charge": "Battery Charge Color",
+        "custom_colors.battery_discharge": "Battery Discharge Color",
         show_header: "Show Header",
         header_title: "Header Title",
         show_weather: "Show Weather/Temperature",
@@ -1458,6 +1414,7 @@ class SolarBarCard extends HTMLElement {
         battery_power_entity: "🔋 BATTERY — Battery power sensor (positive=charging, negative=discharging)",
         battery_soc_entity: "Battery state of charge sensor (0-100%)",
         battery_capacity: "Battery total capacity in kWh (for statistics)",
+        show_battery_indicator: "Show battery bar with icon and SOC above main bar (stats and legend still shown when hidden)",
         show_battery_flow: "Show animated flow lines indicating battery charge/discharge direction",
         ev_charger_sensor: "🚗 EV CHARGER — Actual EV charger power sensor - automatically splits usage into solar vs grid",
         car_charger_load: "EV charger capacity in kW to show potential usage (grey dashed bar when not charging)",
@@ -1503,6 +1460,7 @@ class SolarBarCard extends HTMLElement {
       color_palette: 'classic-solar',
       custom_colors: {},
       show_battery_flow: true,
+      show_battery_indicator: true,
       battery_flow_animation_speed: 2
     };
   }
