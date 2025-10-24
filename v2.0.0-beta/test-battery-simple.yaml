@@ -1,0 +1,140 @@
+# Simple Manual Battery Test Controls
+# Add this to configuration.yaml for easy testing
+
+# These create sliders in your UI that you can manually adjust to test different battery states
+
+input_number:
+  # Battery Power Control (-10 to +10 kW)
+  # Positive = Charging, Negative = Discharging
+  test_battery_power:
+    name: "🔋 Test Battery Power"
+    min: -10
+    max: 10
+    step: 0.1
+    unit_of_measurement: "kW"
+    icon: mdi:battery-charging-50
+
+  # Battery State of Charge (0-100%)
+  test_battery_soc:
+    name: "🔋 Test Battery SOC"
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:battery-50
+
+# ===================================================================
+# USAGE INSTRUCTIONS
+# ===================================================================
+
+# 1. Add the above to your configuration.yaml
+# 2. Restart Home Assistant
+# 3. Go to Settings → Devices & Services → Helpers
+# 4. You'll see two new helpers: "Test Battery Power" and "Test Battery SOC"
+# 5. Use these in your card configuration:
+
+# type: custom:solar-bar-card
+# battery_power_entity: input_number.test_battery_power
+# battery_soc_entity: input_number.test_battery_soc
+# ... other config ...
+
+# ===================================================================
+# TESTING DIFFERENT STATES
+# ===================================================================
+
+# Create a simple Entities card to control the battery:
+# type: entities
+# title: Battery Test Controls
+# entities:
+#   - entity: input_number.test_battery_power
+#     name: Battery Power (kW)
+#   - entity: input_number.test_battery_soc
+#     name: Battery Charge (%)
+
+# Then adjust the sliders to test:
+
+# Test 1: Charging from Solar (Green Flow ⬆️)
+# - Battery Power: +2.5 kW
+# - Battery SOC: 65%
+# Expected: Green particles flowing from bar up to battery
+
+# Test 2: Discharging to Home (Blue Flow ⬇️)
+# - Battery Power: -3.0 kW
+# - Battery SOC: 55%
+# - Make sure solar < consumption
+# Expected: Blue particles flowing from battery down to bar
+
+# Test 3: Discharging to Export (Amber Flow ⬇️)
+# - Battery Power: -5.0 kW
+# - Battery SOC: 85%
+# - Make sure export_entity shows >0 kW
+# Expected: Amber particles following curved path to export area
+
+# Test 4: Low Battery Warning (Red Pulse)
+# - Battery Power: -1.0 kW
+# - Battery SOC: 15%
+# Expected: Red pulsing border around battery indicator
+
+# Test 5: Full Battery (Green Icon)
+# - Battery Power: +0.5 kW
+# - Battery SOC: 100%
+# Expected: Green battery icon, full fill
+
+# Test 6: Idle State (No Animation)
+# - Battery Power: 0.0 kW
+# - Battery SOC: 50%
+# Expected: No flow animation, grey battery
+
+# Test 7: Fast Charging
+# - Battery Power: +8.0 kW
+# - Battery SOC: 25%
+# Expected: Green flow, high power value
+
+# Test 8: Medium Discharge
+# - Battery Power: -2.0 kW
+# - Battery SOC: 70%
+# Expected: Blue/amber flow depending on export
+
+# ===================================================================
+# QUICK TEST DASHBOARD
+# ===================================================================
+
+# Create this test dashboard for easy testing:
+
+# views:
+#   - title: Battery Test
+#     cards:
+#       # Control Panel
+#       - type: entities
+#         title: "🎛️ Battery Test Controls"
+#         entities:
+#           - entity: input_number.test_battery_power
+#             name: "Battery Power (+ charge, - discharge)"
+#           - entity: input_number.test_battery_soc
+#             name: "Battery Charge %"
+#
+#       # The Solar Bar Card
+#       - type: custom:solar-bar-card
+#         inverter_size: 12
+#         production_entity: sensor.solar_production_power
+#         self_consumption_entity: sensor.home_consumption
+#         export_entity: sensor.grid_export_power
+#         import_entity: sensor.grid_import_power
+#         battery_power_entity: input_number.test_battery_power
+#         battery_soc_entity: input_number.test_battery_soc
+#         battery_capacity: 13.5
+#         show_battery_flow: true
+#         battery_flow_animation_speed: 2
+#         show_stats: true
+#         show_legend: true
+#         color_palette: ocean-sunset
+#
+#       # State Monitor
+#       - type: markdown
+#         content: |
+#           ## Current State
+#           **Battery Power:** {{ states('input_number.test_battery_power') }} kW
+#           **Battery SOC:** {{ states('input_number.test_battery_soc') }}%
+#           **State:** {% if states('input_number.test_battery_power')|float > 0.05 %}⚡ Charging
+#           {% elif states('input_number.test_battery_power')|float < -0.05 %}⚡ Discharging
+#           {% else %}⚡ Idle{% endif %}

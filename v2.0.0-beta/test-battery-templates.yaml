@@ -1,0 +1,157 @@
+# Template Sensors for Testing Battery Features
+# Add these to your configuration.yaml to simulate a battery
+
+# Copy this entire section to your configuration.yaml
+template:
+  - sensor:
+      # Simulated Battery Power (positive = charging, negative = discharging)
+      # This simulates realistic battery behavior based on solar production and consumption
+      - name: "Test Battery Power"
+        unique_id: test_battery_power
+        unit_of_measurement: "kW"
+        device_class: power
+        state_class: measurement
+        state: >
+          {% set solar = states('sensor.solar_production_power') | float(0) %}
+          {% set consumption = states('sensor.home_consumption') | float(0) %}
+          {% set excess = solar - consumption %}
+          {% set battery_soc = states('sensor.test_battery_soc') | float(50) %}
+
+          {# Simulate battery charging when excess solar available #}
+          {% if excess > 0.5 and battery_soc < 95 %}
+            {# Charge at rate proportional to excess solar, max 5kW #}
+            {{ [excess * 0.8, 5.0] | min | round(2) }}
+
+          {# Simulate battery discharging when consumption exceeds solar #}
+          {% elif excess < -0.5 and battery_soc > 10 %}
+            {# Discharge to cover deficit, max 5kW #}
+            {{ [excess * 0.8, -5.0] | max | round(2) }}
+
+          {# Idle when balanced or battery full/empty #}
+          {% else %}
+            0.0
+          {% endif %}
+
+      # Simulated Battery State of Charge (0-100%)
+      # This changes over time based on charging/discharging
+      - name: "Test Battery SOC"
+        unique_id: test_battery_soc
+        unit_of_measurement: "%"
+        device_class: battery
+        state_class: measurement
+        state: >
+          {% set current_soc = states('sensor.test_battery_soc') | float(50) %}
+          {% set battery_power = states('sensor.test_battery_power') | float(0) %}
+          {% set battery_capacity = 13.5 %}  {# 13.5 kWh battery #}
+
+          {# Calculate SOC change per minute (assuming 1 min update interval) #}
+          {# Power in kW / Capacity in kWh * 60 min/hour * 100 = % change per minute #}
+          {% set soc_change_per_min = (battery_power / battery_capacity) * (1/60) * 100 %}
+          {% set new_soc = current_soc + soc_change_per_min %}
+
+          {# Clamp between 0-100% #}
+          {{ [[new_soc, 0] | max, 100] | min | round(1) }}
+
+# Alternative: Input Number for Manual Control
+# Uncomment if you want to manually control the battery for testing
+
+# input_number:
+#   test_battery_power_manual:
+#     name: Test Battery Power (Manual)
+#     min: -10
+#     max: 10
+#     step: 0.1
+#     unit_of_measurement: kW
+#     icon: mdi:battery-charging
+#
+#   test_battery_soc_manual:
+#     name: Test Battery SOC (Manual)
+#     min: 0
+#     max: 100
+#     step: 1
+#     unit_of_measurement: "%"
+#     icon: mdi:battery
+
+# Then use these manual sensors in your card:
+# battery_power_entity: input_number.test_battery_power_manual
+# battery_soc_entity: input_number.test_battery_soc_manual
+
+
+# ===================================================================
+# ADVANCED: Time-based Battery Simulation
+# This creates a more realistic daily battery pattern
+# ===================================================================
+
+# automation:
+#   - alias: "Simulate Battery Daily Cycle"
+#     trigger:
+#       - platform: time_pattern
+#         minutes: "/5"  # Update every 5 minutes
+#     action:
+#       - service: input_number.set_value
+#         target:
+#           entity_id: input_number.test_battery_soc_manual
+#         data:
+#           value: >
+#             {% set hour = now().hour %}
+#             {% set minute = now().minute %}
+#
+#             {# Morning: SOC decreases (night discharge) #}
+#             {% if hour < 8 %}
+#               {{ 40 + (8 - hour) * 5 }}
+#
+#             {# Day: SOC increases (solar charging) #}
+#             {% elif hour < 16 %}
+#               {{ 60 + (hour - 8) * 5 }}
+#
+#             {# Evening: SOC decreases (consumption) #}
+#             {% elif hour < 23 %}
+#               {{ 95 - (hour - 16) * 8 }}
+#
+#             {# Night: Slow discharge #}
+#             {% else %}
+#               {{ 50 }}
+#             {% endif %}
+
+
+# ===================================================================
+# TESTING SCENARIOS
+# ===================================================================
+
+# Scenario 1: Test Battery Charging
+# Set these values in Developer Tools → States:
+#   sensor.solar_production_power: 8.5
+#   sensor.home_consumption: 4.0
+# Expected: Battery charges at ~3.6kW (green flow upward)
+
+# Scenario 2: Test Battery Discharging to Home
+# Set these values:
+#   sensor.solar_production_power: 2.0
+#   sensor.home_consumption: 6.0
+# Expected: Battery discharges at ~-3.2kW (blue flow downward)
+
+# Scenario 3: Test Battery Discharging to Export
+# Set these values:
+#   sensor.solar_production_power: 2.0
+#   sensor.home_consumption: 2.0
+#   sensor.test_battery_soc: 90
+# Then manually set:
+#   sensor.test_battery_power: -5.0
+#   sensor.grid_export_power: 5.0
+# Expected: Amber curved flow to export
+
+# Scenario 4: Test Low Battery Warning
+# Set:
+#   sensor.test_battery_soc: 15
+# Expected: Red pulsing border, low battery indicator
+
+# Scenario 5: Test Full Battery
+# Set:
+#   sensor.test_battery_soc: 100
+# Expected: Green battery icon, charging stops
+
+# Scenario 6: Test Idle State
+# Set:
+#   sensor.solar_production_power: 5.0
+#   sensor.home_consumption: 5.0
+# Expected: Battery power ~0kW, no flow animation
