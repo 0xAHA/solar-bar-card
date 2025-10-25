@@ -4,29 +4,27 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Solar Power Card                              🌤️ 24°C  │
+│ Solar Power Card                                 24°C   │
 ├─────────────────────────────────────────────────────────┤
 │                                                          │
-│ ┌────────┬────────┬────────┬────────┐                  │
-│ │ Solar  │ Import │ Usage  │Battery │ ← 4 tiles max    │
-│ │ 8.5 kW │ 0 kW   │ 6.2 kW │ 2.1 kW │                  │
-│ └────────┴────────┴────────┴────────┘                  │
+│ ┌─────────┬─────────┬─────────┬──────────┐             │
+│ │ Solar   │ Export  │ Usage   │ Battery  │ ← 4 tiles   │
+│ │ 8.5 kW  │ 2.3 kW  │ 6.2 kW  │ ↑2.1 kW  │   max       │
+│ └─────────┴─────────┴─────────┴──────────┘             │
 │                                                          │
-│ Power Flow (0-15kW total)                               │
+│ Power Flow       Battery 85% | 0 - 10kW                 │
 │                                                          │
-│ ┌────────┐  ⚡→  ┌─────────────────────────────────┐   │
-│ │        │       │ Solar │ Batt │ Home │ Export   │   │
-│ │  85%   │       │ 6.4kW │ 2.1  │ 6.2  │ 2.3      │   │
-│ │ ▓▓▓▓▓▓ │       │       │      │      │          │   │
-│ │ ▓▓▓▓▓▓ │       └─────────────────────────────────┘   │
-│ │ ▓▓▓▓▓▓ │  ← Battery SOC filled from bottom           │
-│ │ ░░░░░░ │                                              │
-│ └────────┘                                              │
-│   33%          66%                                      │
-│ (Battery)    (Power Flow)                              │
+│ ┌────────┐→┌──────────────────────────────────────┐    │
+│ │  85%   ││ Solar │ Batt │ Home │ Export          │    │
+│ │ ▓▓▓▓▓▓ ││ 6.4kW │ 2.1  │ 6.2  │ 2.3             │    │
+│ │ ▓▓▓▓▓▓ ││       │      │      │                 │    │
+│ │ ░░░░░░ │└──────────────────────────────────────┘    │
+│ └────────┘  ← Battery SOC fills from left               │
+│   33%          66%                                       │
+│ (Battery)    (Power Flow)                               │
 │                                                          │
-│ ☀️ Solar  ▓ Usage  ▓ EV  ▓ Batt  ▓ Export              │
-│ 8.5kW     4.1kW   0kW   2.1kW   2.3kW                   │
+│ ☀️ Solar 8.5kW  ▓ Usage 6.2kW  ▓ Batt 2.1kW            │
+│ ▓ Export 2.3kW                                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -38,31 +36,47 @@
 Example: 5kW battery + 10kW solar = 33% battery, 66% power
 
 ## Battery Bar
-- Fills from bottom based on SOC%
+- Fills from LEFT based on SOC%
 - Color gradient: Red (<20%) → Yellow (20-50%) → Green (>50%)
-- Shows "XX%" label centered
+- Shows "XX%" label centered when SOC > 15%
+- Same height as power bar (32px)
+- Rounded corners on left side only
 
 ## Flow Line
-- Small arrow/line connecting bars
-- Green when charging (→)
-- Blue when discharging (←)
-- Position between the two bars
+- Small horizontal line connecting bars
+- Green when charging (power → battery)
+- Blue/Amber when discharging (battery → power/export)
+- Positioned at junction between the two bars
+- Animated particles flow along the line
 
 ## Stats Tiles (4 max)
-Always show:
-1. Solar Production
-2. Import OR Export (whichever is active)
-3. Total Usage
-4. Battery OR EV (whichever has higher power, or battery if both)
+Priority order:
+1. Solar (always shown)
+2. Export OR Import (whichever is active)
+3. Usage (always shown)
+4. Battery OR EV (battery takes priority if power >= EV power)
 
-Single-line labels only.
+Single-line labels only:
+- "Solar" (not "Solar Production")
+- "Export" / "Import" (not "Grid Export/Import")
+- "Usage" (not "Total Usage")
+- "Battery XX%" with ↑/↓ arrow
+- "EV"
 
 ## Legend
-Compact labels:
-- "Solar" (not "Solar Production")
-- "Import" / "Export" (not "Grid Import/Export")
-- "Usage" (not "Home Usage")
-- "Battery" (not "Battery Charging")
-- "EV" (not "EV Charging")
+Compact labels (no colons before values):
+- "Solar 8.5kW" (not "Solar: 8.5kW")
+- "Import 1.2kW" / "Export 2.3kW"
+- "Usage 6.2kW"
+- "Batt 2.1kW"
+- "EV 7.4kW"
 
-Keep to 5-6 items max to prevent wrapping.
+Priority order (shows active items only):
+1. Solar (if producing)
+2. Usage (if consuming)
+3. EV (if charging)
+4. Battery (if charging/discharging)
+5. Export (if exporting)
+6. Import (if importing)
+
+Keep to 5-6 items max to prevent wrapping to two lines.
