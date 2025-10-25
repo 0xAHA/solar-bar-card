@@ -304,12 +304,12 @@ class SolarBarCard extends HTMLElement {
 
       if (batteryCharging) {
         // Flow from power bar to battery bar (charging) - Left-pointing arrow
-        flowColor = colors.battery_charge;
+        flowColor = '#4CAF50'; // Vibrant green for visibility
         flowPath = `M ${powerX - lineOverlap} ${barCenterY} L ${batteryX + lineOverlap} ${barCenterY}`;
       } else if (batteryDischarging) {
         // Flow from battery bar to power bar (discharging) - Right-pointing arrow
         const isExporting = exportPower > 0.1;
-        flowColor = isExporting ? '#FFC107' : colors.battery_discharge;
+        flowColor = isExporting ? '#FFC107' : '#2196F3'; // Vibrant orange/blue
         flowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
       }
     }
