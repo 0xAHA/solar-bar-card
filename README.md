@@ -7,7 +7,9 @@
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
-![1759611909382.png](https://claude.ai/chat/1759611909382.png)
+![1759611909382.png](https://github.com/0xAHA/solar-bar-card/raw/main/1759611909382.png)
+
+ ![1761360830828.png](https://github.com/0xAHA/solar-bar-card/raw/main/1761360830828.png)
 
 ---
 
@@ -661,6 +663,14 @@ MIT License - see LICENSE file for details
 * 🌤️ Weather integration
 * 📈 Solar forecast display
 * 🎨 Fully customizable display
+
+---
+
+## 📊 Known Issues
+
+**v2.0.0** (Current)
+
+* 🔋 **Battery Integration** - Flow animation is a little buggy
 
 ---
 
