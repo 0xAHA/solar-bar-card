@@ -288,25 +288,29 @@ class SolarBarCard extends HTMLElement {
     let showFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
 
     if (showFlow) {
-      // For adjacent bars, flow is a small connector between the two bars
-      const batteryBarRight = batteryBarWidth; // Right edge of battery bar (in percentage)
-      const powerBarLeft = batteryBarWidth; // Left edge of power bar (same position)
+      // For adjacent bars with gap, flow is a connector in the gap between the two bars
+      // SVG viewBox is 500px wide, and there's an 8px gap between bars
 
-      // Convert percentages to SVG coordinates (assuming 500px width)
-      const batteryX = (batteryBarRight / 100) * 500;
-      const powerX = (powerBarLeft / 100) * 500;
+      // Calculate positions accounting for the gap
+      // Battery bar ends at its width percentage
+      const batteryX = (batteryBarWidth / 100) * 500;
+      // Gap is approximately 8-10px in SVG coordinates (estimate based on typical container width)
+      const gapWidth = 10;
+      // Power bar starts after battery + gap
+      const powerX = batteryX + gapWidth;
+
       const barCenterY = 16; // Center of 32px height bar
-      const arrowOffset = 8; // Small arrow between bars
+      const lineMargin = 2; // Small margin from bar edges
 
       if (batteryCharging) {
-        // Flow from power bar to battery bar (charging) - Right-pointing arrow
+        // Flow from power bar to battery bar (charging) - Left-pointing arrow
         flowColor = colors.battery_charge;
-        flowPath = `M ${powerX + arrowOffset} ${barCenterY} L ${batteryX - arrowOffset} ${barCenterY}`;
+        flowPath = `M ${powerX + lineMargin} ${barCenterY} L ${batteryX - lineMargin} ${barCenterY}`;
       } else if (batteryDischarging) {
-        // Flow from battery bar to power bar (discharging) - Left-pointing arrow
+        // Flow from battery bar to power bar (discharging) - Right-pointing arrow
         const isExporting = exportPower > 0.1;
         flowColor = isExporting ? '#FFC107' : colors.battery_discharge;
-        flowPath = `M ${batteryX + arrowOffset} ${barCenterY} L ${powerX - arrowOffset} ${barCenterY}`;
+        flowPath = `M ${batteryX + lineMargin} ${barCenterY} L ${powerX - lineMargin} ${barCenterY}`;
       }
     }
 
@@ -471,8 +475,9 @@ class SolarBarCard extends HTMLElement {
 
         .flow-line-container {
           position: absolute;
-          top: 0;
+          top: 50%;
           left: 0;
+          transform: translateY(-50%);
           width: 100%;
           height: 32px;
           pointer-events: none;
@@ -550,13 +555,19 @@ class SolarBarCard extends HTMLElement {
           background: linear-gradient(90deg, var(--battery-bar-color), var(--battery-bar-color));
           transition: width 0.3s ease;
           border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        }
+
+        .bar-overlay-label {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
           color: white;
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 600;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+          text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+          pointer-events: none;
+          z-index: 5;
         }
 
         .battery-bar-fill.low {
@@ -830,9 +841,8 @@ class SolarBarCard extends HTMLElement {
             <div class="bars-container">
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper" style="width: ${batteryBarWidth}%">
-                  <div class="battery-bar-fill ${batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%">
-                    ${batterySOC > 15 ? `${batterySOC}%` : ''}
-                  </div>
+                  <div class="battery-bar-fill ${batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
+                  <div class="bar-overlay-label">Battery ${batterySOC}%</div>
                 </div>
               ` : ''}
               <div class="solar-bar-wrapper" style="width: ${hasBattery && show_battery_indicator ? powerBarWidth : 100}%">
@@ -846,6 +856,7 @@ class SolarBarCard extends HTMLElement {
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
+                ${hasBattery && show_battery_indicator ? `<div class="bar-overlay-label">Solar</div>` : ''}
                 ${evReadyHalf ? `
                   <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
                        title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
@@ -857,16 +868,6 @@ class SolarBarCard extends HTMLElement {
                        style="left: ${anticipatedPercent}%"
                        title="Forecast solar potential: ${anticipatedPotential.toFixed(1)}kW"></div>
                 ` : ''}
-              </div>
-                <div class="tick-marks">
-                  ${Array.from({length: inverter_size + 1}, (_, i) => {
-                    const tickPercent = (i / inverter_size) * 100;
-                    const showLabel = i % Math.ceil(inverter_size / 10) === 0;
-                    return `<div class="tick" style="left: ${tickPercent}%">
-                      ${showLabel ? `<span class="tick-label">${i}kW</span>` : ''}
-                    </div>`;
-                  }).join('')}
-                </div>
               </div>
               ${showFlow ? `
                 <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32">
