@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-1.0.9-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -12,6 +12,16 @@
 ---
 
 ## ✨ Features
+
+### 🔋 Battery Integration (NEW in v2.0.0!)
+
+* **Adjacent bars layout** - Battery and solar bars side-by-side with proportional widths
+* **Proportional sizing** - Bar widths based on battery capacity vs inverter size
+* **Visual SOC indicator** - Battery bar fills from left showing state of charge
+* **Flexible configuration** - Single sensor or dual charge/discharge sensors
+* **Animated flow lines** - Shows charging/discharging direction with particles
+* **Smart stats tiles** - Maximum 4 tiles with single-line headers
+* **Compact legend** - Short labels to prevent wrapping
 
 ### 🎨 Visual Power Distribution
 
@@ -600,7 +610,19 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v1.0.9** (Current)
+**v2.0.0** (Current)
+
+* 🔋 **Battery Integration** - Side-by-side adjacent bars layout with proportional widths
+* 📊 **Proportional Bar Sizing** - Battery and solar bars sized based on capacity ratios
+* 🔌 **Flexible Battery Configuration** - Single sensor with optional invert OR dual charge/discharge sensors
+* ⚡ **Animated Flow Lines** - Visual charging/discharging indicators between bars
+* 📉 **Optimized Stats Tiles** - Limited to 4 tiles with single-line headers (Solar, Import/Export, Usage, Battery/EV)
+* 🏷️ **Compact Labels** - Shortened legend labels to prevent wrapping (Solar, Import, Export, Usage, Batt, EV)
+* 🎨 **Battery Bar Color** - Added to all 7 color palettes
+* 📱 **Mobile-Friendly** - Battery label shows just percentage on small screens
+* 🎨 **Clean Config UI** - Removed emojis, organized sections with clear separators
+
+**v1.0.9**
 
 * ✨ **Improved Configuration UI** - Well-organized sections with emoji visual grouping
 * 🎨 **Fixed Color Palette Selector** - Color palette is now clearly visible and accessible
