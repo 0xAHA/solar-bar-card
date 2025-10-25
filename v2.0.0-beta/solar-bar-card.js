@@ -530,7 +530,7 @@ class SolarBarCard extends HTMLElement {
         .bars-container {
           position: relative;
           display: flex;
-          gap: 0;
+          gap: 8px;
           align-items: center;
         }
 
@@ -538,7 +538,7 @@ class SolarBarCard extends HTMLElement {
           position: relative;
           height: 32px;
           background: var(--divider-color);
-          border-radius: 16px 0 0 16px;
+          border-radius: 16px;
           overflow: hidden;
         }
 
@@ -549,7 +549,7 @@ class SolarBarCard extends HTMLElement {
           bottom: 0;
           background: linear-gradient(90deg, var(--battery-bar-color), var(--battery-bar-color));
           transition: width 0.3s ease;
-          border-radius: 16px 0 0 16px;
+          border-radius: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -575,19 +575,11 @@ class SolarBarCard extends HTMLElement {
           overflow: hidden;
         }
 
-        .solar-bar-wrapper.with-battery {
-          border-radius: 0 16px 16px 0;
-        }
-
         .solar-bar {
           height: 100%;
           display: flex;
           border-radius: 16px;
           overflow: hidden;
-        }
-
-        .solar-bar.with-battery {
-          border-radius: 0 16px 16px 0;
         }
 
         .bar-segment {
@@ -843,8 +835,8 @@ class SolarBarCard extends HTMLElement {
                   </div>
                 </div>
               ` : ''}
-              <div class="solar-bar-wrapper ${hasBattery && show_battery_indicator ? 'with-battery' : ''}" style="width: ${hasBattery && show_battery_indicator ? powerBarWidth : 100}%">
-                <div class="solar-bar ${hasBattery && show_battery_indicator ? 'with-battery' : ''}">
+              <div class="solar-bar-wrapper" style="width: ${hasBattery && show_battery_indicator ? powerBarWidth : 100}%">
+                <div class="solar-bar">
                   ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
                   ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
                   ${gridHomePercent > 0 ? `<div class="bar-segment grid-home-segment" style="width: ${gridHomePercent}%">${show_bar_values && gridToHome > 0.1 ? `${gridToHome.toFixed(1)}kW Grid` : ''}</div>` : ''}
@@ -865,6 +857,16 @@ class SolarBarCard extends HTMLElement {
                        style="left: ${anticipatedPercent}%"
                        title="Forecast solar potential: ${anticipatedPotential.toFixed(1)}kW"></div>
                 ` : ''}
+              </div>
+                <div class="tick-marks">
+                  ${Array.from({length: inverter_size + 1}, (_, i) => {
+                    const tickPercent = (i / inverter_size) * 100;
+                    const showLabel = i % Math.ceil(inverter_size / 10) === 0;
+                    return `<div class="tick" style="left: ${tickPercent}%">
+                      ${showLabel ? `<span class="tick-label">${i}kW</span>` : ''}
+                    </div>`;
+                  }).join('')}
+                </div>
               </div>
               ${showFlow ? `
                 <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32">
@@ -900,15 +902,6 @@ class SolarBarCard extends HTMLElement {
                   `).join('')}
                 </svg>
               ` : ''}
-            </div>
-            <div class="tick-marks">
-              ${Array.from({length: inverter_size + 1}, (_, i) => {
-                const tickPercent = (i / inverter_size) * 100;
-                const showLabel = i % Math.ceil(inverter_size / 10) === 0;
-                return `<div class="tick" style="left: ${tickPercent}%">
-                  ${showLabel ? `<span class="tick-label">${i}kW</span>` : ''}
-                </div>`;
-              }).join('')}
             </div>
           </div>
 
