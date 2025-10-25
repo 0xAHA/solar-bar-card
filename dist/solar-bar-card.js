@@ -220,8 +220,13 @@ class SolarBarCard extends HTMLElement {
     // Calculate how much solar and grid power each type of consumption
     const solarToLoad = Math.min(solarProduction, selfConsumption);
 
+    // Calculate battery contribution to load when discharging
+    const batteryToLoad = batteryDischarging ? Math.abs(batteryPower) : 0;
+
     let solarToHome = 0;
     let solarToEv = 0;
+    let batteryToHome = 0;
+    let batteryToEv = 0;
     let gridToHome = 0;
     let gridToEv = 0;
 
@@ -232,8 +237,11 @@ class SolarBarCard extends HTMLElement {
       solarToHome = solarToLoad * homeRatio;
       solarToEv = solarToLoad * evRatio;
 
-      gridToHome = Math.max(0, nonEvConsumption - solarToHome);
-      gridToEv = Math.max(0, evUsage - solarToEv);
+      batteryToHome = batteryToLoad * homeRatio;
+      batteryToEv = batteryToLoad * evRatio;
+
+      gridToHome = Math.max(0, nonEvConsumption - solarToHome - batteryToHome);
+      gridToEv = Math.max(0, evUsage - solarToEv - batteryToEv);
     }
 
     const totalGridImport = gridToHome + gridToEv;
