@@ -7,7 +7,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
-![1759611909382.png](https://github.com/0xAHA/solar-bar-card/raw/main/1759611909382.png)
+![1759611909382.png](https://claude.ai/chat/1759611909382.png)
 
 ---
 
