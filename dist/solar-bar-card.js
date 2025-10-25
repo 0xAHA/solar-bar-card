@@ -1,6 +1,6 @@
 // solar-bar-card.js
-// Enhanced Solar Bar Card with collapsible config sections and color palettes
-// Version 1.0.9 - Organized config UI with expandable sections
+// Enhanced Solar Bar Card with battery support and animated flow visualization
+// Version 2.0.0-beta - Battery integration with flow animations
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -40,6 +40,15 @@ class SolarBarCard extends HTMLElement {
       invert_grid_power: false,
       color_palette: 'classic-solar',
       custom_colors: {},
+      battery_power_entity: null,
+      battery_charge_entity: null,
+      battery_discharge_entity: null,
+      invert_battery_power: false,
+      battery_soc_entity: null,
+      battery_capacity: 10,
+      show_battery_flow: true,
+      show_battery_indicator: true,
+      battery_flow_animation_speed: 2,
       ...config
     };
     this.updateCard();
@@ -68,7 +77,16 @@ class SolarBarCard extends HTMLElement {
       weather_entity = null,
       use_solcast = false,
       car_charger_load = 0,
-      ev_charger_sensor = null
+      ev_charger_sensor = null,
+      battery_power_entity = null,
+      battery_charge_entity = null,
+      battery_discharge_entity = null,
+      invert_battery_power = false,
+      battery_soc_entity = null,
+      battery_capacity = 10,
+      show_battery_flow = true,
+      show_battery_indicator = true,
+      battery_flow_animation_speed = 2
     } = this.config;
 
     // Get colors from palette
@@ -78,7 +96,36 @@ class SolarBarCard extends HTMLElement {
     let exportPower = 0;
     let gridImportPower = 0;
     let solarProduction = 0;
-    
+
+    // Battery state
+    let batteryPower = 0;
+    let batterySOC = 0;
+    let hasBattery = false;
+
+    // Handle battery power - can be single sensor, dual sensors, or single with invert
+    if (battery_soc_entity) {
+      batterySOC = Math.max(0, Math.min(100, parseFloat(this._hass.states[battery_soc_entity]?.state) || 0));
+
+      if (battery_charge_entity && battery_discharge_entity) {
+        // Dual sensor mode (charge and discharge separate)
+        const chargePower = this.getSensorValue(battery_charge_entity) || 0;
+        const dischargePower = this.getSensorValue(battery_discharge_entity) || 0;
+        batteryPower = chargePower - dischargePower; // Positive=charging, negative=discharging
+        hasBattery = true;
+      } else if (battery_power_entity) {
+        // Single sensor mode (with optional invert)
+        batteryPower = this.getSensorValue(battery_power_entity) || 0;
+        if (invert_battery_power) {
+          batteryPower = -batteryPower;
+        }
+        hasBattery = true;
+      }
+    }
+
+    const batteryCharging = batteryPower > 0.05;
+    const batteryDischarging = batteryPower < -0.05;
+    const batteryIdle = Math.abs(batteryPower) <= 0.05;
+
     // Check for actual EV charging
     const actualEvCharging = this.getSensorValue(ev_charger_sensor) || 0;
     const isActuallyCharging = actualEvCharging > 0;
@@ -92,11 +139,11 @@ class SolarBarCard extends HTMLElement {
         const weatherState = this._hass.states[weather_entity];
         if (weatherState) {
           const domain = weather_entity.split('.')[0];
-          
+
           if (domain === 'weather') {
             weatherTemp = weatherState.attributes.temperature;
             weatherUnit = this._hass.config.unit_system.temperature || '°C';
-            
+
             const state = weatherState.state;
             const weatherIcons = {
               'clear-night': '🌙',
@@ -131,16 +178,16 @@ class SolarBarCard extends HTMLElement {
     // Use manually configured entities
     solarProduction = this.getSensorValue(production_entity) || 0;
     selfConsumption = this.getSensorValue(self_consumption_entity) || 0;
-    
+
     // Handle grid power - can be a single sensor (positive=export, negative=import) or separate sensors
     if (grid_power_entity) {
       let gridPower = this.getSensorValue(grid_power_entity) || 0;
-      
+
       // Invert if needed (for systems that report from meter perspective)
       if (invert_grid_power) {
         gridPower = -gridPower;
       }
-      
+
       if (gridPower > 0) {
         exportPower = gridPower;
         gridImportPower = 0;
@@ -162,43 +209,43 @@ class SolarBarCard extends HTMLElement {
 
     const currentOutput = solarProduction;
     const anticipatedPotential = Math.min(forecastSolar, inverter_size);
-    
+
     // Check if system is idle (no solar production and no consumption)
-    const isIdle = solarProduction === 0 && selfConsumption === 0 && exportPower === 0 && gridImportPower === 0;
-    
+    const isIdle = solarProduction === 0 && selfConsumption === 0 && exportPower === 0 && gridImportPower === 0 && batteryIdle;
+
     // Calculate EV usage split
     const evUsage = isActuallyCharging ? actualEvCharging : 0;
     const nonEvConsumption = Math.max(0, selfConsumption - evUsage);
-    
+
     // Calculate how much solar and grid power each type of consumption
     const solarToLoad = Math.min(solarProduction, selfConsumption);
-    
+
     let solarToHome = 0;
     let solarToEv = 0;
     let gridToHome = 0;
     let gridToEv = 0;
-    
+
     if (selfConsumption > 0) {
       const homeRatio = nonEvConsumption / selfConsumption;
       const evRatio = evUsage / selfConsumption;
-      
+
       solarToHome = solarToLoad * homeRatio;
       solarToEv = solarToLoad * evRatio;
-      
+
       gridToHome = Math.max(0, nonEvConsumption - solarToHome);
       gridToEv = Math.max(0, evUsage - solarToEv);
     }
-    
+
     const totalGridImport = gridToHome + gridToEv;
-    
+
     // EV Potential display (only when not charging)
     const evDisplayPower = isActuallyCharging ? 0 : Math.max(0, car_charger_load - exportPower);
-    
+
     // Calculate excess solar for EV ready indicator
     const excessSolar = solarProduction - selfConsumption;
     const evReadyHalf = car_charger_load > 0 && !isActuallyCharging && excessSolar >= (car_charger_load * 0.5);
     const evReadyFull = car_charger_load > 0 && !isActuallyCharging && excessSolar >= car_charger_load;
-    
+
     // Calculate used capacity and remaining unused capacity
     const usedCapacityKw = selfConsumption + exportPower;
     const unusedCapacityKw = Math.max(0, inverter_size - usedCapacityKw - evDisplayPower);
@@ -213,6 +260,60 @@ class SolarBarCard extends HTMLElement {
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
 
+    // Calculate battery segment (if charging, it's in the consumption/bar)
+    const batterySegmentPercent = batteryCharging ? (batteryPower / inverter_size) * 100 : 0;
+
+    // Calculate proportional widths for adjacent bars (if battery configured)
+    const totalCapacity = hasBattery ? battery_capacity + inverter_size : inverter_size;
+    const batteryBarWidth = hasBattery ? (battery_capacity / totalCapacity) * 100 : 0;
+    const powerBarWidth = hasBattery ? (inverter_size / totalCapacity) * 100 : 100;
+
+    // Calculate cumulative positions for flow line targeting
+    let cumulativePercent = 0;
+    const solarHomeEnd = cumulativePercent + solarHomePercent;
+    cumulativePercent += solarHomePercent;
+    const solarEvEnd = cumulativePercent + solarEvPercent;
+    cumulativePercent += solarEvPercent;
+    const gridHomeEnd = cumulativePercent + gridHomePercent;
+    cumulativePercent += gridHomePercent;
+    const gridEvEnd = cumulativePercent + gridEvPercent;
+    cumulativePercent += gridEvPercent;
+    const exportEnd = cumulativePercent + exportPercent;
+    cumulativePercent += exportPercent;
+    const batteryEnd = cumulativePercent + batterySegmentPercent;
+
+    // Determine flow color and path for adjacent bars
+    let flowColor = '#4CAF50';
+    let flowPath = '';
+    let showFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
+
+    if (showFlow) {
+      // For adjacent bars with gap, flow is a connector in the gap between the two bars
+      // SVG viewBox is 500px wide, and there's an 8px gap between bars
+
+      // Calculate positions accounting for the gap
+      // Battery bar ends at its width percentage
+      const batteryX = (batteryBarWidth / 100) * 500;
+      // Gap is approximately 8-10px in SVG coordinates (estimate based on typical container width)
+      const gapWidth = 10;
+      // Power bar starts after battery + gap
+      const powerX = batteryX + gapWidth;
+
+      const barCenterY = 16; // Center of 32px height bar
+      const lineOverlap = 8; // Extend line into bars for better visibility
+
+      if (batteryCharging) {
+        // Flow from power bar to battery bar (charging) - flows left from power to battery
+        flowColor = '#4CAF50'; // Vibrant green for visibility
+        flowPath = `M ${powerX + lineOverlap} ${barCenterY} L ${batteryX - lineOverlap} ${barCenterY}`;
+      } else if (batteryDischarging) {
+        // Flow from battery bar to power bar (discharging) - flows right from battery to power
+        const isExporting = exportPower > 0.1;
+        flowColor = isExporting ? '#FFC107' : '#2196F3'; // Vibrant orange/blue
+        flowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
+      }
+    }
+
     this.shadowRoot.innerHTML = `
       <style>
         :host {
@@ -223,10 +324,14 @@ class SolarBarCard extends HTMLElement {
           --solar-export-color: ${colors.export};
           --solar-available-color: ${colors.solar};
           --solar-anticipated-color: ${colors.solar};
+          --battery-charge-color: ${colors.battery_charge};
+          --battery-discharge-color: ${colors.battery_discharge};
+          --battery-bar-color: ${colors.battery_bar};
         }
 
         ha-card {
           padding: 4px 8px;
+          position: relative;
         }
 
         .card-header {
@@ -269,6 +374,10 @@ class SolarBarCard extends HTMLElement {
           text-align: center;
         }
 
+        .stat.battery-stat {
+          position: relative;
+        }
+
         .stat-label {
           color: var(--secondary-text-color);
           font-size: 12px;
@@ -279,6 +388,131 @@ class SolarBarCard extends HTMLElement {
           color: var(--primary-text-color);
           font-size: 16px;
           font-weight: 600;
+        }
+
+        .battery-container {
+          position: relative;
+          width: 100%;
+          margin-bottom: 8px;
+        }
+
+        .battery-indicator {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: var(--secondary-background-color);
+          border: 1px solid var(--divider-color);
+          border-radius: 16px;
+          padding: 0 12px;
+          height: 32px;
+          margin-bottom: 4px;
+          transition: all 0.3s ease;
+        }
+
+        .battery-indicator.charging {
+          border-color: var(--battery-charge-color);
+        }
+
+        .battery-indicator.discharging {
+          border-color: var(--battery-discharge-color);
+        }
+
+        .battery-indicator.low-battery {
+          border-color: #f44336;
+        }
+
+        .battery-icon-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .battery-icon {
+          width: 24px;
+          height: 12px;
+          border: 2px solid var(--primary-text-color);
+          border-radius: 2px;
+          position: relative;
+          opacity: 0.7;
+        }
+
+        .battery-terminal {
+          position: absolute;
+          right: -3px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 3px;
+          height: 6px;
+          background: var(--primary-text-color);
+          border-radius: 0 1px 1px 0;
+          opacity: 0.7;
+        }
+
+        .battery-level {
+          position: absolute;
+          left: 1px;
+          top: 1px;
+          bottom: 1px;
+          background: linear-gradient(90deg, #4CAF50, #8BC34A);
+          border-radius: 1px;
+          transition: width 0.3s ease;
+        }
+
+        .battery-level.low {
+          background: linear-gradient(90deg, #f44336, #ff9800);
+        }
+
+        .battery-level.medium {
+          background: linear-gradient(90deg, #ff9800, #FFC107);
+        }
+
+        .battery-soc {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--primary-text-color);
+        }
+
+        .flow-line-container {
+          position: absolute;
+          top: 50%;
+          left: 0;
+          transform: translateY(-50%);
+          width: 100%;
+          height: 32px;
+          pointer-events: none;
+          z-index: 10;
+        }
+
+        .flow-particle {
+          animation: flowParticles ${battery_flow_animation_speed}s ease-in-out infinite;
+        }
+
+        @keyframes flowParticles {
+          0% {
+            offset-distance: 0%;
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% {
+            offset-distance: 100%;
+            opacity: 0;
+          }
+        }
+
+        .flow-arrow {
+          position: absolute;
+          top: 50%;
+          left: ${batteryBarWidth}%;
+          transform: translate(-50%, -50%);
+          font-size: 16px;
+          z-index: 11;
+          pointer-events: none;
         }
 
         .solar-bar-container {
@@ -296,6 +530,52 @@ class SolarBarCard extends HTMLElement {
         .capacity-label {
           color: var(--secondary-text-color);
           font-size: 12px;
+        }
+
+        .bars-container {
+          position: relative;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .battery-bar-wrapper {
+          position: relative;
+          height: 32px;
+          background: var(--divider-color);
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        .battery-bar-fill {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          background: linear-gradient(90deg, var(--battery-bar-color), var(--battery-bar-color));
+          transition: width 0.3s ease;
+          border-radius: 16px;
+        }
+
+        .bar-overlay-label {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: white;
+          font-size: 12px;
+          font-weight: 600;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+          pointer-events: none;
+          z-index: 5;
+        }
+
+        .battery-bar-fill.low {
+          background: linear-gradient(90deg, #f44336, #ff9800);
+        }
+
+        .battery-bar-fill.medium {
+          background: linear-gradient(90deg, #ff9800, #FFC107);
         }
 
         .solar-bar-wrapper {
@@ -345,6 +625,11 @@ class SolarBarCard extends HTMLElement {
 
         .export-segment {
           background: linear-gradient(90deg, var(--solar-export-color), var(--solar-export-color));
+        }
+
+        .battery-charge-segment {
+          background: linear-gradient(90deg, var(--battery-charge-color), var(--battery-charge-color));
+          border-left: 1px solid rgba(255,255,255,0.3);
         }
 
         .car-charger-segment {
@@ -473,6 +758,8 @@ class SolarBarCard extends HTMLElement {
         .export-color { background: var(--solar-export-color); }
         .car-charger-color { background: #E0E0E0; opacity: 0.8; }
         .anticipated-color { background: var(--solar-anticipated-color); }
+        .battery-charge-color { background: var(--battery-charge-color); }
+        .battery-discharge-color { background: var(--battery-discharge-color); }
 
         .no-data {
           text-align: center;
@@ -503,32 +790,38 @@ class SolarBarCard extends HTMLElement {
         ${show_stats ? `
           <div class="power-stats">
             <div class="stat">
-              <div class="stat-label">Solar Production</div>
+              <div class="stat-label">Solar</div>
               <div class="stat-value">${solarProduction.toFixed(1)} kW</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Total Usage</div>
-              <div class="stat-value">${selfConsumption.toFixed(1)} kW</div>
             </div>
             ${exportPower > 0 ? `
               <div class="stat">
-                <div class="stat-label">Grid Export</div>
+                <div class="stat-label">Export</div>
                 <div class="stat-value">${exportPower.toFixed(1)} kW</div>
               </div>
             ` : totalGridImport > 0 ? `
               <div class="stat">
-                <div class="stat-label">Grid Import</div>
+                <div class="stat-label">Import</div>
                 <div class="stat-value">${totalGridImport.toFixed(1)} kW</div>
               </div>
             ` : ''}
-            ${isActuallyCharging ? `
+            <div class="stat">
+              <div class="stat-label">Usage</div>
+              <div class="stat-value">${selfConsumption.toFixed(1)} kW</div>
+            </div>
+            ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
+              <div class="stat battery-stat">
+                <div class="stat-label">Battery ${batterySOC}%</div>
+                <div class="stat-value">${batteryCharging ? '↑' : batteryDischarging ? '↓' : ''}${Math.abs(batteryPower).toFixed(1)} kW</div>
+              </div>
+            ` : isActuallyCharging ? `
               <div class="stat">
-                <div class="stat-label">EV Charging</div>
+                <div class="stat-label">EV</div>
                 <div class="stat-value">${evUsage.toFixed(1)} kW</div>
               </div>
             ` : ''}
           </div>
         ` : ''}
+
 
         ${(production_entity || self_consumption_entity || export_entity) ? `
           ${isIdle ? `
@@ -540,39 +833,76 @@ class SolarBarCard extends HTMLElement {
             ${show_bar_label ? `
               <div class="solar-bar-label">
                 <span>Power Flow</span>
-                <span class="capacity-label">0 - ${inverter_size}kW</span>
+                <span class="capacity-label">
+                  ${hasBattery && show_battery_indicator ? `Battery ${batterySOC}% | ` : ''}0 - ${inverter_size}kW
+                </span>
               </div>
             ` : ''}
-            <div class="solar-bar-wrapper">
-              <div class="solar-bar">
-                ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
-                ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
-                ${gridHomePercent > 0 ? `<div class="bar-segment grid-home-segment" style="width: ${gridHomePercent}%">${show_bar_values && gridToHome > 0.1 ? `${gridToHome.toFixed(1)}kW Grid` : ''}</div>` : ''}
-                ${gridEvPercent > 0 ? `<div class="bar-segment grid-ev-segment" style="width: ${gridEvPercent}%">${show_bar_values && gridToEv > 0.1 ? `${gridToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
-                ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(1)}kW Export` : ''}</div>` : ''}
-                ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
-                ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
-              </div>
-              ${evReadyHalf ? `
-                <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}" 
-                     title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
-                  <ha-icon icon="mdi:car-electric"></ha-icon>
+            <div class="bars-container">
+              ${hasBattery && show_battery_indicator ? `
+                <div class="battery-bar-wrapper" style="width: ${batteryBarWidth}%">
+                  <div class="battery-bar-fill ${batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
+                  <div class="bar-overlay-label">${batterySOC}%</div>
                 </div>
               ` : ''}
-              ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
-                <div class="forecast-indicator" 
-                     style="left: ${anticipatedPercent}%" 
-                     title="Forecast solar potential: ${anticipatedPotential.toFixed(1)}kW"></div>
-              ` : ''}
-              <div class="tick-marks">
-                ${Array.from({length: inverter_size + 1}, (_, i) => {
-                  const tickPercent = (i / inverter_size) * 100;
-                  const showLabel = i % Math.ceil(inverter_size / 10) === 0;
-                  return `<div class="tick" style="left: ${tickPercent}%">
-                    ${showLabel ? `<span class="tick-label">${i}kW</span>` : ''}
-                  </div>`;
-                }).join('')}
+              <div class="solar-bar-wrapper" style="width: ${hasBattery && show_battery_indicator ? powerBarWidth : 100}%">
+                <div class="solar-bar">
+                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
+                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
+                  ${gridHomePercent > 0 ? `<div class="bar-segment grid-home-segment" style="width: ${gridHomePercent}%">${show_bar_values && gridToHome > 0.1 ? `${gridToHome.toFixed(1)}kW Grid` : ''}</div>` : ''}
+                  ${gridEvPercent > 0 ? `<div class="bar-segment grid-ev-segment" style="width: ${gridEvPercent}%">${show_bar_values && gridToEv > 0.1 ? `${gridToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
+                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(1)}kW Export` : ''}</div>` : ''}
+                  ${batterySegmentPercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batterySegmentPercent}%">${show_bar_values ? `${batteryPower.toFixed(1)}kW Batt` : ''}</div>` : ''}
+                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
+                  ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
+                </div>
+                ${hasBattery && show_battery_indicator ? `<div class="bar-overlay-label">Solar</div>` : ''}
+                ${evReadyHalf ? `
+                  <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
+                       title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
+                    <ha-icon icon="mdi:car-electric"></ha-icon>
+                  </div>
+                ` : ''}
+                ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
+                  <div class="forecast-indicator"
+                       style="left: ${anticipatedPercent}%"
+                       title="Forecast solar potential: ${anticipatedPotential.toFixed(1)}kW"></div>
+                ` : ''}
               </div>
+              ${showFlow ? `
+                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32">
+                  <defs>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <path id="flowPath"
+                        d="${flowPath}"
+                        stroke="${flowColor}"
+                        stroke-width="5"
+                        fill="none"
+                        filter="url(#glow)"
+                        stroke-dasharray="5,5"
+                        opacity="0.8">
+                    <animate attributeName="stroke-dashoffset"
+                             from="0"
+                             to="10"
+                             dur="0.5s"
+                             repeatCount="indefinite"/>
+                  </path>
+                  ${[0, 1, 2].map(i => `
+                    <circle class="flow-particle" r="4" fill="${flowColor}">
+                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
+                        <mpath href="#flowPath"/>
+                      </animateMotion>
+                    </circle>
+                  `).join('')}
+                </svg>
+              ` : ''}
             </div>
           </div>
 
@@ -581,43 +911,43 @@ class SolarBarCard extends HTMLElement {
               ${solarProduction > 0 ? `
                 <div class="legend-item">
                   <span>☀️</span>
-                  <span>Solar${show_legend_values ? `: ${solarProduction.toFixed(1)}kW` : ''}</span>
+                  <span>Solar${show_legend_values ? ` ${solarProduction.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${solarToHome > 0 ? `
                 <div class="legend-item">
                   <div class="legend-color solar-home-color"></div>
-                  <span>Usage${show_legend_values ? `: ${solarToHome.toFixed(1)}kW` : ''}</span>
+                  <span>Usage${show_legend_values ? ` ${selfConsumption.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${(solarToEv > 0 || gridToEv > 0) ? `
                 <div class="legend-item">
                   <div class="legend-color ev-charging-color"></div>
-                  <span>EV${show_legend_values ? `: ${(solarToEv + gridToEv).toFixed(1)}kW` : ''}</span>
+                  <span>EV${show_legend_values ? ` ${(solarToEv + gridToEv).toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
-              ${gridToHome > 0 ? `
+              ${hasBattery && batteryCharging ? `
                 <div class="legend-item">
-                  <div class="legend-color grid-home-color"></div>
-                  <span>Grid Import${show_legend_values ? `: ${gridToHome.toFixed(1)}kW` : ''}</span>
+                  <div class="legend-color battery-charge-color"></div>
+                  <span>Batt${show_legend_values ? ` ${batteryPower.toFixed(1)}kW` : ''}</span>
+                </div>
+              ` : ''}
+              ${hasBattery && batteryDischarging ? `
+                <div class="legend-item">
+                  <div class="legend-color battery-discharge-color"></div>
+                  <span>Batt${show_legend_values ? ` ${Math.abs(batteryPower).toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${exportPower > 0 ? `
                 <div class="legend-item">
                   <div class="legend-color export-color"></div>
-                  <span>Export${show_legend_values ? `: ${exportPower.toFixed(1)}kW` : ''}</span>
+                  <span>Export${show_legend_values ? ` ${exportPower.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
-              ${car_charger_load > 0 && !isActuallyCharging ? `
+              ${gridToHome > 0 ? `
                 <div class="legend-item">
-                  <div class="legend-color car-charger-color"></div>
-                  <span>EV${show_legend_values ? `: ${car_charger_load}kW` : ''}</span>
-                </div>
-              ` : ''}
-              ${(forecast_entity || use_solcast) && anticipatedPotential > solarProduction ? `
-                <div class="legend-item">
-                  <div class="legend-color anticipated-color"></div>
-                  <span>Forecast${show_legend_values ? `: ${anticipatedPotential.toFixed(1)}kW` : ''}</span>
+                  <div class="legend-color grid-home-color"></div>
+                  <span>Import${show_legend_values ? ` ${gridToHome.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
             </div>
@@ -635,13 +965,13 @@ class SolarBarCard extends HTMLElement {
   getSensorValue(entityId) {
     if (!entityId || !this._hass.states[entityId]) return 0;
     let value = parseFloat(this._hass.states[entityId].state);
-    
+
     // Handle W to kW conversion
     const unit = this._hass.states[entityId].attributes.unit_of_measurement;
     if (unit === 'W') {
       value = value / 1000;
     }
-    
+
     return isNaN(value) ? 0 : value;
   }
 
@@ -651,33 +981,34 @@ class SolarBarCard extends HTMLElement {
       'sensor.solcast_forecast_power_now',
       'sensor.solcast_power_now'
     ];
-    
+
     for (const pattern of solcastPatterns) {
       if (this._hass.states[pattern]) {
         return this.getSensorValue(pattern);
       }
     }
-    
+
     const solcastSensors = Object.keys(this._hass.states).filter(entityId => 
       entityId.includes('solcast') && entityId.includes('power') && entityId.includes('now')
     );
-    
+
     if (solcastSensors.length > 0) {
       return this.getSensorValue(solcastSensors[0]);
     }
-    
+
     return 0;
   }
 
   getCardSize() {
     if (!this.config) return 1;
-    
+
     let size = 0.8;
     if (this.config.show_header || this.config.show_weather) size += 0.5;
     if (this.config.show_stats) size += 1.2;
+    if (this.config.battery_power_entity && this.config.battery_soc_entity) size += 1.5;
     if (this.config.show_bar_label) size += 0.3;
     if (this.config.show_legend) size += 0.4;
-    
+
     return Math.max(1, size);
   }
 
@@ -690,7 +1021,7 @@ class SolarBarCard extends HTMLElement {
 
   static getConfigForm() {
     const SCHEMA = [
-      // ⚙️ BASIC SETTINGS
+      // BASIC SETTINGS
       {
         name: "inverter_size",
         default: 10,
@@ -704,7 +1035,7 @@ class SolarBarCard extends HTMLElement {
           }
         }
       },
-      // 🔌 ENTITY CONFIGURATION
+      // ENTITY CONFIGURATION
       {
         type: "grid",
         name: "",
@@ -819,7 +1150,130 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // 🚗 EV CHARGER
+      // BATTERY
+      {
+        name: "battery_soc_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "battery"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["%"]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: "battery_power_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "power"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["W", "kW", "MW"]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: "invert_battery_power",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "battery_charge_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "battery_discharge_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "battery_capacity",
+            default: 10,
+            selector: {
+              number: {
+                min: 0,
+                max: 100,
+                step: 0.5,
+                mode: "box",
+                unit_of_measurement: "kWh"
+              }
+            }
+          },
+          {
+            name: "show_battery_indicator",
+            default: true,
+            selector: {
+              boolean: {}
+            }
+          }
+        ]
+      },
+      {
+        name: "show_battery_flow",
+        default: true,
+        selector: {
+          boolean: {}
+        }
+      },
+      // EV CHARGER
       {
         type: "grid",
         name: "",
@@ -858,7 +1312,7 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // 🔮 FORECAST
+      // FORECAST
       {
         type: "grid",
         name: "",
@@ -891,7 +1345,7 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // 🎨 APPEARANCE & COLORS
+      // APPEARANCE & COLORS
       {
         name: "color_palette",
         default: "classic-solar",
@@ -951,7 +1405,7 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
-      // 👁️ DISPLAY OPTIONS
+      // DISPLAY OPTIONS
       {
         type: "grid",
         name: "",
@@ -1016,16 +1470,26 @@ class SolarBarCard extends HTMLElement {
         import_entity: "Import from Grid Sensor",
         grid_power_entity: "Combined Grid Power Sensor",
         invert_grid_power: "Invert Grid Power Values",
+        battery_power_entity: "Battery Power Sensor (Single)",
+        battery_charge_entity: "Battery Charge Sensor (Dual)",
+        battery_discharge_entity: "Battery Discharge Sensor (Dual)",
+        invert_battery_power: "Invert Battery Power Values",
+        battery_soc_entity: "Battery State of Charge Sensor",
+        battery_capacity: "Battery Capacity",
+        show_battery_indicator: "Show Battery Bar",
+        show_battery_flow: "Show Animated Flow Lines",
         ev_charger_sensor: "EV Charger Power Sensor",
         car_charger_load: "EV Charger Capacity",
         use_solcast: "Auto-detect Solcast",
         forecast_entity: "Forecast Solar Sensor",
         color_palette: "Color Palette",
-        "custom_colors.solar": "☀️ Solar Power Color",
-        "custom_colors.export": "↗️ Export Power Color",
-        "custom_colors.import": "↙️ Import Power Color",
-        "custom_colors.self_usage": "🏠 Self Usage Color",
-        "custom_colors.ev_charge": "🚗 EV Charge Color",
+        "custom_colors.solar": "Solar Power Color",
+        "custom_colors.export": "Export Power Color",
+        "custom_colors.import": "Import Power Color",
+        "custom_colors.self_usage": "Self Usage Color",
+        "custom_colors.ev_charge": "EV Charge Color",
+        "custom_colors.battery_charge": "Battery Charge Color",
+        "custom_colors.battery_discharge": "Battery Discharge Color",
         show_header: "Show Header",
         header_title: "Header Title",
         show_weather: "Show Weather/Temperature",
@@ -1041,28 +1505,38 @@ class SolarBarCard extends HTMLElement {
 
     const computeHelper = (schema) => {
       const helpers = {
-        inverter_size: "⚙️ BASIC SETTINGS — Your solar system's maximum capacity in kW",
-        production_entity: "🔌 ENTITY CONFIGURATION — Sensor showing current solar production power",
+        inverter_size: "BASIC SETTINGS - Your solar system's maximum capacity in kW",
+        production_entity: "ENTITY CONFIGURATION - Sensor showing current solar production power",
         self_consumption_entity: "Sensor showing power used by your home (includes EV charging if active)",
         export_entity: "Sensor showing power exported to the grid",
         import_entity: "Sensor showing power imported from the grid",
         grid_power_entity: "Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors",
-        invert_grid_power: "Enable if your grid sensor reports from meter perspective (positive=import, negative=export) - for Enphase, Powerly, etc.",
-        ev_charger_sensor: "🚗 EV CHARGER — Actual EV charger power sensor - automatically splits usage into solar vs grid",
+        invert_grid_power: "Enable if your grid sensor reports from meter perspective (positive=import, negative=export)",
+        battery_soc_entity: "BATTERY - Battery state of charge sensor (0-100%)",
+        battery_power_entity: "Single battery power sensor (positive=charging, negative=discharging) - use this OR dual sensors below",
+        invert_battery_power: "Enable if your battery sensor reports opposite sign (positive=discharging, negative=charging)",
+        battery_charge_entity: "Battery charging power sensor (dual sensor mode) - leave empty if using single sensor above",
+        battery_discharge_entity: "Battery discharging power sensor (dual sensor mode) - leave empty if using single sensor above",
+        battery_capacity: "Battery total capacity in kWh - determines proportional bar width",
+        show_battery_indicator: "Show battery bar adjacent to power bar (proportional width based on capacity)",
+        show_battery_flow: "Show animated flow lines indicating battery charge/discharge direction",
+        ev_charger_sensor: "EV CHARGER - Actual EV charger power sensor - automatically splits usage into solar vs grid",
         car_charger_load: "EV charger capacity in kW to show potential usage (grey dashed bar when not charging)",
-        use_solcast: "🔮 FORECAST — Automatically detect Solcast forecast sensors",
+        use_solcast: "FORECAST - Automatically detect Solcast forecast sensors",
         forecast_entity: "Sensor showing solar forecast data (ignored if Solcast auto-detect is enabled)",
-        color_palette: "🎨 APPEARANCE & COLORS — Choose a preset color scheme or select Custom to define your own",
+        color_palette: "APPEARANCE & COLORS - Choose a preset color scheme",
         "custom_colors.solar": "Override the solar power color from the palette",
         "custom_colors.export": "Override the export power color from the palette",
         "custom_colors.import": "Override the import power color from the palette",
         "custom_colors.self_usage": "Override the self usage color from the palette",
         "custom_colors.ev_charge": "Override the EV charge color from the palette",
+        "custom_colors.battery_charge": "Override the battery charging color from the palette",
+        "custom_colors.battery_discharge": "Override the battery discharging color from the palette",
         show_header: "Display a title at the top of the card",
         header_title: "Custom title for the card header",
         show_weather: "Display current temperature in the top-right corner",
         weather_entity: "Weather entity or temperature sensor (auto-detects which type)",
-        show_stats: "👁️ DISPLAY OPTIONS — Display individual power statistics above the bar",
+        show_stats: "DISPLAY OPTIONS - Display individual power statistics above the bar (max 4 tiles)",
         show_legend: "Display color-coded legend below the bar",
         show_legend_values: "Show current kW values in the legend",
         show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
@@ -1088,7 +1562,10 @@ class SolarBarCard extends HTMLElement {
       header_title: 'Solar Power',
       use_solcast: false,
       color_palette: 'classic-solar',
-      custom_colors: {}
+      custom_colors: {},
+      show_battery_flow: true,
+      show_battery_indicator: true,
+      battery_flow_animation_speed: 2
     };
   }
 }
@@ -1101,9 +1578,9 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'solar-bar-card',
   name: 'Solar Bar Card',
-  description: 'A visual solar power distribution card with advanced power flow visualization and customizable color palettes',
+  description: 'A visual solar power distribution card with battery support, animated flow visualization, and customizable color palettes',
   preview: false,
-  documentationURL: 'https://github.com/your-repo/growatt-modbus-integration'
+  documentationURL: 'https://github.com/your-repo/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v1.0.9 loaded! Power flow visualization + Color palettes', 'color: #FFC107; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.0-beta loaded! Battery support + Animated flows + Color palettes', 'color: #4CAF50; font-weight: bold;');
