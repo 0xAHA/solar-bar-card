@@ -303,11 +303,11 @@ class SolarBarCard extends HTMLElement {
       const lineOverlap = 8; // Extend line into bars for better visibility
 
       if (batteryCharging) {
-        // Flow from power bar to battery bar (charging) - Left-pointing arrow
+        // Flow from power bar to battery bar (charging) - flows left from power to battery
         flowColor = '#4CAF50'; // Vibrant green for visibility
-        flowPath = `M ${powerX - lineOverlap} ${barCenterY} L ${batteryX + lineOverlap} ${barCenterY}`;
+        flowPath = `M ${powerX + lineOverlap} ${barCenterY} L ${batteryX - lineOverlap} ${barCenterY}`;
       } else if (batteryDischarging) {
-        // Flow from battery bar to power bar (discharging) - Right-pointing arrow
+        // Flow from battery bar to power bar (discharging) - flows right from battery to power
         const isExporting = exportPower > 0.1;
         flowColor = isExporting ? '#FFC107' : '#2196F3'; // Vibrant orange/blue
         flowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
