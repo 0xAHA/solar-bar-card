@@ -300,17 +300,17 @@ class SolarBarCard extends HTMLElement {
       const powerX = batteryX + gapWidth;
 
       const barCenterY = 16; // Center of 32px height bar
-      const lineMargin = 2; // Small margin from bar edges
+      const lineOverlap = 8; // Extend line into bars for better visibility
 
       if (batteryCharging) {
         // Flow from power bar to battery bar (charging) - Left-pointing arrow
         flowColor = colors.battery_charge;
-        flowPath = `M ${powerX + lineMargin} ${barCenterY} L ${batteryX - lineMargin} ${barCenterY}`;
+        flowPath = `M ${powerX - lineOverlap} ${barCenterY} L ${batteryX + lineOverlap} ${barCenterY}`;
       } else if (batteryDischarging) {
         // Flow from battery bar to power bar (discharging) - Right-pointing arrow
         const isExporting = exportPower > 0.1;
         flowColor = isExporting ? '#FFC107' : colors.battery_discharge;
-        flowPath = `M ${batteryX + lineMargin} ${barCenterY} L ${powerX - lineMargin} ${barCenterY}`;
+        flowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
       }
     }
 
@@ -842,7 +842,7 @@ class SolarBarCard extends HTMLElement {
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper" style="width: ${batteryBarWidth}%">
                   <div class="battery-bar-fill ${batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
-                  <div class="bar-overlay-label">Battery ${batterySOC}%</div>
+                  <div class="bar-overlay-label">${batterySOC}%</div>
                 </div>
               ` : ''}
               <div class="solar-bar-wrapper" style="width: ${hasBattery && show_battery_indicator ? powerBarWidth : 100}%">
@@ -883,7 +883,7 @@ class SolarBarCard extends HTMLElement {
                   <path id="flowPath"
                         d="${flowPath}"
                         stroke="${flowColor}"
-                        stroke-width="3"
+                        stroke-width="5"
                         fill="none"
                         filter="url(#glow)"
                         stroke-dasharray="5,5"
@@ -895,7 +895,7 @@ class SolarBarCard extends HTMLElement {
                              repeatCount="indefinite"/>
                   </path>
                   ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="3" fill="${flowColor}">
+                    <circle class="flow-particle" r="4" fill="${flowColor}">
                       <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
                         <mpath href="#flowPath"/>
                       </animateMotion>
