@@ -259,66 +259,70 @@ class SolarBarCard extends HTMLElement {
     const unusedCapacityKw = Math.max(0, inverter_size - usedCapacityKw - evDisplayPower);
 
     // Calculate percentages for bar segments
+    // Solar bar now only shows solar-sourced power (home, EV, battery charging, export, unused)
     const solarHomePercent = (solarToHome / inverter_size) * 100;
     const solarEvPercent = (solarToEv / inverter_size) * 100;
-    const gridHomePercent = (gridToHome / inverter_size) * 100;
-    const gridEvPercent = (gridToEv / inverter_size) * 100;
     const exportPercent = (exportPower / inverter_size) * 100;
     const evPotentialPercent = (evDisplayPower / inverter_size) * 100;
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
 
-    // Calculate battery segment (if charging, it's in the consumption/bar)
-    const batterySegmentPercent = batteryCharging ? (batteryPower / inverter_size) * 100 : 0;
+    // Battery charging segment (shows in solar bar as solar is charging the battery)
+    const batteryChargePercent = batteryCharging ? (batteryPower / inverter_size) * 100 : 0;
+
+    // Grid state for icon (not shown in bar anymore)
+    const hasGridImport = totalGridImport > 0.05;
+    const hasGridExport = exportPower > 0.05;
 
     // Calculate proportional widths for adjacent bars (if battery configured)
+    // Battery bar is capped at 30% to prevent it from dominating the display
     const totalCapacity = hasBattery ? battery_capacity + inverter_size : inverter_size;
-    const batteryBarWidth = hasBattery ? (battery_capacity / totalCapacity) * 100 : 0;
-    const powerBarWidth = hasBattery ? (inverter_size / totalCapacity) * 100 : 100;
+    const rawBatteryBarWidth = hasBattery ? (battery_capacity / totalCapacity) * 100 : 0;
+    const batteryBarWidth = hasBattery ? Math.min(rawBatteryBarWidth, 30) : 0;
+    // Reserve space for grid icon (32px ~= 3% of typical container width)
+    const gridIconSpace = (hasGridImport || hasGridExport) ? 3 : 0;
+    const powerBarWidth = hasBattery ? (100 - batteryBarWidth - gridIconSpace) : (100 - gridIconSpace);
 
-    // Calculate cumulative positions for flow line targeting
-    let cumulativePercent = 0;
-    const solarHomeEnd = cumulativePercent + solarHomePercent;
-    cumulativePercent += solarHomePercent;
-    const solarEvEnd = cumulativePercent + solarEvPercent;
-    cumulativePercent += solarEvPercent;
-    const gridHomeEnd = cumulativePercent + gridHomePercent;
-    cumulativePercent += gridHomePercent;
-    const gridEvEnd = cumulativePercent + gridEvPercent;
-    cumulativePercent += gridEvPercent;
-    const exportEnd = cumulativePercent + exportPercent;
-    cumulativePercent += exportPercent;
-    const batteryEnd = cumulativePercent + batterySegmentPercent;
+    // Battery flow line (between battery and solar bar)
+    let batteryFlowColor = '#4CAF50';
+    let batteryFlowPath = '';
+    let showBatteryFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
 
-    // Determine flow color and path for adjacent bars
-    let flowColor = '#4CAF50';
-    let flowPath = '';
-    let showFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
-
-    if (showFlow) {
-      // For adjacent bars with gap, flow is a connector in the gap between the two bars
-      // SVG viewBox is 500px wide, and there's an 8px gap between bars
-
-      // Calculate positions accounting for the gap
-      // Battery bar ends at its width percentage
+    if (showBatteryFlow) {
       const batteryX = (batteryBarWidth / 100) * 500;
-      // Gap is approximately 8-10px in SVG coordinates (estimate based on typical container width)
       const gapWidth = 10;
-      // Power bar starts after battery + gap
       const powerX = batteryX + gapWidth;
-
-      const barCenterY = 16; // Center of 32px height bar
-      const lineOverlap = 8; // Extend line into bars for better visibility
+      const barCenterY = 16;
+      const lineOverlap = 8;
 
       if (batteryCharging) {
-        // Flow from power bar to battery bar (charging) - flows left from power to battery
-        flowColor = '#4CAF50'; // Vibrant green for visibility
-        flowPath = `M ${powerX + lineOverlap} ${barCenterY} L ${batteryX - lineOverlap} ${barCenterY}`;
+        batteryFlowColor = '#4CAF50'; // Green: solar → battery
+        batteryFlowPath = `M ${powerX + lineOverlap} ${barCenterY} L ${batteryX - lineOverlap} ${barCenterY}`;
       } else if (batteryDischarging) {
-        // Flow from battery bar to power bar (discharging) - flows right from battery to power
-        const isExporting = exportPower > 0.1;
-        flowColor = isExporting ? '#FFC107' : '#2196F3'; // Vibrant orange/blue
-        flowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
+        batteryFlowColor = '#2196F3'; // Blue: battery → home
+        batteryFlowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
+      }
+    }
+
+    // Grid flow line (between solar bar and grid icon)
+    let gridFlowColor = colors.export;
+    let gridFlowPath = '';
+    let showGridFlow = (hasGridImport || hasGridExport) && show_battery_flow;
+
+    if (showGridFlow) {
+      const solarBarEnd = hasBattery ? (batteryBarWidth + powerBarWidth) : powerBarWidth;
+      const solarX = (solarBarEnd / 100) * 500;
+      const gapWidth = 10;
+      const gridX = solarX + gapWidth;
+      const barCenterY = 16;
+      const lineOverlap = 6;
+
+      if (hasGridExport) {
+        gridFlowColor = colors.export; // Export color: solar → grid
+        gridFlowPath = `M ${solarX - lineOverlap} ${barCenterY} L ${gridX + lineOverlap} ${barCenterY}`;
+      } else if (hasGridImport) {
+        gridFlowColor = colors.import; // Import color: grid → home
+        gridFlowPath = `M ${gridX - lineOverlap} ${barCenterY} L ${solarX + lineOverlap} ${barCenterY}`;
       }
     }
 
@@ -601,6 +605,28 @@ class SolarBarCard extends HTMLElement {
           overflow: hidden;
         }
 
+        .grid-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          transition: all 0.3s ease;
+          flex-shrink: 0;
+        }
+
+        .grid-icon.import {
+          background: linear-gradient(135deg, var(--grid-usage-color), var(--grid-usage-color));
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .grid-icon.export {
+          background: linear-gradient(135deg, var(--solar-export-color), var(--solar-export-color));
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
         .bar-segment {
           display: flex;
           align-items: center;
@@ -853,14 +879,12 @@ class SolarBarCard extends HTMLElement {
                   <div class="bar-overlay-label">${batterySOC}%</div>
                 </div>
               ` : ''}
-              <div class="solar-bar-wrapper" style="width: ${hasBattery && show_battery_indicator ? powerBarWidth : 100}%">
+              <div class="solar-bar-wrapper" style="width: ${powerBarWidth}%">
                 <div class="solar-bar">
                   ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
                   ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
-                  ${gridHomePercent > 0 ? `<div class="bar-segment grid-home-segment" style="width: ${gridHomePercent}%">${show_bar_values && gridToHome > 0.1 ? `${gridToHome.toFixed(1)}kW Grid` : ''}</div>` : ''}
-                  ${gridEvPercent > 0 ? `<div class="bar-segment grid-ev-segment" style="width: ${gridEvPercent}%">${show_bar_values && gridToEv > 0.1 ? `${gridToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values ? `${batteryPower.toFixed(1)}kW Batt` : ''}</div>` : ''}
                   ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(1)}kW Export` : ''}</div>` : ''}
-                  ${batterySegmentPercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batterySegmentPercent}%">${show_bar_values ? `${batteryPower.toFixed(1)}kW Batt` : ''}</div>` : ''}
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
@@ -877,10 +901,15 @@ class SolarBarCard extends HTMLElement {
                        title="Forecast solar potential: ${anticipatedPotential.toFixed(1)}kW"></div>
                 ` : ''}
               </div>
-              ${showFlow ? `
-                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32">
+              ${(hasGridImport || hasGridExport) ? `
+                <div class="grid-icon ${hasGridImport ? 'import' : 'export'}" title="${hasGridImport ? `Grid Import: ${totalGridImport.toFixed(1)}kW` : `Grid Export: ${exportPower.toFixed(1)}kW`}">
+                  ⚡
+                </div>
+              ` : ''}
+              ${showBatteryFlow ? `
+                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32" style="z-index: 10;">
                   <defs>
-                    <filter id="glow">
+                    <filter id="batteryGlow">
                       <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                       <feMerge>
                         <feMergeNode in="coloredBlur"/>
@@ -888,12 +917,12 @@ class SolarBarCard extends HTMLElement {
                       </feMerge>
                     </filter>
                   </defs>
-                  <path id="flowPath"
-                        d="${flowPath}"
-                        stroke="${flowColor}"
+                  <path id="batteryFlowPath"
+                        d="${batteryFlowPath}"
+                        stroke="${batteryFlowColor}"
                         stroke-width="5"
                         fill="none"
-                        filter="url(#glow)"
+                        filter="url(#batteryGlow)"
                         stroke-dasharray="5,5"
                         opacity="0.8">
                     <animate attributeName="stroke-dashoffset"
@@ -903,9 +932,43 @@ class SolarBarCard extends HTMLElement {
                              repeatCount="indefinite"/>
                   </path>
                   ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="4" fill="${flowColor}">
+                    <circle class="flow-particle" r="4" fill="${batteryFlowColor}">
                       <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
-                        <mpath href="#flowPath"/>
+                        <mpath href="#batteryFlowPath"/>
+                      </animateMotion>
+                    </circle>
+                  `).join('')}
+                </svg>
+              ` : ''}
+              ${showGridFlow ? `
+                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32" style="z-index: 9;">
+                  <defs>
+                    <filter id="gridGlow">
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <path id="gridFlowPath"
+                        d="${gridFlowPath}"
+                        stroke="${gridFlowColor}"
+                        stroke-width="5"
+                        fill="none"
+                        filter="url(#gridGlow)"
+                        stroke-dasharray="5,5"
+                        opacity="0.8">
+                    <animate attributeName="stroke-dashoffset"
+                             from="0"
+                             to="10"
+                             dur="0.5s"
+                             repeatCount="indefinite"/>
+                  </path>
+                  ${[0, 1, 2].map(i => `
+                    <circle class="flow-particle" r="4" fill="${gridFlowColor}">
+                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
+                        <mpath href="#gridFlowPath"/>
                       </animateMotion>
                     </circle>
                   `).join('')}
