@@ -608,13 +608,18 @@ class SolarBarCard extends HTMLElement {
         .grid-icon {
           width: 32px;
           height: 32px;
-          border-radius: 8px;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 18px;
           transition: all 0.3s ease;
           flex-shrink: 0;
+        }
+
+        .grid-icon ha-icon {
+          --mdc-icon-size: 20px;
+          color: black;
         }
 
         .grid-icon.import {
@@ -903,7 +908,7 @@ class SolarBarCard extends HTMLElement {
               </div>
               ${(hasGridImport || hasGridExport) ? `
                 <div class="grid-icon ${hasGridImport ? 'import' : 'export'}" title="${hasGridImport ? `Grid Import: ${totalGridImport.toFixed(1)}kW` : `Grid Export: ${exportPower.toFixed(1)}kW`}">
-                  ⚡
+                  <ha-icon icon="mdi:transmission-tower"></ha-icon>
                 </div>
               ` : ''}
               ${showBatteryFlow ? `
