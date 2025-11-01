@@ -267,8 +267,11 @@ class SolarBarCard extends HTMLElement {
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
 
-    // Battery charging segment (shows in solar bar as solar is charging the battery)
-    const batteryChargePercent = batteryCharging ? (batteryPower / inverter_size) * 100 : 0;
+    // Battery charging segment (shows in solar bar ONLY if solar is charging the battery)
+    // Calculate solar available after meeting home/EV loads
+    const solarAvailableForBattery = Math.max(0, solarProduction - solarToLoad);
+    const solarToBattery = batteryCharging ? Math.min(batteryPower, solarAvailableForBattery) : 0;
+    const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / inverter_size) * 100 : 0;
 
     // Grid state for icon (not shown in bar anymore)
     const hasGridImport = totalGridImport > 0.05;
@@ -887,7 +890,7 @@ class SolarBarCard extends HTMLElement {
                 <div class="solar-bar">
                   ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
                   ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
-                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values ? `${batteryPower.toFixed(1)}kW Batt` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 ? `${solarToBattery.toFixed(1)}kW Batt` : ''}</div>` : ''}
                   ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(1)}kW Export` : ''}</div>` : ''}
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
