@@ -243,8 +243,8 @@ class SolarBarCard extends HTMLElement {
       gridToHome = Math.max(0, nonEvConsumption - solarToHome - batteryToHome);
       gridToEv = Math.max(0, evUsage - solarToEv - batteryToEv);
     }
-
-    const totalGridImport = gridToHome + gridToEv;
+    // 0211 change, from const to let
+    const totalGridImport = gridImportPower;
 
     // EV Potential display (only when not charging)
     const evDisplayPower = isActuallyCharging ? 0 : Math.max(0, car_charger_load - exportPower);
@@ -274,7 +274,8 @@ class SolarBarCard extends HTMLElement {
     const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / inverter_size) * 100 : 0;
 
     // Grid state for icon (not shown in bar anymore)
-    const hasGridImport = totalGridImport > 0.05;
+    //const hasGridImport = totalGridImport > 0.05;
+    const hasGridImport = gridImportPower > 0.05;
     const hasGridExport = exportPower > 0.05;
 
     // Usage indicator line (shows where total usage is on the solar bar when solar doesn't cover it)
@@ -914,7 +915,7 @@ class SolarBarCard extends HTMLElement {
                 ` : ''}
               </div>
               ${(hasGridImport || hasGridExport) ? `
-                <div class="grid-icon ${hasGridImport ? 'import' : 'export'}" title="${hasGridImport ? `Grid Import: ${totalGridImport.toFixed(1)}kW` : `Grid Export: ${exportPower.toFixed(1)}kW`}">
+                <div class="grid-icon ${hasGridImport ? 'import' : 'export'}" title="${hasGridImport ? `Grid Import: ${gridImportPower.toFixed(1)}kW` : `Grid Export: ${exportPower.toFixed(1)}kW`}">
                   <ha-icon icon="mdi:transmission-tower"></ha-icon>
                 </div>
               ` : ''}
@@ -1632,4 +1633,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.2 loaded! Battery support + Animated flows + Color palettes', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.4.b1 loaded! --- Battery support + Animated flows + Color palettes', 'color: #4CAF50; font-weight: bold;');
