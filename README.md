@@ -3,13 +3,13 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.0.1-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
 ![1759611909382.png](https://github.com/0xAHA/solar-bar-card/raw/main/1759611909382.png)
 
- ![1761360830828.png](https://github.com/0xAHA/solar-bar-card/raw/main/1761360830828.png)
+![1761360830828.png](https://github.com/0xAHA/solar-bar-card/raw/main/1761360830828.png)
 
 ---
 
@@ -31,10 +31,11 @@
 * **Green** for solar self-consumption
 * **Orange** for EV charging (solar + grid split)
 * **Red/Coral** for grid import
-* **Blue** for grid export
 * **Grey dashed** for potential EV charging capacity
 * **Semi-transparent** for unused inverter capacity
 * **Yellow dotted line** for solar forecast
+* **Grid icon dynamically changes** 🟢 green when exporting, 🟠 orange when importing
+
 
 ### 🎨 Customizable Color Palettes
 
@@ -318,6 +319,11 @@ In the Home Assistant UI editor:
 | 🔳**Semi-transparent**   | Unused capacity        | Available inverter capacity                                |
 | ⚡**Yellow dotted line** | Solar forecast         | Predicted solar production                                 |
 | ⚡🚗**EV Ready Icon**    | Excess solar ready     | Appears when excess solar can power EV (green/orange glow) |
+
+**v2.0.1 Solar Bar Visualization:**
+* When solar output < consumption: Dashed outline shows total demand, solid shaded section shows actual solar contribution
+* Grid import no longer appears on solar bar (keeps it focused on solar performance)
+* Grid icon dynamically changes: 🟢 green when exporting, 🟠 orange when importing
 
 ### Power Flow Logic
 
@@ -612,8 +618,14 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v2.0.0** (Current)
+**v2.0.1** (Current)
+* 🐛 **Battery Discharge Bugfix** - Fixed battery discharge incorrectly showing as solar import
+* 🚦 **Smart Grid Icon** - Separated import/export icons (🟢 green when exporting, 🟠 orange when importing)
+* 📊 **Improved Solar Visualization** - Dashed line shows full consumption demand, shaded portion shows actual solar output
+* ⚖️ **Better Balance** - Battery section capped at 30% card width to keep solar as the hero
+* 🎨 **Cleaner Grid Logic** - Solar export shows on solar bar, grid import no longer clutters it
 
+**v2.0.0**
 * 🔋 **Battery Integration** - Side-by-side adjacent bars layout with proportional widths
 * 📊 **Proportional Bar Sizing** - Battery and solar bars sized based on capacity ratios
 * 🔌 **Flexible Battery Configuration** - Single sensor with optional invert OR dual charge/discharge sensors
@@ -668,9 +680,9 @@ MIT License - see LICENSE file for details
 
 ## 📊 Known Issues
 
-**v2.0.0** (Current)
+None currently! 🎉
 
-* 🔋 **Battery Integration** - Flow animation is a little buggy
+Report issues at: https://github.com/0xAHA/solar-bar-card/issues
 
 ---
 
