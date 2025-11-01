@@ -1629,4 +1629,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.0-beta loaded! Battery support + Animated flows + Color palettes', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.1 loaded! Battery support + Animated flows + Color palettes', 'color: #4CAF50; font-weight: bold;');
