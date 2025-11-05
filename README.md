@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.0.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.0.3-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -35,7 +35,6 @@
 * **Semi-transparent** for unused inverter capacity
 * **Yellow dotted line** for solar forecast
 * **Grid icon dynamically changes** 🟢 green when exporting, 🟠 orange when importing
-
 
 ### 🎨 Customizable Color Palettes
 
@@ -321,6 +320,7 @@ In the Home Assistant UI editor:
 | ⚡🚗**EV Ready Icon**    | Excess solar ready     | Appears when excess solar can power EV (green/orange glow) |
 
 **v2.0.1 Solar Bar Visualization:**
+
 * When solar output < consumption: Dashed outline shows total demand, solid shaded section shows actual solar contribution
 * Grid import no longer appears on solar bar (keeps it focused on solar performance)
 * Grid icon dynamically changes: 🟢 green when exporting, 🟠 orange when importing
@@ -619,6 +619,7 @@ MIT License - see LICENSE file for details
 ## 📊 Version History
 
 **v2.0.1** (Current)
+
 * 🐛 **Battery Discharge Bugfix** - Fixed battery discharge incorrectly showing as solar import
 * 🚦 **Smart Grid Icon** - Separated import/export icons (🟢 green when exporting, 🟠 orange when importing)
 * 📊 **Improved Solar Visualization** - Dashed line shows full consumption demand, shaded portion shows actual solar output
@@ -626,6 +627,7 @@ MIT License - see LICENSE file for details
 * 🎨 **Cleaner Grid Logic** - Solar export shows on solar bar, grid import no longer clutters it
 
 **v2.0.0**
+
 * 🔋 **Battery Integration** - Side-by-side adjacent bars layout with proportional widths
 * 📊 **Proportional Bar Sizing** - Battery and solar bars sized based on capacity ratios
 * 🔌 **Flexible Battery Configuration** - Single sensor with optional invert OR dual charge/discharge sensors

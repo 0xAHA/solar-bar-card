@@ -243,8 +243,8 @@ class SolarBarCard extends HTMLElement {
       gridToHome = Math.max(0, nonEvConsumption - solarToHome - batteryToHome);
       gridToEv = Math.max(0, evUsage - solarToEv - batteryToEv);
     }
-
-    const totalGridImport = gridToHome + gridToEv;
+    // 0211 change, from const to let
+    const totalGridImport = gridImportPower;
 
     // EV Potential display (only when not charging)
     const evDisplayPower = isActuallyCharging ? 0 : Math.max(0, car_charger_load - exportPower);
@@ -267,11 +267,15 @@ class SolarBarCard extends HTMLElement {
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
 
-    // Battery charging segment (shows in solar bar as solar is charging the battery)
-    const batteryChargePercent = batteryCharging ? (batteryPower / inverter_size) * 100 : 0;
+    // Battery charging segment (shows in solar bar ONLY if solar is charging the battery)
+    // Calculate solar available after meeting home/EV loads
+    const solarAvailableForBattery = Math.max(0, solarProduction - solarToLoad);
+    const solarToBattery = batteryCharging ? Math.min(batteryPower, solarAvailableForBattery) : 0;
+    const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / inverter_size) * 100 : 0;
 
     // Grid state for icon (not shown in bar anymore)
-    const hasGridImport = totalGridImport > 0.05;
+    //const hasGridImport = totalGridImport > 0.05;
+    const hasGridImport = gridImportPower > 0.05;
     const hasGridExport = exportPower > 0.05;
 
     // Usage indicator line (shows where total usage is on the solar bar when solar doesn't cover it)
@@ -887,7 +891,7 @@ class SolarBarCard extends HTMLElement {
                 <div class="solar-bar">
                   ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
                   ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
-                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values ? `${batteryPower.toFixed(1)}kW Batt` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 ? `${solarToBattery.toFixed(1)}kW Batt` : ''}</div>` : ''}
                   ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(1)}kW Export` : ''}</div>` : ''}
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
@@ -911,7 +915,7 @@ class SolarBarCard extends HTMLElement {
                 ` : ''}
               </div>
               ${(hasGridImport || hasGridExport) ? `
-                <div class="grid-icon ${hasGridImport ? 'import' : 'export'}" title="${hasGridImport ? `Grid Import: ${totalGridImport.toFixed(1)}kW` : `Grid Export: ${exportPower.toFixed(1)}kW`}">
+                <div class="grid-icon ${hasGridImport ? 'import' : 'export'}" title="${hasGridImport ? `Grid Import: ${gridImportPower.toFixed(1)}kW` : `Grid Export: ${exportPower.toFixed(1)}kW`}">
                   <ha-icon icon="mdi:transmission-tower"></ha-icon>
                 </div>
               ` : ''}
@@ -1629,4 +1633,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/your-repo/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.1 loaded! Battery support + Animated flows + Color palettes', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.3 loaded! --- Fixed some grid representation issues', 'color: #4CAF50; font-weight: bold;');
