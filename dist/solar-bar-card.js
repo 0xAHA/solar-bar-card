@@ -11,14 +11,77 @@ class SolarBarCard extends HTMLElement {
   }
 
   set hass(hass) {
+    const oldHass = this._hass;
     this._hass = hass;
-    this.updateCard();
+
+    // Only update if relevant entities changed or first load
+    if (!oldHass || !this.config) {
+      this.updateCard();
+      return;
+    }
+
+    // Check if any relevant entity states have changed
+    const relevantEntities = [
+      this.config.production_entity,
+      this.config.self_consumption_entity,
+      this.config.export_entity,
+      this.config.import_entity,
+      this.config.grid_power_entity,
+      this.config.forecast_entity,
+      this.config.weather_entity,
+      this.config.ev_charger_sensor,
+      this.config.battery_power_entity,
+      this.config.battery_charge_entity,
+      this.config.battery_discharge_entity,
+      this.config.battery_soc_entity
+    ].filter(Boolean);
+
+    const shouldUpdate = relevantEntities.some(
+      entity => oldHass.states[entity]?.state !== hass.states[entity]?.state
+    );
+
+    if (shouldUpdate) {
+      this.updateCard();
+    }
   }
 
   setConfig(config) {
     if (!config) {
       throw new Error('Invalid configuration');
     }
+
+    // Validate inverter_size
+    if (config.inverter_size !== undefined) {
+      const inverterSize = Number(config.inverter_size);
+      if (isNaN(inverterSize) || inverterSize <= 0) {
+        throw new Error('inverter_size must be a positive number');
+      }
+    }
+
+    // Validate battery_capacity
+    if (config.battery_capacity !== undefined) {
+      const batteryCapacity = Number(config.battery_capacity);
+      if (isNaN(batteryCapacity) || batteryCapacity < 0) {
+        throw new Error('battery_capacity must be a non-negative number');
+      }
+    }
+
+    // Validate car_charger_load
+    if (config.car_charger_load !== undefined) {
+      const chargerLoad = Number(config.car_charger_load);
+      if (isNaN(chargerLoad) || chargerLoad < 0) {
+        throw new Error('car_charger_load must be a non-negative number');
+      }
+    }
+
+    // Validate battery_flow_animation_speed
+    if (config.battery_flow_animation_speed !== undefined) {
+      const animSpeed = Number(config.battery_flow_animation_speed);
+      if (isNaN(animSpeed) || animSpeed <= 0) {
+        throw new Error('battery_flow_animation_speed must be a positive number');
+      }
+    }
+
     this.config = {
       inverter_size: 10,
       show_header: false,
@@ -31,8 +94,6 @@ class SolarBarCard extends HTMLElement {
       header_title: 'Solar Power',
       weather_entity: null,
       use_solcast: false,
-      auto_entities: false,
-      growatt_device: null,
       car_charger_load: 0,
       ev_charger_sensor: null,
       import_entity: null,
@@ -52,6 +113,10 @@ class SolarBarCard extends HTMLElement {
       ...config
     };
     this.updateCard();
+  }
+
+  getConfig() {
+    return this.config;
   }
 
   updateCard() {
@@ -370,6 +435,13 @@ class SolarBarCard extends HTMLElement {
           padding: 8px;
           border-radius: 8px;
           text-align: center;
+          cursor: pointer;
+          transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .stat:hover {
+          transform: translateY(-2px);
+          opacity: 0.9;
         }
 
         .stat.battery-stat {
@@ -543,6 +615,16 @@ class SolarBarCard extends HTMLElement {
           background: var(--divider-color);
           border-radius: 16px;
           overflow: hidden;
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+        }
+
+        .battery-bar-wrapper:hover {
+          opacity: 0.8;
+        }
+
+        .battery-bar-wrapper.standby {
+          opacity: 0.3;
         }
 
         .battery-bar-fill {
@@ -576,12 +658,34 @@ class SolarBarCard extends HTMLElement {
           background: linear-gradient(90deg, #ff9800, #FFC107);
         }
 
+        .battery-bar-fill.charging {
+          background: linear-gradient(90deg, var(--battery-charge-color), var(--battery-charge-color));
+        }
+
+        .battery-bar-fill.discharging {
+          background: linear-gradient(90deg, var(--battery-discharge-color), var(--battery-discharge-color));
+        }
+
         .solar-bar-wrapper {
           position: relative;
           height: 32px;
           background: var(--divider-color);
           border-radius: 16px;
           overflow: hidden;
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+        }
+
+        .solar-bar-wrapper:hover {
+          opacity: 0.8;
+        }
+
+        .solar-bar-wrapper.standby {
+          opacity: 0.3;
+        }
+
+        .solar-bar-wrapper.standby .bar-segment {
+          background: linear-gradient(90deg, #E0E0E0, #F5F5F5) !important;
         }
 
         .solar-bar {
@@ -601,6 +705,11 @@ class SolarBarCard extends HTMLElement {
           font-size: 18px;
           transition: all 0.3s ease;
           flex-shrink: 0;
+          cursor: pointer;
+        }
+
+        .grid-icon:hover {
+          transform: scale(1.1);
         }
 
         .grid-icon ha-icon {
@@ -786,6 +895,12 @@ class SolarBarCard extends HTMLElement {
           align-items: center;
           gap: 4px;
           color: var(--secondary-text-color);
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+        }
+
+        .legend-item:hover {
+          opacity: 0.7;
         }
 
         .legend-color {
@@ -831,32 +946,32 @@ class SolarBarCard extends HTMLElement {
 
         ${show_stats ? `
           <div class="power-stats">
-            <div class="stat">
+            <div class="stat" data-entity="${production_entity}" title="Click to view solar production history">
               <div class="stat-label">Solar</div>
               <div class="stat-value">${solarProduction.toFixed(1)} kW</div>
             </div>
             ${exportPower > 0 ? `
-              <div class="stat">
+              <div class="stat" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
                 <div class="stat-label">Export</div>
                 <div class="stat-value">${exportPower.toFixed(1)} kW</div>
               </div>
             ` : totalGridImport > 0 ? `
-              <div class="stat">
+              <div class="stat" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
                 <div class="stat-label">Import</div>
                 <div class="stat-value">${totalGridImport.toFixed(1)} kW</div>
               </div>
             ` : ''}
-            <div class="stat">
+            <div class="stat" data-entity="${self_consumption_entity}" title="Click to view usage history">
               <div class="stat-label">Usage</div>
               <div class="stat-value">${selfConsumption.toFixed(1)} kW</div>
             </div>
             ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
-              <div class="stat battery-stat">
-                <div class="stat-label">Battery ${batterySOC}%</div>
+              <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" title="Click to view battery history">
+                <div class="stat-label">Battery ${batterySOC.toFixed(1)}%</div>
                 <div class="stat-value">${batteryCharging ? '↑' : batteryDischarging ? '↓' : ''}${Math.abs(batteryPower).toFixed(1)} kW</div>
               </div>
             ` : isActuallyCharging ? `
-              <div class="stat">
+              <div class="stat" data-entity="${ev_charger_sensor}" title="Click to view EV charging history">
                 <div class="stat-label">EV</div>
                 <div class="stat-value">${evUsage.toFixed(1)} kW</div>
               </div>
@@ -866,28 +981,33 @@ class SolarBarCard extends HTMLElement {
 
 
         ${(production_entity || self_consumption_entity || export_entity) ? `
-          ${isIdle ? `
+          ${isIdle && !hasBattery ? `
             <div class="idle-state">
               🌙 Solar system in standby mode
             </div>
           ` : `
+          ${isIdle && hasBattery ? `
+            <div class="idle-state">
+              🌙 Solar system in standby mode
+            </div>
+          ` : ''}
           <div class="solar-bar-container">
             ${show_bar_label ? `
               <div class="solar-bar-label">
                 <span>Power Flow</span>
                 <span class="capacity-label">
-                  ${hasBattery && show_battery_indicator ? `Battery ${batterySOC}% | ` : ''}0 - ${inverter_size}kW
+                  ${hasBattery && show_battery_indicator ? `Battery ${batterySOC.toFixed(1)}% | ` : ''}0 - ${inverter_size}kW
                 </span>
               </div>
             ` : ''}
             <div class="bars-container">
               ${hasBattery && show_battery_indicator ? `
-                <div class="battery-bar-wrapper" style="width: ${batteryBarWidth}%">
-                  <div class="battery-bar-fill ${batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
-                  <div class="bar-overlay-label">${batterySOC}%</div>
+                <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" title="Click to view battery history">
+                  <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
+                  <div class="bar-overlay-label">${batterySOC.toFixed(1)}%</div>
                 </div>
               ` : ''}
-              <div class="solar-bar-wrapper" style="width: ${powerBarWidth}%">
+              <div class="solar-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${powerBarWidth}%" data-entity="${production_entity}" title="Click to view solar production history">
                 <div class="solar-bar">
                   ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
                   ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
@@ -915,7 +1035,9 @@ class SolarBarCard extends HTMLElement {
                 ` : ''}
               </div>
               ${(hasGridImport || hasGridExport) ? `
-                <div class="grid-icon ${hasGridImport ? 'import' : 'export'}" title="${hasGridImport ? `Grid Import: ${gridImportPower.toFixed(1)}kW` : `Grid Export: ${exportPower.toFixed(1)}kW`}">
+                <div class="grid-icon ${hasGridImport ? 'import' : 'export'}"
+                     data-entity="${grid_power_entity || (hasGridImport ? import_entity : export_entity)}"
+                     title="${hasGridImport ? `Grid Import: ${gridImportPower.toFixed(1)}kW - Click for history` : `Grid Export: ${exportPower.toFixed(1)}kW - Click for history`}">
                   <ha-icon icon="mdi:transmission-tower"></ha-icon>
                 </div>
               ` : ''}
@@ -959,43 +1081,43 @@ class SolarBarCard extends HTMLElement {
           ${show_legend ? `
             <div class="legend">
               ${solarProduction > 0 ? `
-                <div class="legend-item">
+                <div class="legend-item" data-entity="${production_entity}" title="Click to view solar production history">
                   <span>☀️</span>
                   <span>Solar${show_legend_values ? ` ${solarProduction.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${solarToHome > 0 ? `
-                <div class="legend-item">
+                <div class="legend-item" data-entity="${self_consumption_entity}" title="Click to view usage history">
                   <div class="legend-color solar-home-color"></div>
                   <span>Usage${show_legend_values ? ` ${selfConsumption.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${(solarToEv > 0 || gridToEv > 0) ? `
-                <div class="legend-item">
+                <div class="legend-item" data-entity="${ev_charger_sensor}" title="Click to view EV charging history">
                   <div class="legend-color ev-charging-color"></div>
                   <span>EV${show_legend_values ? ` ${(solarToEv + gridToEv).toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${hasBattery && batteryCharging ? `
-                <div class="legend-item">
+                <div class="legend-item" data-entity="${battery_power_entity || battery_charge_entity || battery_soc_entity}" title="Click to view battery history">
                   <div class="legend-color battery-charge-color"></div>
                   <span>Batt${show_legend_values ? ` ${batteryPower.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${hasBattery && batteryDischarging ? `
-                <div class="legend-item">
+                <div class="legend-item" data-entity="${battery_power_entity || battery_discharge_entity || battery_soc_entity}" title="Click to view battery history">
                   <div class="legend-color battery-discharge-color"></div>
                   <span>Batt${show_legend_values ? ` ${Math.abs(batteryPower).toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${exportPower > 0 ? `
-                <div class="legend-item">
+                <div class="legend-item" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
                   <div class="legend-color export-color"></div>
                   <span>Export${show_legend_values ? ` ${exportPower.toFixed(1)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${gridToHome > 0 ? `
-                <div class="legend-item">
+                <div class="legend-item" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
                   <div class="legend-color grid-home-color"></div>
                   <span>Import${show_legend_values ? ` ${gridToHome.toFixed(1)}kW` : ''}</span>
                 </div>
@@ -1010,6 +1132,43 @@ class SolarBarCard extends HTMLElement {
         `}
       </ha-card>
     `;
+
+    // Set up event delegation for clickable elements (only once)
+    if (!this._clickListenerAdded) {
+      this.shadowRoot.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-entity]');
+        if (target) {
+          const entityId = target.getAttribute('data-entity');
+          if (entityId && entityId !== 'null' && entityId !== 'undefined') {
+            this.showEntityHistory(entityId);
+          }
+        }
+      });
+      this._clickListenerAdded = true;
+    }
+  }
+
+  showEntityHistory(entityId) {
+    if (!entityId) return;
+
+    const actionConfig = {
+      entity: entityId,
+      tap_action: {
+        action: "more-info"
+      }
+    };
+
+    const event = new Event("hass-action", {
+      bubbles: true,
+      composed: true,
+    });
+
+    event.detail = {
+      config: actionConfig,
+      action: "tap"
+    };
+
+    this.dispatchEvent(event);
   }
 
   getSensorValue(entityId) {
@@ -1630,7 +1789,7 @@ window.customCards.push({
   name: 'Solar Bar Card',
   description: 'A visual solar power distribution card with battery support, animated flow visualization, and customizable color palettes',
   preview: false,
-  documentationURL: 'https://github.com/your-repo/solar-bar-card'
+  documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.3 loaded! --- Fixed some grid representation issues', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.4 loaded! --- Less Digits, More-Info', 'color: #4CAF50; font-weight: bold;');
