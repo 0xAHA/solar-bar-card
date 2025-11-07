@@ -367,7 +367,7 @@ class SolarBarCard extends HTMLElement {
       const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
       const solarStartPercent = batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const overlapPercent = 1.6; // Overlap into each bar more for better visibility on mobile
+      const overlapPercent = 2.5; // Overlap into each bar more for better visibility on mobile
 
       if (batteryCharging) {
         batteryFlowColor = '#4CAF50'; // Green: solar → battery
@@ -1068,9 +1068,9 @@ class SolarBarCard extends HTMLElement {
                              dur="0.6s"
                              repeatCount="indefinite"/>
                   </path>
-                  ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="2.5" fill="${batteryFlowColor}" opacity="0.9">
-                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 2.5}s">
+                  ${[0, 1, 2, 3, 4].map(i => `
+                    <circle class="flow-particle" r="0.6" fill="${batteryFlowColor}" opacity="0.9">
+                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 5}s">
                         <mpath href="#batteryFlowPath"/>
                       </animateMotion>
                     </circle>
