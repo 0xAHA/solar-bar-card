@@ -553,7 +553,7 @@ class SolarBarCard extends HTMLElement {
           width: 100%;
           height: 32px;
           pointer-events: none;
-          z-index: 10;
+          z-index: 2;
         }
 
         .flow-particle {
@@ -566,7 +566,7 @@ class SolarBarCard extends HTMLElement {
           left: ${batteryBarWidth}%;
           transform: translate(-50%, -50%);
           font-size: 16px;
-          z-index: 11;
+          z-index: 3;
           pointer-events: none;
         }
 
@@ -1027,7 +1027,7 @@ class SolarBarCard extends HTMLElement {
                 </div>
               ` : ''}
               ${showBatteryFlow ? `
-                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="xMidYMid slice" style="z-index: 10;">
+                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="xMidYMid slice" style="z-index: 2;">
                   <defs>
                     <filter id="batteryGlow">
                       <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
