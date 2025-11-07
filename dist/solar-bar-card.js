@@ -556,24 +556,7 @@ class SolarBarCard extends HTMLElement {
         }
 
         .flow-particle {
-          animation: flowParticles ${battery_flow_animation_speed}s linear infinite;
-        }
-
-        @keyframes flowParticles {
-          0% {
-            offset-distance: 0%;
-            opacity: 0;
-          }
-          5% {
-            opacity: 1;
-          }
-          95% {
-            opacity: 1;
-          }
-          100% {
-            offset-distance: 100%;
-            opacity: 0;
-          }
+          /* Opacity animation handled inline via animateMotion */
         }
 
         .flow-arrow {
@@ -1068,11 +1051,17 @@ class SolarBarCard extends HTMLElement {
                              dur="0.6s"
                              repeatCount="indefinite"/>
                   </path>
-                  ${[0, 1, 2, 3, 4].map(i => `
-                    <circle class="flow-particle" r="0.6" fill="${batteryFlowColor}" opacity="0.9">
-                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 5}s">
+                  ${[0, 1, 2].map(i => `
+                    <circle class="flow-particle" r="0.6" fill="${batteryFlowColor}">
+                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
                         <mpath href="#batteryFlowPath"/>
                       </animateMotion>
+                      <animate attributeName="opacity"
+                               values="0;0.9;0.9;0"
+                               keyTimes="0;0.1;0.9;1"
+                               dur="${battery_flow_animation_speed}s"
+                               repeatCount="indefinite"
+                               begin="${i * battery_flow_animation_speed / 3}s"/>
                     </circle>
                   `).join('')}
                 </svg>
