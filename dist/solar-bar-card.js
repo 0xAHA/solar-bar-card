@@ -1043,7 +1043,7 @@ class SolarBarCard extends HTMLElement {
                 </div>
               ` : ''}
               ${showBatteryFlow ? `
-                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" style="z-index: 10;">
+                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="xMidYMid slice" style="z-index: 10;">
                   <defs>
                     <filter id="batteryGlow">
                       <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -1069,8 +1069,8 @@ class SolarBarCard extends HTMLElement {
                              repeatCount="indefinite"/>
                   </path>
                   ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="2.5" fill="${batteryFlowColor}" vector-effect="non-scaling-stroke" opacity="0.9">
-                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
+                    <circle class="flow-particle" r="3.5" fill="${batteryFlowColor}" opacity="0.9">
+                      <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 2.5}s">
                         <mpath href="#batteryFlowPath"/>
                       </animateMotion>
                     </circle>
