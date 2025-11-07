@@ -362,18 +362,20 @@ class SolarBarCard extends HTMLElement {
     let showBatteryFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
 
     if (showBatteryFlow) {
-      const batteryX = (batteryBarWidth / 100) * 500;
-      const gapWidth = 10;
-      const powerX = batteryX + gapWidth;
+      // Use percentage-based positioning to properly align with the gap between bars
+      const batteryEndPercent = batteryBarWidth;
+      const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
+      const solarStartPercent = batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const lineOverlap = 8;
+      const batteryOverlap = 6.0; // Overlap into battery bar more
+      const solarOverlap = 2.0; // Overlap into solar bar less
 
       if (batteryCharging) {
         batteryFlowColor = '#4CAF50'; // Green: solar → battery
-        batteryFlowPath = `M ${powerX + lineOverlap} ${barCenterY} L ${batteryX - lineOverlap} ${barCenterY}`;
+        batteryFlowPath = `M ${solarStartPercent + solarOverlap} ${barCenterY} L ${batteryEndPercent - batteryOverlap} ${barCenterY}`;
       } else if (batteryDischarging) {
         batteryFlowColor = '#2196F3'; // Blue: battery → home
-        batteryFlowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
+        batteryFlowPath = `M ${batteryEndPercent - batteryOverlap} ${barCenterY} L ${solarStartPercent + solarOverlap} ${barCenterY}`;
       }
     }
 
@@ -551,28 +553,11 @@ class SolarBarCard extends HTMLElement {
           width: 100%;
           height: 32px;
           pointer-events: none;
-          z-index: 10;
+          z-index: 2;
         }
 
         .flow-particle {
-          animation: flowParticles ${battery_flow_animation_speed}s ease-in-out infinite;
-        }
-
-        @keyframes flowParticles {
-          0% {
-            offset-distance: 0%;
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
-          100% {
-            offset-distance: 100%;
-            opacity: 0;
-          }
+          /* Opacity animation handled inline via animateMotion */
         }
 
         .flow-arrow {
@@ -581,7 +566,7 @@ class SolarBarCard extends HTMLElement {
           left: ${batteryBarWidth}%;
           transform: translate(-50%, -50%);
           font-size: 16px;
-          z-index: 11;
+          z-index: 3;
           pointer-events: none;
         }
 
@@ -1016,7 +1001,7 @@ class SolarBarCard extends HTMLElement {
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
-                ${hasBattery && show_battery_indicator ? `<div class="bar-overlay-label">Solar</div>` : ''}
+                ${hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">Solar</div>` : ''}
                 ${evReadyHalf ? `
                   <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
                        title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
@@ -1042,10 +1027,10 @@ class SolarBarCard extends HTMLElement {
                 </div>
               ` : ''}
               ${showBatteryFlow ? `
-                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32" style="z-index: 10;">
+                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="xMidYMid slice" style="z-index: 2;">
                   <defs>
                     <filter id="batteryGlow">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                       <feMerge>
                         <feMergeNode in="coloredBlur"/>
                         <feMergeNode in="SourceGraphic"/>
@@ -1055,22 +1040,29 @@ class SolarBarCard extends HTMLElement {
                   <path id="batteryFlowPath"
                         d="${batteryFlowPath}"
                         stroke="${batteryFlowColor}"
-                        stroke-width="5"
+                        stroke-width="4"
                         fill="none"
                         filter="url(#batteryGlow)"
-                        stroke-dasharray="5,5"
-                        opacity="0.8">
+                        stroke-dasharray="4,4"
+                        opacity="0.7"
+                        vector-effect="non-scaling-stroke">
                     <animate attributeName="stroke-dashoffset"
                              from="0"
-                             to="10"
-                             dur="0.5s"
+                             to="8"
+                             dur="0.6s"
                              repeatCount="indefinite"/>
                   </path>
                   ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="4" fill="${batteryFlowColor}">
+                    <circle class="flow-particle" r="0.6" fill="${batteryFlowColor}">
                       <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
                         <mpath href="#batteryFlowPath"/>
                       </animateMotion>
+                      <animate attributeName="opacity"
+                               values="0;0.9;0.9;0"
+                               keyTimes="0;0.1;0.9;1"
+                               dur="${battery_flow_animation_speed}s"
+                               repeatCount="indefinite"
+                               begin="${i * battery_flow_animation_speed / 3}s"/>
                     </circle>
                   `).join('')}
                 </svg>
@@ -1792,4 +1784,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.4 loaded! --- Less Digits, More-Info', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.5 loaded! --- Battery flow alignment & Solar text overlap fixes', 'color: #4CAF50; font-weight: bold;');

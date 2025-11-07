@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.0.4-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.0.5-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -618,7 +618,13 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v2.0.4** (Current)
+**v2.0.5** (Current)
+
+* 🐛 **Battery Flow Animation** - Fixed misaligned flow animation between battery and solar bars
+* 🎯 **Smoother Animation** - Improved flow animation with bigger particles and better overlap for mobile visibility
+* 🏷️ **Solar Text Overlap** - Fixed "Solar" label overlapping with kW values when bar values are shown
+
+**v2.0.4**
 
 * 🐛 **Battery SoC** - Fixed battery SoC value showing too many decimal places - now just one!
 * 🚦 **More-Info** - Clicking any of the card elements now shows the more-info (history graph) for the related entity
