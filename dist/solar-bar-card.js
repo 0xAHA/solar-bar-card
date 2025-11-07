@@ -1069,7 +1069,7 @@ class SolarBarCard extends HTMLElement {
                              repeatCount="indefinite"/>
                   </path>
                   ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="3.5" fill="${batteryFlowColor}" opacity="0.9">
+                    <circle class="flow-particle" r="2.5" fill="${batteryFlowColor}" opacity="0.9">
                       <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 2.5}s">
                         <mpath href="#batteryFlowPath"/>
                       </animateMotion>
