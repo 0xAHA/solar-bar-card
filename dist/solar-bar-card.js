@@ -367,14 +367,15 @@ class SolarBarCard extends HTMLElement {
       const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
       const solarStartPercent = batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const overlapPercent = 3.5; // Overlap into each bar more for better visibility on mobile
+      const batteryOverlap = 4.5; // Overlap into battery bar more
+      const solarOverlap = 2.0; // Overlap into solar bar less
 
       if (batteryCharging) {
         batteryFlowColor = '#4CAF50'; // Green: solar → battery
-        batteryFlowPath = `M ${solarStartPercent + overlapPercent} ${barCenterY} L ${batteryEndPercent - overlapPercent} ${barCenterY}`;
+        batteryFlowPath = `M ${solarStartPercent + solarOverlap} ${barCenterY} L ${batteryEndPercent - batteryOverlap} ${barCenterY}`;
       } else if (batteryDischarging) {
         batteryFlowColor = '#2196F3'; // Blue: battery → home
-        batteryFlowPath = `M ${batteryEndPercent - overlapPercent} ${barCenterY} L ${solarStartPercent + overlapPercent} ${barCenterY}`;
+        batteryFlowPath = `M ${batteryEndPercent - batteryOverlap} ${barCenterY} L ${solarStartPercent + solarOverlap} ${barCenterY}`;
       }
     }
 
