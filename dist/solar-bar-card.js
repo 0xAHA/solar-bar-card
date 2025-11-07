@@ -367,7 +367,7 @@ class SolarBarCard extends HTMLElement {
       const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
       const solarStartPercent = batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const overlapPercent = 2.5; // Overlap into each bar more for better visibility on mobile
+      const overlapPercent = 3.5; // Overlap into each bar more for better visibility on mobile
 
       if (batteryCharging) {
         batteryFlowColor = '#4CAF50'; // Green: solar → battery
