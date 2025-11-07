@@ -362,18 +362,19 @@ class SolarBarCard extends HTMLElement {
     let showBatteryFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
 
     if (showBatteryFlow) {
-      const batteryX = (batteryBarWidth / 100) * 500;
-      const gapWidth = 10;
-      const powerX = batteryX + gapWidth;
+      // Use percentage-based positioning to properly align with the gap between bars
+      const batteryEndPercent = batteryBarWidth;
+      const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
+      const solarStartPercent = batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const lineOverlap = 8;
+      const overlapPercent = 0.8; // Overlap into each bar slightly
 
       if (batteryCharging) {
         batteryFlowColor = '#4CAF50'; // Green: solar → battery
-        batteryFlowPath = `M ${powerX + lineOverlap} ${barCenterY} L ${batteryX - lineOverlap} ${barCenterY}`;
+        batteryFlowPath = `M ${solarStartPercent + overlapPercent} ${barCenterY} L ${batteryEndPercent - overlapPercent} ${barCenterY}`;
       } else if (batteryDischarging) {
         batteryFlowColor = '#2196F3'; // Blue: battery → home
-        batteryFlowPath = `M ${batteryX - lineOverlap} ${barCenterY} L ${powerX + lineOverlap} ${barCenterY}`;
+        batteryFlowPath = `M ${batteryEndPercent - overlapPercent} ${barCenterY} L ${solarStartPercent + overlapPercent} ${barCenterY}`;
       }
     }
 
@@ -1016,7 +1017,7 @@ class SolarBarCard extends HTMLElement {
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
-                ${hasBattery && show_battery_indicator ? `<div class="bar-overlay-label">Solar</div>` : ''}
+                ${hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">Solar</div>` : ''}
                 ${evReadyHalf ? `
                   <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
                        title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
@@ -1042,7 +1043,7 @@ class SolarBarCard extends HTMLElement {
                 </div>
               ` : ''}
               ${showBatteryFlow ? `
-                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 500 32" style="z-index: 10;">
+                <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" style="z-index: 10;">
                   <defs>
                     <filter id="batteryGlow">
                       <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -1059,7 +1060,8 @@ class SolarBarCard extends HTMLElement {
                         fill="none"
                         filter="url(#batteryGlow)"
                         stroke-dasharray="5,5"
-                        opacity="0.8">
+                        opacity="0.8"
+                        vector-effect="non-scaling-stroke">
                     <animate attributeName="stroke-dashoffset"
                              from="0"
                              to="10"
@@ -1067,7 +1069,7 @@ class SolarBarCard extends HTMLElement {
                              repeatCount="indefinite"/>
                   </path>
                   ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="4" fill="${batteryFlowColor}">
+                    <circle class="flow-particle" r="0.6" fill="${batteryFlowColor}" vector-effect="non-scaling-stroke">
                       <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
                         <mpath href="#batteryFlowPath"/>
                       </animateMotion>
@@ -1792,4 +1794,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.4 loaded! --- Less Digits, More-Info', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.5 loaded! --- Battery flow alignment & Solar text overlap fixes', 'color: #4CAF50; font-weight: bold;');
