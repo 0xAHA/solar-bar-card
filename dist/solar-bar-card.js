@@ -367,7 +367,7 @@ class SolarBarCard extends HTMLElement {
       const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
       const solarStartPercent = batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const overlapPercent = 0.8; // Overlap into each bar slightly
+      const overlapPercent = 1.6; // Overlap into each bar more for better visibility on mobile
 
       if (batteryCharging) {
         batteryFlowColor = '#4CAF50'; // Green: solar → battery
@@ -556,7 +556,7 @@ class SolarBarCard extends HTMLElement {
         }
 
         .flow-particle {
-          animation: flowParticles ${battery_flow_animation_speed}s ease-in-out infinite;
+          animation: flowParticles ${battery_flow_animation_speed}s linear infinite;
         }
 
         @keyframes flowParticles {
@@ -564,10 +564,10 @@ class SolarBarCard extends HTMLElement {
             offset-distance: 0%;
             opacity: 0;
           }
-          10% {
+          5% {
             opacity: 1;
           }
-          90% {
+          95% {
             opacity: 1;
           }
           100% {
@@ -1046,7 +1046,7 @@ class SolarBarCard extends HTMLElement {
                 <svg class="flow-line-container" width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" style="z-index: 10;">
                   <defs>
                     <filter id="batteryGlow">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                       <feMerge>
                         <feMergeNode in="coloredBlur"/>
                         <feMergeNode in="SourceGraphic"/>
@@ -1056,20 +1056,20 @@ class SolarBarCard extends HTMLElement {
                   <path id="batteryFlowPath"
                         d="${batteryFlowPath}"
                         stroke="${batteryFlowColor}"
-                        stroke-width="5"
+                        stroke-width="4"
                         fill="none"
                         filter="url(#batteryGlow)"
-                        stroke-dasharray="5,5"
-                        opacity="0.8"
+                        stroke-dasharray="4,4"
+                        opacity="0.7"
                         vector-effect="non-scaling-stroke">
                     <animate attributeName="stroke-dashoffset"
                              from="0"
-                             to="10"
-                             dur="0.5s"
+                             to="8"
+                             dur="0.6s"
                              repeatCount="indefinite"/>
                   </path>
                   ${[0, 1, 2].map(i => `
-                    <circle class="flow-particle" r="0.6" fill="${batteryFlowColor}" vector-effect="non-scaling-stroke">
+                    <circle class="flow-particle" r="1.2" fill="${batteryFlowColor}" vector-effect="non-scaling-stroke" opacity="0.9">
                       <animateMotion dur="${battery_flow_animation_speed}s" repeatCount="indefinite" begin="${i * battery_flow_animation_speed / 3}s">
                         <mpath href="#batteryFlowPath"/>
                       </animateMotion>
