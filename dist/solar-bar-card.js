@@ -187,6 +187,18 @@ class SolarBarCard extends HTMLElement {
         }
         hasBattery = true;
       }
+
+      // Debug logging
+      console.log('Battery Debug:', {
+        hasBattery,
+        batterySOC,
+        batteryPower,
+        battery_soc_entity,
+        battery_power_entity,
+        battery_charge_entity,
+        battery_discharge_entity,
+        show_battery_indicator
+      });
     }
 
     const batteryCharging = batteryPower > 0.05;
@@ -357,6 +369,18 @@ class SolarBarCard extends HTMLElement {
     // Reserve space for grid icon (32px ~= 3% of typical container width)
     const gridIconSpace = (hasGridImport || hasGridExport) ? 3 : 0;
     const powerBarWidth = hasBattery ? (100 - batteryBarWidth - gridIconSpace) : (100 - gridIconSpace);
+
+    // Debug logging for bar widths
+    console.log('Bar Width Debug:', {
+      hasBattery,
+      show_battery_indicator,
+      battery_capacity,
+      inverter_size,
+      batteryBarWidth,
+      powerBarWidth,
+      gridIconSpace,
+      totalWidth: batteryBarWidth + powerBarWidth + gridIconSpace
+    });
 
     // Battery flow line (between battery and solar bar)
     let batteryFlowColor = '#4CAF50';
