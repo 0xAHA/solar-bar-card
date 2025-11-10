@@ -110,6 +110,7 @@ class SolarBarCard extends HTMLElement {
       show_battery_flow: true,
       show_battery_indicator: true,
       battery_flow_animation_speed: 2,
+      decimal_places: 1,
       ...config
     };
     this.updateCard();
@@ -151,7 +152,8 @@ class SolarBarCard extends HTMLElement {
       battery_capacity = 10,
       show_battery_flow = true,
       show_battery_indicator = true,
-      battery_flow_animation_speed = 2
+      battery_flow_animation_speed = 2,
+      decimal_places = 1
     } = this.config;
 
     // Get colors from palette
@@ -367,7 +369,7 @@ class SolarBarCard extends HTMLElement {
       const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
       const solarStartPercent = batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const batteryOverlap = 6.0; // Overlap into battery bar more
+      const batteryOverlap = 4.5; // Overlap into battery bar more
       const solarOverlap = 2.0; // Overlap into solar bar less
 
       if (batteryCharging) {
@@ -933,32 +935,32 @@ class SolarBarCard extends HTMLElement {
           <div class="power-stats">
             <div class="stat" data-entity="${production_entity}" title="Click to view solar production history">
               <div class="stat-label">Solar</div>
-              <div class="stat-value">${solarProduction.toFixed(1)} kW</div>
+              <div class="stat-value">${solarProduction.toFixed(decimal_places)} kW</div>
             </div>
             ${exportPower > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
                 <div class="stat-label">Export</div>
-                <div class="stat-value">${exportPower.toFixed(1)} kW</div>
+                <div class="stat-value">${exportPower.toFixed(decimal_places)} kW</div>
               </div>
             ` : totalGridImport > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
                 <div class="stat-label">Import</div>
-                <div class="stat-value">${totalGridImport.toFixed(1)} kW</div>
+                <div class="stat-value">${totalGridImport.toFixed(decimal_places)} kW</div>
               </div>
             ` : ''}
             <div class="stat" data-entity="${self_consumption_entity}" title="Click to view usage history">
               <div class="stat-label">Usage</div>
-              <div class="stat-value">${selfConsumption.toFixed(1)} kW</div>
+              <div class="stat-value">${selfConsumption.toFixed(decimal_places)} kW</div>
             </div>
             ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
               <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" title="Click to view battery history">
-                <div class="stat-label">Battery ${batterySOC.toFixed(1)}%</div>
-                <div class="stat-value">${batteryCharging ? '↑' : batteryDischarging ? '↓' : ''}${Math.abs(batteryPower).toFixed(1)} kW</div>
+                <div class="stat-label">Battery ${batterySOC.toFixed(decimal_places)}%</div>
+                <div class="stat-value">${batteryCharging ? '↑' : batteryDischarging ? '↓' : ''}${Math.abs(batteryPower).toFixed(decimal_places)} kW</div>
               </div>
             ` : isActuallyCharging ? `
               <div class="stat" data-entity="${ev_charger_sensor}" title="Click to view EV charging history">
                 <div class="stat-label">EV</div>
-                <div class="stat-value">${evUsage.toFixed(1)} kW</div>
+                <div class="stat-value">${evUsage.toFixed(decimal_places)} kW</div>
               </div>
             ` : ''}
           </div>
@@ -981,7 +983,7 @@ class SolarBarCard extends HTMLElement {
               <div class="solar-bar-label">
                 <span>Power Flow</span>
                 <span class="capacity-label">
-                  ${hasBattery && show_battery_indicator ? `Battery ${batterySOC.toFixed(1)}% | ` : ''}0 - ${inverter_size}kW
+                  ${hasBattery && show_battery_indicator ? `Battery ${batterySOC.toFixed(decimal_places)}% | ` : ''}0 - ${inverter_size}kW
                 </span>
               </div>
             ` : ''}
@@ -989,15 +991,15 @@ class SolarBarCard extends HTMLElement {
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" title="Click to view battery history">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
-                  <div class="bar-overlay-label">${batterySOC.toFixed(1)}%</div>
+                  <div class="bar-overlay-label">${batterySOC.toFixed(decimal_places)}%</div>
                 </div>
               ` : ''}
               <div class="solar-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${powerBarWidth}%" data-entity="${production_entity}" title="Click to view solar production history">
                 <div class="solar-bar">
-                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(1)}kW` : ''}</div>` : ''}
-                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(1)}kW EV` : ''}</div>` : ''}
-                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 ? `${solarToBattery.toFixed(1)}kW Batt` : ''}</div>` : ''}
-                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(1)}kW Export` : ''}</div>` : ''}
+                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(decimal_places)}kW` : ''}</div>` : ''}
+                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(decimal_places)}kW EV` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 ? `${solarToBattery.toFixed(decimal_places)}kW Batt` : ''}</div>` : ''}
+                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(decimal_places)}kW Export` : ''}</div>` : ''}
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
@@ -1011,18 +1013,18 @@ class SolarBarCard extends HTMLElement {
                 ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
                   <div class="forecast-indicator"
                        style="left: ${anticipatedPercent}%"
-                       title="Forecast solar potential: ${anticipatedPotential.toFixed(1)}kW"></div>
+                       title="Forecast solar potential: ${anticipatedPotential.toFixed(decimal_places)}kW"></div>
                 ` : ''}
                 ${showUsageIndicator ? `
                   <div class="usage-indicator"
                        style="left: ${usagePercent}%"
-                       title="Total usage: ${selfConsumption.toFixed(1)}kW"></div>
+                       title="Total usage: ${selfConsumption.toFixed(decimal_places)}kW"></div>
                 ` : ''}
               </div>
               ${(hasGridImport || hasGridExport) ? `
                 <div class="grid-icon ${hasGridImport ? 'import' : 'export'}"
                      data-entity="${grid_power_entity || (hasGridImport ? import_entity : export_entity)}"
-                     title="${hasGridImport ? `Grid Import: ${gridImportPower.toFixed(1)}kW - Click for history` : `Grid Export: ${exportPower.toFixed(1)}kW - Click for history`}">
+                     title="${hasGridImport ? `Grid Import: ${gridImportPower.toFixed(decimal_places)}kW - Click for history` : `Grid Export: ${exportPower.toFixed(decimal_places)}kW - Click for history`}">
                   <ha-icon icon="mdi:transmission-tower"></ha-icon>
                 </div>
               ` : ''}
@@ -1075,43 +1077,43 @@ class SolarBarCard extends HTMLElement {
               ${solarProduction > 0 ? `
                 <div class="legend-item" data-entity="${production_entity}" title="Click to view solar production history">
                   <span>☀️</span>
-                  <span>Solar${show_legend_values ? ` ${solarProduction.toFixed(1)}kW` : ''}</span>
+                  <span>Solar${show_legend_values ? ` ${solarProduction.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${solarToHome > 0 ? `
                 <div class="legend-item" data-entity="${self_consumption_entity}" title="Click to view usage history">
                   <div class="legend-color solar-home-color"></div>
-                  <span>Usage${show_legend_values ? ` ${selfConsumption.toFixed(1)}kW` : ''}</span>
+                  <span>Usage${show_legend_values ? ` ${selfConsumption.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${(solarToEv > 0 || gridToEv > 0) ? `
                 <div class="legend-item" data-entity="${ev_charger_sensor}" title="Click to view EV charging history">
                   <div class="legend-color ev-charging-color"></div>
-                  <span>EV${show_legend_values ? ` ${(solarToEv + gridToEv).toFixed(1)}kW` : ''}</span>
+                  <span>EV${show_legend_values ? ` ${(solarToEv + gridToEv).toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${hasBattery && batteryCharging ? `
                 <div class="legend-item" data-entity="${battery_power_entity || battery_charge_entity || battery_soc_entity}" title="Click to view battery history">
                   <div class="legend-color battery-charge-color"></div>
-                  <span>Batt${show_legend_values ? ` ${batteryPower.toFixed(1)}kW` : ''}</span>
+                  <span>Batt${show_legend_values ? ` ${batteryPower.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${hasBattery && batteryDischarging ? `
                 <div class="legend-item" data-entity="${battery_power_entity || battery_discharge_entity || battery_soc_entity}" title="Click to view battery history">
                   <div class="legend-color battery-discharge-color"></div>
-                  <span>Batt${show_legend_values ? ` ${Math.abs(batteryPower).toFixed(1)}kW` : ''}</span>
+                  <span>Batt${show_legend_values ? ` ${Math.abs(batteryPower).toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${exportPower > 0 ? `
                 <div class="legend-item" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
                   <div class="legend-color export-color"></div>
-                  <span>Export${show_legend_values ? ` ${exportPower.toFixed(1)}kW` : ''}</span>
+                  <span>Export${show_legend_values ? ` ${exportPower.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${gridToHome > 0 ? `
                 <div class="legend-item" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
                   <div class="legend-color grid-home-color"></div>
-                  <span>Import${show_legend_values ? ` ${gridToHome.toFixed(1)}kW` : ''}</span>
+                  <span>Import${show_legend_values ? ` ${gridToHome.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
             </div>
@@ -1653,6 +1655,20 @@ class SolarBarCard extends HTMLElement {
         selector: {
           boolean: {}
         }
+      },
+      {
+        name: "decimal_places",
+        default: 1,
+        selector: {
+          select: {
+            options: [
+              { value: 1, label: "1 decimal place" },
+              { value: 2, label: "2 decimal places" },
+              { value: 3, label: "3 decimal places" }
+            ],
+            mode: "dropdown"
+          }
+        }
       }
     ];
 
@@ -1699,7 +1715,8 @@ class SolarBarCard extends HTMLElement {
         show_legend: "Show Legend",
         show_legend_values: "Show Legend Values",
         show_bar_label: "Show Bar Label",
-        show_bar_values: "Show Bar Values"
+        show_bar_values: "Show Bar Values",
+        decimal_places: "Decimal Places"
       };
       return labels[schema.name] || schema.name;
     };
@@ -1741,7 +1758,8 @@ class SolarBarCard extends HTMLElement {
         show_legend: "Display color-coded legend below the bar",
         show_legend_values: "Show current kW values in the legend",
         show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
-        show_bar_values: "Show kW values and labels on the bar segments"
+        show_bar_values: "Show kW values and labels on the bar segments",
+        decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage"
       };
       return helpers[schema.name];
     };
@@ -1766,7 +1784,8 @@ class SolarBarCard extends HTMLElement {
       custom_colors: {},
       show_battery_flow: true,
       show_battery_indicator: true,
-      battery_flow_animation_speed: 2
+      battery_flow_animation_speed: 2,
+      decimal_places: 1
     };
   }
 }
@@ -1784,4 +1803,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.5 loaded! --- Battery flow alignment & Solar text overlap fixes', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.6 loaded! --- Battery flow alignment & Solar text overlap fixes', 'color: #4CAF50; font-weight: bold;');
