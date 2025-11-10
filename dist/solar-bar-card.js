@@ -187,6 +187,18 @@ class SolarBarCard extends HTMLElement {
         }
         hasBattery = true;
       }
+
+      // Debug logging
+      console.log('Battery Debug:', {
+        hasBattery,
+        batterySOC,
+        batteryPower,
+        battery_soc_entity,
+        battery_power_entity,
+        battery_charge_entity,
+        battery_discharge_entity,
+        show_battery_indicator
+      });
     }
 
     const batteryCharging = batteryPower > 0.05;
@@ -349,14 +361,28 @@ class SolarBarCard extends HTMLElement {
     const usagePercent = (selfConsumption / inverter_size) * 100;
     const showUsageIndicator = selfConsumption > solarProduction && selfConsumption > 0.05;
 
-    // Calculate proportional widths for adjacent bars (if battery configured)
+    // Calculate proportional widths for adjacent bars (if battery configured AND visible)
     // Battery bar is capped at 30% to prevent it from dominating the display
     const totalCapacity = hasBattery ? battery_capacity + inverter_size : inverter_size;
     const rawBatteryBarWidth = hasBattery ? (battery_capacity / totalCapacity) * 100 : 0;
-    const batteryBarWidth = hasBattery ? Math.min(rawBatteryBarWidth, 30) : 0;
+    // Only reserve space for battery bar if it's both configured AND the indicator is shown
+    const batteryBarWidth = (hasBattery && show_battery_indicator) ? Math.min(rawBatteryBarWidth, 30) : 0;
     // Reserve space for grid icon (32px ~= 3% of typical container width)
     const gridIconSpace = (hasGridImport || hasGridExport) ? 3 : 0;
-    const powerBarWidth = hasBattery ? (100 - batteryBarWidth - gridIconSpace) : (100 - gridIconSpace);
+    // Power bar takes up remaining space
+    const powerBarWidth = 100 - batteryBarWidth - gridIconSpace;
+
+    // Debug logging for bar widths
+    console.log('Bar Width Debug:', {
+      hasBattery,
+      show_battery_indicator,
+      battery_capacity,
+      inverter_size,
+      batteryBarWidth,
+      powerBarWidth,
+      gridIconSpace,
+      totalWidth: batteryBarWidth + powerBarWidth + gridIconSpace
+    });
 
     // Battery flow line (between battery and solar bar)
     let batteryFlowColor = '#4CAF50';
@@ -1803,4 +1829,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.6 loaded! --- Battery flow alignment & Solar text overlap fixes', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.8 loaded! --- Fix bar sized when battery bar hidden. Add more colour profiles', 'color: #4CAF50; font-weight: bold;');
