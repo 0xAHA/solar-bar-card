@@ -1829,4 +1829,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.8 loaded! --- Fix bar sized when battery bar hidden. Add more colour profiles', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.7 loaded! --- Fix bar sized when battery bar hidden. Add more colour profiles', 'color: #4CAF50; font-weight: bold;');
