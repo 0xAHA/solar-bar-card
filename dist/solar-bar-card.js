@@ -372,6 +372,11 @@ class SolarBarCard extends HTMLElement {
     // Power bar takes up remaining space
     const powerBarWidth = 100 - batteryBarWidth - gridIconSpace;
 
+    // Get actual container width for accurate text sizing calculations
+    // Query the bars container or use the card's width
+    const barsContainer = this.shadowRoot?.querySelector('.bars-container');
+    const actualContainerWidth = barsContainer?.offsetWidth || this.offsetWidth || 500;
+
     // Helper function to determine if segment text should be shown based on width
     const shouldShowSegmentText = (segmentPercent, text, powerBarWidthPercent) => {
       // Calculate the effective percentage of the total container this segment occupies
@@ -382,15 +387,11 @@ class SolarBarCard extends HTMLElement {
       // Add 20px for padding (10px on each side)
       const estimatedTextWidth = text.length * 6 + 20;
 
-      // Assume minimum container width of 400px for calculations
-      // This is a conservative estimate for typical card widths
-      const minContainerWidth = 400;
+      // Calculate actual pixel width of this segment
+      const segmentPixelWidth = (effectivePercent / 100) * actualContainerWidth;
 
-      // Calculate minimum percentage needed
-      const minPercentNeeded = (estimatedTextWidth / minContainerWidth) * 100;
-
-      // Show text only if segment is large enough
-      return effectivePercent >= minPercentNeeded;
+      // Show text only if segment pixel width is larger than estimated text width
+      return segmentPixelWidth >= estimatedTextWidth;
     };
 
     // Debug logging for bar widths
