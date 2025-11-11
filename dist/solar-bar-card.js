@@ -372,6 +372,27 @@ class SolarBarCard extends HTMLElement {
     // Power bar takes up remaining space
     const powerBarWidth = 100 - batteryBarWidth - gridIconSpace;
 
+    // Helper function to determine if segment text should be shown based on width
+    const shouldShowSegmentText = (segmentPercent, text, powerBarWidthPercent) => {
+      // Calculate the effective percentage of the total container this segment occupies
+      const effectivePercent = (segmentPercent / 100) * (powerBarWidthPercent / 100) * 100;
+
+      // Estimate minimum width needed for text
+      // Character width at 10px font size is approximately 6px
+      // Add 20px for padding (10px on each side)
+      const estimatedTextWidth = text.length * 6 + 20;
+
+      // Assume minimum container width of 400px for calculations
+      // This is a conservative estimate for typical card widths
+      const minContainerWidth = 400;
+
+      // Calculate minimum percentage needed
+      const minPercentNeeded = (estimatedTextWidth / minContainerWidth) * 100;
+
+      // Show text only if segment is large enough
+      return effectivePercent >= minPercentNeeded;
+    };
+
     // Debug logging for bar widths
     console.log('Bar Width Debug:', {
       hasBattery,
@@ -1017,16 +1038,16 @@ class SolarBarCard extends HTMLElement {
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" title="Click to view battery history">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
-                  <div class="bar-overlay-label">${batterySOC.toFixed(decimal_places)}%</div>
+                  ${shouldShowSegmentText((batterySOC / 100) * batteryBarWidth, `${batterySOC.toFixed(decimal_places)}%`, 100) ? `<div class="bar-overlay-label">${batterySOC.toFixed(decimal_places)}%</div>` : ''}
                 </div>
               ` : ''}
               <div class="solar-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${powerBarWidth}%" data-entity="${production_entity}" title="Click to view solar production history">
                 <div class="solar-bar">
-                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(decimal_places)}kW` : ''}</div>` : ''}
-                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(decimal_places)}kW EV` : ''}</div>` : ''}
-                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 ? `${solarToBattery.toFixed(decimal_places)}kW Batt` : ''}</div>` : ''}
-                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(decimal_places)}kW Export` : ''}</div>` : ''}
-                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
+                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 && shouldShowSegmentText(solarHomePercent, `${solarToHome.toFixed(decimal_places)}kW`, powerBarWidth) ? `${solarToHome.toFixed(decimal_places)}kW` : ''}</div>` : ''}
+                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 && shouldShowSegmentText(solarEvPercent, `${solarToEv.toFixed(decimal_places)}kW EV`, powerBarWidth) ? `${solarToEv.toFixed(decimal_places)}kW EV` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 && shouldShowSegmentText(batteryChargePercent, `${solarToBattery.toFixed(decimal_places)}kW Batt`, powerBarWidth) ? `${solarToBattery.toFixed(decimal_places)}kW Batt` : ''}</div>` : ''}
+                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, `${exportPower.toFixed(decimal_places)}kW Export`, powerBarWidth) ? `${exportPower.toFixed(decimal_places)}kW Export` : ''}</div>` : ''}
+                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, `${car_charger_load}kW EV`, powerBarWidth) ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
                 ${hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">Solar</div>` : ''}
