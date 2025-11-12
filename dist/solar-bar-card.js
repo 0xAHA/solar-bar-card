@@ -365,6 +365,19 @@ class SolarBarCard extends HTMLElement {
     const barsContainer = this.shadowRoot?.querySelector('.bars-container');
     const actualContainerWidth = barsContainer?.offsetWidth || this.offsetWidth || 500;
 
+    // Debug: Check if percentages add up to 100%
+    const totalPercent = solarHomePercent + solarEvPercent + batteryChargePercent + exportPercent + evPotentialPercent + unusedPercent;
+    console.log('Segment Percentages:', {
+      solarHomePercent: solarHomePercent.toFixed(2),
+      solarEvPercent: solarEvPercent.toFixed(2),
+      batteryChargePercent: batteryChargePercent.toFixed(2),
+      exportPercent: exportPercent.toFixed(2),
+      evPotentialPercent: evPotentialPercent.toFixed(2),
+      unusedPercent: unusedPercent.toFixed(2),
+      totalPercent: totalPercent.toFixed(2),
+      gap: (100 - totalPercent).toFixed(2)
+    });
+
     // Helper function to determine if segment text should be shown based on width
     const shouldShowSegmentText = (segmentPercent, text, powerBarWidthPercent) => {
       // Calculate the effective percentage of the total container this segment occupies
