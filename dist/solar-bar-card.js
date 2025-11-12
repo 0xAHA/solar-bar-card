@@ -367,6 +367,7 @@ class SolarBarCard extends HTMLElement {
 
     // Debug: Check if percentages add up to 100%
     const totalPercent = solarHomePercent + solarEvPercent + batteryChargePercent + exportPercent + evPotentialPercent + unusedPercent;
+    const totalKw = solarToHome + solarToEv + solarToBattery + exportPower + evDisplayPower + unusedCapacityKw;
     console.log('Segment Percentages:', {
       solarHomePercent: solarHomePercent.toFixed(2),
       solarEvPercent: solarEvPercent.toFixed(2),
@@ -376,6 +377,17 @@ class SolarBarCard extends HTMLElement {
       unusedPercent: unusedPercent.toFixed(2),
       totalPercent: totalPercent.toFixed(2),
       gap: (100 - totalPercent).toFixed(2)
+    });
+    console.log('Segment kW Values:', {
+      solarToHome: solarToHome.toFixed(2),
+      solarToEv: solarToEv.toFixed(2),
+      solarToBattery: solarToBattery.toFixed(2),
+      exportPower: exportPower.toFixed(2),
+      evDisplayPower: evDisplayPower.toFixed(2),
+      unusedCapacityKw: unusedCapacityKw.toFixed(2),
+      totalKw: totalKw.toFixed(2),
+      inverter_size: inverter_size.toFixed(2),
+      kWgap: (inverter_size - totalKw).toFixed(2)
     });
 
     // Helper function to determine if segment text should be shown based on width
