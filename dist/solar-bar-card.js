@@ -321,9 +321,14 @@ class SolarBarCard extends HTMLElement {
     const evReadyHalf = car_charger_load > 0 && !isActuallyCharging && excessSolar >= (car_charger_load * 0.5);
     const evReadyFull = car_charger_load > 0 && !isActuallyCharging && excessSolar >= car_charger_load;
 
-    // Calculate used capacity and remaining unused capacity
-    const usedCapacityKw = selfConsumption + exportPower;
-    const unusedCapacityKw = Math.max(0, inverter_size - usedCapacityKw - evDisplayPower);
+    // Battery charging segment (calculate BEFORE unused capacity)
+    // Shows in solar bar ONLY if solar is charging the battery
+    const solarAvailableForBattery = Math.max(0, solarProduction - solarToLoad);
+    const solarToBattery = batteryCharging ? Math.min(batteryPower, solarAvailableForBattery) : 0;
+
+    // Calculate unused capacity - must account for all segments being shown in the bar
+    // Segments: solarToHome + solarToEv + solarToBattery + exportPower + evDisplayPower + unused = inverter_size
+    const unusedCapacityKw = Math.max(0, inverter_size - solarToHome - solarToEv - solarToBattery - exportPower - evDisplayPower);
 
     // Calculate percentages for bar segments
     // Solar bar now only shows solar-sourced power (home, EV, battery charging, export, unused)
@@ -333,11 +338,6 @@ class SolarBarCard extends HTMLElement {
     const evPotentialPercent = (evDisplayPower / inverter_size) * 100;
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
-
-    // Battery charging segment (shows in solar bar ONLY if solar is charging the battery)
-    // Calculate solar available after meeting home/EV loads
-    const solarAvailableForBattery = Math.max(0, solarProduction - solarToLoad);
-    const solarToBattery = batteryCharging ? Math.min(batteryPower, solarAvailableForBattery) : 0;
     const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / inverter_size) * 100 : 0;
 
     // Grid state for icon (not shown in bar anymore)
