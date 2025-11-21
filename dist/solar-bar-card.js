@@ -187,18 +187,6 @@ class SolarBarCard extends HTMLElement {
         }
         hasBattery = true;
       }
-
-      // Debug logging
-      console.log('Battery Debug:', {
-        hasBattery,
-        batterySOC,
-        batteryPower,
-        battery_soc_entity,
-        battery_power_entity,
-        battery_charge_entity,
-        battery_discharge_entity,
-        show_battery_indicator
-      });
     }
 
     const batteryCharging = batteryPower > 0.05;
@@ -333,9 +321,14 @@ class SolarBarCard extends HTMLElement {
     const evReadyHalf = car_charger_load > 0 && !isActuallyCharging && excessSolar >= (car_charger_load * 0.5);
     const evReadyFull = car_charger_load > 0 && !isActuallyCharging && excessSolar >= car_charger_load;
 
-    // Calculate used capacity and remaining unused capacity
-    const usedCapacityKw = selfConsumption + exportPower;
-    const unusedCapacityKw = Math.max(0, inverter_size - usedCapacityKw - evDisplayPower);
+    // Battery charging segment (calculate BEFORE unused capacity)
+    // Shows in solar bar ONLY if solar is charging the battery
+    const solarAvailableForBattery = Math.max(0, solarProduction - solarToLoad);
+    const solarToBattery = batteryCharging ? Math.min(batteryPower, solarAvailableForBattery) : 0;
+
+    // Calculate unused capacity - must account for all segments being shown in the bar
+    // Segments: solarToHome + solarToEv + solarToBattery + exportPower + evDisplayPower + unused = inverter_size
+    const unusedCapacityKw = Math.max(0, inverter_size - solarToHome - solarToEv - solarToBattery - exportPower - evDisplayPower);
 
     // Calculate percentages for bar segments
     // Solar bar now only shows solar-sourced power (home, EV, battery charging, export, unused)
@@ -345,11 +338,6 @@ class SolarBarCard extends HTMLElement {
     const evPotentialPercent = (evDisplayPower / inverter_size) * 100;
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
-
-    // Battery charging segment (shows in solar bar ONLY if solar is charging the battery)
-    // Calculate solar available after meeting home/EV loads
-    const solarAvailableForBattery = Math.max(0, solarProduction - solarToLoad);
-    const solarToBattery = batteryCharging ? Math.min(batteryPower, solarAvailableForBattery) : 0;
     const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / inverter_size) * 100 : 0;
 
     // Grid state for icon (not shown in bar anymore)
@@ -372,17 +360,52 @@ class SolarBarCard extends HTMLElement {
     // Power bar takes up remaining space
     const powerBarWidth = 100 - batteryBarWidth - gridIconSpace;
 
-    // Debug logging for bar widths
-    console.log('Bar Width Debug:', {
-      hasBattery,
-      show_battery_indicator,
-      battery_capacity,
-      inverter_size,
-      batteryBarWidth,
-      powerBarWidth,
-      gridIconSpace,
-      totalWidth: batteryBarWidth + powerBarWidth + gridIconSpace
+    // Get actual container width for accurate text sizing calculations
+    // Query the bars container or use the card's width
+    const barsContainer = this.shadowRoot?.querySelector('.bars-container');
+    const actualContainerWidth = barsContainer?.offsetWidth || this.offsetWidth || 500;
+
+    // Debug: Check if percentages add up to 100%
+    const totalPercent = solarHomePercent + solarEvPercent + batteryChargePercent + exportPercent + evPotentialPercent + unusedPercent;
+    const totalKw = solarToHome + solarToEv + solarToBattery + exportPower + evDisplayPower + unusedCapacityKw;
+    console.log('Segment Percentages:', {
+      solarHomePercent: solarHomePercent.toFixed(2),
+      solarEvPercent: solarEvPercent.toFixed(2),
+      batteryChargePercent: batteryChargePercent.toFixed(2),
+      exportPercent: exportPercent.toFixed(2),
+      evPotentialPercent: evPotentialPercent.toFixed(2),
+      unusedPercent: unusedPercent.toFixed(2),
+      totalPercent: totalPercent.toFixed(2),
+      gap: (100 - totalPercent).toFixed(2)
     });
+    console.log('Segment kW Values:', {
+      solarToHome: solarToHome.toFixed(2),
+      solarToEv: solarToEv.toFixed(2),
+      solarToBattery: solarToBattery.toFixed(2),
+      exportPower: exportPower.toFixed(2),
+      evDisplayPower: evDisplayPower.toFixed(2),
+      unusedCapacityKw: unusedCapacityKw.toFixed(2),
+      totalKw: totalKw.toFixed(2),
+      inverter_size: inverter_size.toFixed(2),
+      kWgap: (inverter_size - totalKw).toFixed(2)
+    });
+
+    // Helper function to determine if segment text should be shown based on width
+    const shouldShowSegmentText = (segmentPercent, text, powerBarWidthPercent) => {
+      // Calculate the effective percentage of the total container this segment occupies
+      const effectivePercent = (segmentPercent / 100) * (powerBarWidthPercent / 100) * 100;
+
+      // Estimate minimum width needed for text
+      // Character width at 10px font size is approximately 6px
+      // Add 20px for padding (10px on each side)
+      const estimatedTextWidth = text.length * 6 + 20;
+
+      // Calculate actual pixel width of this segment
+      const segmentPixelWidth = (effectivePercent / 100) * actualContainerWidth;
+
+      // Show text only if segment pixel width is larger than estimated text width
+      return segmentPixelWidth >= estimatedTextWidth;
+    };
 
     // Battery flow line (between battery and solar bar)
     let batteryFlowColor = '#4CAF50';
@@ -749,6 +772,8 @@ class SolarBarCard extends HTMLElement {
           font-weight: 600;
           transition: all 0.3s ease;
           text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+          position: relative;
+          z-index: 3;
         }
 
         .solar-home-segment {
@@ -1017,16 +1042,16 @@ class SolarBarCard extends HTMLElement {
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" title="Click to view battery history">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
-                  <div class="bar-overlay-label">${batterySOC.toFixed(decimal_places)}%</div>
+                  ${shouldShowSegmentText((batterySOC / 100) * batteryBarWidth, `${batterySOC.toFixed(decimal_places)}%`, 100) ? `<div class="bar-overlay-label">${batterySOC.toFixed(decimal_places)}%</div>` : ''}
                 </div>
               ` : ''}
               <div class="solar-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${powerBarWidth}%" data-entity="${production_entity}" title="Click to view solar production history">
                 <div class="solar-bar">
-                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 ? `${solarToHome.toFixed(decimal_places)}kW` : ''}</div>` : ''}
-                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 ? `${solarToEv.toFixed(decimal_places)}kW EV` : ''}</div>` : ''}
-                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 ? `${solarToBattery.toFixed(decimal_places)}kW Batt` : ''}</div>` : ''}
-                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values ? `${exportPower.toFixed(decimal_places)}kW Export` : ''}</div>` : ''}
-                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values ? `${car_charger_load}kW EV` : ''}</div>` : ''}
+                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 && shouldShowSegmentText(solarHomePercent, `${solarToHome.toFixed(decimal_places)}kW`, powerBarWidth) ? `${solarToHome.toFixed(decimal_places)}kW` : ''}</div>` : ''}
+                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 && shouldShowSegmentText(solarEvPercent, `${solarToEv.toFixed(decimal_places)}kW EV`, powerBarWidth) ? `${solarToEv.toFixed(decimal_places)}kW EV` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 && shouldShowSegmentText(batteryChargePercent, `${solarToBattery.toFixed(decimal_places)}kW Batt`, powerBarWidth) ? `${solarToBattery.toFixed(decimal_places)}kW Batt` : ''}</div>` : ''}
+                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, `${exportPower.toFixed(decimal_places)}kW Export`, powerBarWidth) ? `${exportPower.toFixed(decimal_places)}kW Export` : ''}</div>` : ''}
+                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, `${car_charger_load}kW EV`, powerBarWidth) ? `${car_charger_load}kW EV` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
                 ${hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">Solar</div>` : ''}
