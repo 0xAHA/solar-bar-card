@@ -365,31 +365,6 @@ class SolarBarCard extends HTMLElement {
     const barsContainer = this.shadowRoot?.querySelector('.bars-container');
     const actualContainerWidth = barsContainer?.offsetWidth || this.offsetWidth || 500;
 
-    // Debug: Check if percentages add up to 100%
-    const totalPercent = solarHomePercent + solarEvPercent + batteryChargePercent + exportPercent + evPotentialPercent + unusedPercent;
-    const totalKw = solarToHome + solarToEv + solarToBattery + exportPower + evDisplayPower + unusedCapacityKw;
-    console.log('Segment Percentages:', {
-      solarHomePercent: solarHomePercent.toFixed(2),
-      solarEvPercent: solarEvPercent.toFixed(2),
-      batteryChargePercent: batteryChargePercent.toFixed(2),
-      exportPercent: exportPercent.toFixed(2),
-      evPotentialPercent: evPotentialPercent.toFixed(2),
-      unusedPercent: unusedPercent.toFixed(2),
-      totalPercent: totalPercent.toFixed(2),
-      gap: (100 - totalPercent).toFixed(2)
-    });
-    console.log('Segment kW Values:', {
-      solarToHome: solarToHome.toFixed(2),
-      solarToEv: solarToEv.toFixed(2),
-      solarToBattery: solarToBattery.toFixed(2),
-      exportPower: exportPower.toFixed(2),
-      evDisplayPower: evDisplayPower.toFixed(2),
-      unusedCapacityKw: unusedCapacityKw.toFixed(2),
-      totalKw: totalKw.toFixed(2),
-      inverter_size: inverter_size.toFixed(2),
-      kWgap: (inverter_size - totalKw).toFixed(2)
-    });
-
     // Helper function to determine if segment text should be shown based on width
     const shouldShowSegmentText = (segmentPercent, text, powerBarWidthPercent) => {
       // Calculate the effective percentage of the total container this segment occupies
@@ -1854,4 +1829,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.7 loaded! --- Fix bar sized when battery bar hidden. Add more colour profiles', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.0.8 loaded! --- Fix bar sized when battery bar hidden. Add more colour profiles', 'color: #4CAF50; font-weight: bold;');
