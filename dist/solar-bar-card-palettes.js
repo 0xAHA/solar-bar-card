@@ -93,6 +93,133 @@ export const COLOR_PALETTES = {
       battery_discharge: '#9CCFDF'
     }
   },
+  'floral-charm': {
+    name: 'Floral Charm',
+    icon: '🌸',
+    description: 'Lush, floral-inspired colours — soft petals to leafy accents',
+    colors: {
+      solar: '#FFD6E0',         // pale blossom
+      export: '#C8E6C9',        // mint leaf
+      import: '#FFB4A2',        // coral petal
+      self_usage: '#E7C6FF',    // lavender bloom
+      ev_charge: '#A7E9F7',     // morning dew
+      battery_bar: '#A7E9F7',
+      battery_charge: '#9EE3C8',// soft sage
+      battery_discharge: '#FF8DAA'// punchy rose
+    }
+  },
+
+  'bold-block': {
+    name: 'Bold Block',
+    icon: '🟥',
+    description: 'High-contrast colour-blocking for maximum readability',
+    colors: {
+      solar: '#FF6B35',         // tangerine
+      export: '#FFD400',        // vivid yellow
+      import: '#FF3B6F',        // punch pink
+      self_usage: '#2D9CDB',    // vivid blue
+      ev_charge: '#0DBA7A',     // teal green
+      battery_bar: '#0DBA7A',
+      battery_charge: '#333333',// dark neutral
+      battery_discharge: '#111111'// near-black accent
+    }
+  },
+
+  'pastel-skies': {
+    name: 'Pastel Skies',
+    icon: '☁️',
+    description: 'Soft pastels for a calm, airy dashboard look',
+    colors: {
+      solar: '#FFF1C9',         // warm cream
+      export: '#CFEAF9',        // sky blue
+      import: '#FFD9E2',        // soft pink
+      self_usage: '#EAD7FF',    // pale lilac
+      ev_charge: '#D7F7E2',     // seafoam
+      battery_bar: '#D7F7E2',
+      battery_charge: '#FBE6C6',// peachy highlight
+      battery_discharge: '#C2D9FF'// soft blue discharge
+    }
+  },
+
+  'neon-daze': {
+    name: 'Neon Daze',
+    icon: '⚡',
+    description: 'Bright neon brights for a punchy, modern look',
+    colors: {
+      solar: '#FFFA3C',         // neon yellow
+      export: '#00FFC6',        // electric mint
+      import: '#FF2D95',        // magenta neon
+      self_usage: '#7C4DFF',    // electric purple
+      ev_charge: '#00B0FF',     // electric blue
+      battery_bar: '#00B0FF',
+      battery_charge: '#00FF7F',// neon green
+      battery_discharge: '#FF6F00'// hot orange
+    }
+  },
+
+  'retro-vibes': {
+    name: 'Retro Vibes',
+    icon: '📻',
+    description: 'Warm ’70s-inspired hues — nostalgic and cosy',
+    colors: {
+      solar: '#FFD166',         // mustard
+      export: '#F4A261',        // warm terracotta
+      import: '#E76F51',        // burnt coral
+      self_usage: '#2A9D8F',    // teal retro
+      ev_charge: '#264653',     // deep slate
+      battery_bar: '#264653',
+      battery_charge: '#F7B267',// soft gold
+      battery_discharge: '#B07A5A'// brown accent
+    }
+  },
+
+  'camouflage': {
+    name: 'Camouflage',
+    icon: '🪖',
+    description: 'Muted military greens and earth tones for a rugged look',
+    colors: {
+      solar: '#C4B29A',         // sand
+      export: '#9AA67A',        // sage
+      import: '#7A8B58',        // olive
+      self_usage: '#5A6B45',    // dark olive
+      ev_charge: '#3D4F3A',     // forest
+      battery_bar: '#3D4F3A',
+      battery_charge: '#6D5A46',// brown earth
+      battery_discharge: '#2E2B26'// deep charcoal
+    }
+  },
+
+  'psychedelic-pop': {
+    name: 'Psychedelic Pop',
+    icon: '🌀',
+    description: 'Bold, trippy colours for a playful, loud dashboard',
+    colors: {
+      solar: '#FF4D6D',         // electric rose
+      export: '#FFB84D',        // pop orange
+      import: '#7FFF6C',        // lime pop
+      self_usage: '#5CC5FF',    // bright cyan
+      ev_charge: '#B06AFF',     // neon purple
+      battery_bar: '#B06AFF',
+      battery_charge: '#FF6FFF',// hot pink charge
+      battery_discharge: '#2D2DFF'// electric indigo
+    }
+  },
+
+  'muted-earth': {
+    name: 'Muted Earth',
+    icon: '🌾',
+    description: 'Low-saturation earth tones for a subtle, classy UI',
+    colors: {
+      solar: '#FAE8D6',         // soft sand
+      export: '#D7E7D0',        // pale moss
+      import: '#EAC9B7',        // clay
+      self_usage: '#D6CFE5',    // dusty mauve
+      ev_charge: '#BFD7D5',     // muted aqua
+      battery_bar: '#BFD7D5',
+      battery_charge: '#CFC2A9',// stone
+      battery_discharge: '#8C8476'// taupe
+    }
+  },
   'custom': {
     name: 'Custom',
     icon: '🎨',
