@@ -221,8 +221,8 @@ use_solcast: true
 | `header_title`            | string  | `"Solar Power"`   | 🏷️ Custom title text                                                                                                        |
 | `show_weather`            | boolean | `false`           | 🌡️ Display current temperature                                                                                              |
 | `weather_entity`          | string  | `null`            | 🌤️ Weather or temperature sensor                                                                                            |
-| `header_sensor_1`         | object  | `null`            | 📍 First header sensor `{entity, name, icon, unit}`                                                                          |
-| `header_sensor_2`         | object  | `null`            | 📍 Second header sensor `{entity, name, icon, unit}`                                                                         |
+| `header_sensor_1`         | object  | `null`            | 📍 First header sensor `{entity, name, icon, icon_color, unit}`                                                              |
+| `header_sensor_2`         | object  | `null`            | 📍 Second header sensor `{entity, name, icon, icon_color, unit}`                                                             |
 | `import_history_entity`   | string  | `null`            | 📊 Daily grid import energy sensor (kWh)                                                                                      |
 | `export_history_entity`   | string  | `null`            | 📊 Daily grid export energy sensor (kWh)                                                                                      |
 | `show_net_indicator`      | boolean | `true`            | 🔴🟢 Show net import/export indicator on tiles                                                                               |
@@ -639,6 +639,66 @@ header_sensor_2:
 **Icon Options:**
 - **Emoji**: Use any emoji like "⚡", "💰", "🔋", etc.
 - **MDI Icons**: Use Material Design Icons like "mdi:solar-power", "mdi:car-electric", "mdi:cash", etc.
+
+**Icon Color Options:**
+- **Direct color**: `icon_color: "#ff5722"` or `icon_color: "red"`
+- **Entity state**: `icon_color: "state"` (uses the entity's state value as the color)
+- **Entity attribute**: `icon_color: "attributes.rgb_color"` (uses an attribute from the entity)
+  - For RGB arrays like `[255, 87, 34]`, it automatically converts to `rgb(255, 87, 34)`
+
+**Advanced Examples:**
+
+```yaml
+# Static color
+header_sensor_1:
+  entity: sensor.solar_power
+  name: "Solar"
+  icon: "mdi:solar-power"
+  icon_color: "#ff9800"  # Orange
+  unit: "kW"
+
+# Dynamic color from entity state
+header_sensor_1:
+  entity: sensor.dynamic_color  # Entity state is "#ff5722"
+  name: "Status"
+  icon: "mdi:information"
+  icon_color: "state"  # Uses the entity's state as color
+
+# Color from entity attribute (like RGB lights)
+header_sensor_1:
+  entity: light.rgb_light
+  name: "Light"
+  icon: "mdi:lightbulb"
+  icon_color: "attributes.rgb_color"  # Uses light's RGB attribute
+  unit: ""
+
+# Using template sensor for dynamic colors
+header_sensor_1:
+  entity: sensor.electricity_price
+  name: "Price"
+  icon: "mdi:cash"
+  icon_color: "attributes.icon_color"  # Template sensor sets color based on price
+  unit: "¢/kWh"
+```
+
+**Create a template sensor for dynamic colors:**
+```yaml
+template:
+  - sensor:
+      - name: "Electricity Price with Color"
+        state: "{{ states('sensor.electricity_price') }}"
+        unit_of_measurement: "¢/kWh"
+        attributes:
+          icon_color: >
+            {% set price = states('sensor.electricity_price') | float %}
+            {% if price < 10 %}
+              #4caf50
+            {% elif price < 20 %}
+              #ff9800
+            {% else %}
+              #f44336
+            {% endif %}
+```
 
 ### Full Featured with Everything
 

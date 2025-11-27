@@ -400,6 +400,29 @@ class SolarBarCard extends HTMLElement {
       const icon = sensorConfig.icon || '📊';
       const isMdiIcon = icon.startsWith('mdi:');
 
+      // Process icon_color - can be a direct color value or reference to an entity attribute
+      let iconColor = null;
+      if (sensorConfig.icon_color) {
+        // Check if it's an attribute reference (e.g., "attributes.rgb_color")
+        if (sensorConfig.icon_color.startsWith('attributes.')) {
+          const attrPath = sensorConfig.icon_color.substring(11); // Remove "attributes."
+          const attrValue = entityState.attributes[attrPath];
+
+          // Handle RGB array format [r, g, b]
+          if (Array.isArray(attrValue) && attrValue.length === 3) {
+            iconColor = `rgb(${attrValue[0]}, ${attrValue[1]}, ${attrValue[2]})`;
+          } else if (attrValue) {
+            iconColor = attrValue;
+          }
+        } else if (sensorConfig.icon_color.startsWith('state')) {
+          // Use the entity state as color
+          iconColor = entityState.state;
+        } else {
+          // Direct color value (hex, rgb, named color)
+          iconColor = sensorConfig.icon_color;
+        }
+      }
+
       if (isNaN(value)) {
         // Non-numeric state - just return as-is
         return {
@@ -407,7 +430,8 @@ class SolarBarCard extends HTMLElement {
           unit: sensorConfig.unit || '',
           name: sensorConfig.name || '',
           icon: icon,
-          isMdiIcon: isMdiIcon
+          isMdiIcon: isMdiIcon,
+          iconColor: iconColor
         };
       }
 
@@ -418,7 +442,8 @@ class SolarBarCard extends HTMLElement {
         unit: unit,
         name: sensorConfig.name || '',
         icon: icon,
-        isMdiIcon: isMdiIcon
+        isMdiIcon: isMdiIcon,
+        iconColor: iconColor
       };
     };
 
@@ -1070,13 +1095,13 @@ class SolarBarCard extends HTMLElement {
             ` : ''}
             ${headerSensor1Data ? `
               <div class="card-header-item card-header-sensor" data-entity="${header_sensor_1.entity}" title="Click to view history">
-                ${headerSensor1Data.isMdiIcon ? `<ha-icon icon="${headerSensor1Data.icon}"></ha-icon>` : `<span>${headerSensor1Data.icon}</span>`}
+                ${headerSensor1Data.isMdiIcon ? `<ha-icon icon="${headerSensor1Data.icon}"${headerSensor1Data.iconColor ? ` style="color: ${headerSensor1Data.iconColor};"` : ''}></ha-icon>` : `<span${headerSensor1Data.iconColor ? ` style="color: ${headerSensor1Data.iconColor};"` : ''}>${headerSensor1Data.icon}</span>`}
                 <span>${headerSensor1Data.name ? `${headerSensor1Data.name}: ` : ''}${headerSensor1Data.value}${headerSensor1Data.unit}</span>
               </div>
             ` : ''}
             ${headerSensor2Data ? `
               <div class="card-header-item card-header-sensor" data-entity="${header_sensor_2.entity}" title="Click to view history">
-                ${headerSensor2Data.isMdiIcon ? `<ha-icon icon="${headerSensor2Data.icon}"></ha-icon>` : `<span>${headerSensor2Data.icon}</span>`}
+                ${headerSensor2Data.isMdiIcon ? `<ha-icon icon="${headerSensor2Data.icon}"${headerSensor2Data.iconColor ? ` style="color: ${headerSensor2Data.iconColor};"` : ''}></ha-icon>` : `<span${headerSensor2Data.iconColor ? ` style="color: ${headerSensor2Data.iconColor};"` : ''}>${headerSensor2Data.icon}</span>`}
                 <span>${headerSensor2Data.name ? `${headerSensor2Data.name}: ` : ''}${headerSensor2Data.value}${headerSensor2Data.unit}</span>
               </div>
             ` : ''}
