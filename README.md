@@ -36,7 +36,7 @@
 
 * **Up to 2 additional sensors** - Add custom sensors to the header bar
 * **Spread layout** - Title, sensors, and weather evenly distributed across header
-* **Flexible formatting** - Custom icons (emoji), labels, and units
+* **Flexible formatting** - Custom icons (emoji or MDI), labels, and units
 * **Click for history** - All header sensors are clickable to show entity history
 
 ### 🎨 Visual Power Distribution
@@ -622,19 +622,23 @@ weather_entity: weather.home
 header_sensor_1:
   entity: sensor.solcast_forecast_today
   name: "Forecast"
-  icon: "⚡"
+  icon: "mdi:solar-power"  # MDI icon
   unit: "kWh"
 header_sensor_2:
   entity: sensor.electricity_price
   name: "Rate"
-  icon: "💰"
+  icon: "💰"  # Emoji also works
   unit: "¢/kWh"
 ```
 
-**Result:** Header shows spread layout:
+**Result:** Header shows spread layout with both MDI icons and emoji:
 ```
-☀️ Solar     ⚡ Forecast: 12.5kWh     💰 Rate: 8.5¢/kWh     ☁️ 72°F
+☀️ Solar     🔆 Forecast: 12.5kWh     💰 Rate: 8.5¢/kWh     ☁️ 72°F
 ```
+
+**Icon Options:**
+- **Emoji**: Use any emoji like "⚡", "💰", "🔋", etc.
+- **MDI Icons**: Use Material Design Icons like "mdi:solar-power", "mdi:car-electric", "mdi:cash", etc.
 
 ### Full Featured with Everything
 

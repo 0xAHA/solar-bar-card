@@ -397,13 +397,17 @@ class SolarBarCard extends HTMLElement {
       if (!entityState) return null;
 
       const value = parseFloat(entityState.state);
+      const icon = sensorConfig.icon || '📊';
+      const isMdiIcon = icon.startsWith('mdi:');
+
       if (isNaN(value)) {
         // Non-numeric state - just return as-is
         return {
           value: entityState.state,
           unit: sensorConfig.unit || '',
           name: sensorConfig.name || '',
-          icon: sensorConfig.icon || '📊'
+          icon: icon,
+          isMdiIcon: isMdiIcon
         };
       }
 
@@ -413,7 +417,8 @@ class SolarBarCard extends HTMLElement {
         value: value.toFixed(decimal_places),
         unit: unit,
         name: sensorConfig.name || '',
-        icon: sensorConfig.icon || '📊'
+        icon: icon,
+        isMdiIcon: isMdiIcon
       };
     };
 
@@ -528,6 +533,10 @@ class SolarBarCard extends HTMLElement {
 
         .card-header-sensor:hover {
           opacity: 0.7;
+        }
+
+        .card-header-sensor ha-icon {
+          --mdc-icon-size: 18px;
         }
 
         .card-header-weather {
@@ -1061,13 +1070,13 @@ class SolarBarCard extends HTMLElement {
             ` : ''}
             ${headerSensor1Data ? `
               <div class="card-header-item card-header-sensor" data-entity="${header_sensor_1.entity}" title="Click to view history">
-                <span>${headerSensor1Data.icon}</span>
+                ${headerSensor1Data.isMdiIcon ? `<ha-icon icon="${headerSensor1Data.icon}"></ha-icon>` : `<span>${headerSensor1Data.icon}</span>`}
                 <span>${headerSensor1Data.name ? `${headerSensor1Data.name}: ` : ''}${headerSensor1Data.value}${headerSensor1Data.unit}</span>
               </div>
             ` : ''}
             ${headerSensor2Data ? `
               <div class="card-header-item card-header-sensor" data-entity="${header_sensor_2.entity}" title="Click to view history">
-                <span>${headerSensor2Data.icon}</span>
+                ${headerSensor2Data.isMdiIcon ? `<ha-icon icon="${headerSensor2Data.icon}"></ha-icon>` : `<span>${headerSensor2Data.icon}</span>`}
                 <span>${headerSensor2Data.name ? `${headerSensor2Data.name}: ` : ''}${headerSensor2Data.value}${headerSensor2Data.unit}</span>
               </div>
             ` : ''}
