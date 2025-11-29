@@ -387,13 +387,6 @@ class SolarBarCard extends HTMLElement {
 
     if (hasHistoryData && dailyImport !== null && dailyExport !== null) {
       netPosition = dailyExport - dailyImport;
-      console.log('[Solar Bar Card] Net calculation:', {
-        dailyExport: dailyExport,
-        dailyImport: dailyImport,
-        netPosition: netPosition,
-        isNetExporter: netPosition >= 0,
-        calculation: `${dailyExport} - ${dailyImport} = ${netPosition}`
-      });
     }
 
     // Helper to get header sensor value and format
