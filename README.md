@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.0.7-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.1.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -24,6 +24,20 @@
 * **Animated flow lines** - Shows charging/discharging direction with particles
 * **Smart stats tiles** - Maximum 4 tiles with single-line headers
 * **Compact legend** - Short labels to prevent wrapping
+
+### 📊 Net Import/Export History (NEW in v2.1.0!)
+
+* **Daily energy tracking** - Connect your daily import/export energy sensors
+* **Net position indicator** - Green dot = net exporter, red dot = net importer for the day
+* **Second line on tiles** - Shows daily kWh totals on import/export tiles
+* **Perfect for template sensors** - Works with Utility Meter helpers or custom templates
+
+### 📍 Header Sensors (NEW in v2.1.0!)
+
+* **Up to 2 additional sensors** - Add custom sensors to the header bar
+* **Spread layout** - Title, sensors, and weather evenly distributed across header
+* **Flexible formatting** - Custom icons (emoji or MDI), labels, and units
+* **Click for history** - All header sensors are clickable to show entity history
 
 ### 🎨 Visual Power Distribution
 
@@ -207,6 +221,11 @@ use_solcast: true
 | `header_title`            | string  | `"Solar Power"`   | 🏷️ Custom title text                                                                                                        |
 | `show_weather`            | boolean | `false`           | 🌡️ Display current temperature                                                                                              |
 | `weather_entity`          | string  | `null`            | 🌤️ Weather or temperature sensor                                                                                            |
+| `header_sensor_1`         | object  | `null`            | 📍 First header sensor `{entity, name, icon, icon_color, unit}`                                                              |
+| `header_sensor_2`         | object  | `null`            | 📍 Second header sensor `{entity, name, icon, icon_color, unit}`                                                             |
+| `import_history_entity`   | string  | `null`            | 📊 Daily grid import energy sensor (kWh)                                                                                      |
+| `export_history_entity`   | string  | `null`            | 📊 Daily grid export energy sensor (kWh)                                                                                      |
+| `show_net_indicator`      | boolean | `true`            | 🔴🟢 Show net import/export indicator on tiles                                                                               |
 | `show_stats`              | boolean | `false`           | 📊 Display power statistics tiles                                                                                             |
 | `show_legend`             | boolean | `true`            | 🎨 Display color-coded legend                                                                                                 |
 | `show_legend_values`      | boolean | `true`            | 🔢 Show kW values in legend                                                                                                   |
@@ -563,6 +582,154 @@ show_legend: true
 show_bar_label: true
 ```
 
+### With Net Import/Export History
+
+Track your daily energy balance with net position indicator:
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+grid_power_entity: sensor.grid_power
+show_stats: true
+show_legend: true
+# Daily energy sensors (create with Utility Meter helper)
+import_history_entity: sensor.daily_grid_import
+export_history_entity: sensor.daily_grid_export
+show_net_indicator: true
+```
+
+**Result:** Import/Export tiles show:
+- Current power (e.g., "1.2 kW")
+- Daily total (e.g., "+4.2 kWh" or "-3.1 kWh")
+- Green/red indicator showing net position
+
+### With Header Sensors
+
+Add custom sensors like electricity price or forecast to the header:
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+show_header: true
+header_title: "Solar"
+show_weather: true
+weather_entity: weather.home
+header_sensor_1:
+  entity: sensor.solcast_forecast_today
+  name: "Forecast"
+  icon: "mdi:solar-power"  # MDI icon
+  unit: "kWh"
+header_sensor_2:
+  entity: sensor.electricity_price
+  name: "Rate"
+  icon: "💰"  # Emoji also works
+  unit: "¢/kWh"
+```
+
+**Result:** Header shows spread layout with both MDI icons and emoji:
+```
+☀️ Solar     🔆 Forecast: 12.5kWh     💰 Rate: 8.5¢/kWh     ☁️ 72°F
+```
+
+**Icon Options:**
+- **Emoji**: Use any emoji like "⚡", "💰", "🔋", etc.
+- **MDI Icons**: Use Material Design Icons like "mdi:solar-power", "mdi:car-electric", "mdi:cash", etc.
+
+**Icon Color Options:**
+- **Direct color**: `icon_color: "#ff5722"` or `icon_color: "red"`
+- **Entity state**: `icon_color: "state"` (uses the entity's state value as the color)
+- **Entity attribute**: `icon_color: "attributes.rgb_color"` (uses an attribute from the entity)
+  - For RGB arrays like `[255, 87, 34]`, it automatically converts to `rgb(255, 87, 34)`
+
+**Advanced Examples:**
+
+```yaml
+# Static color
+header_sensor_1:
+  entity: sensor.solar_power
+  name: "Solar"
+  icon: "mdi:solar-power"
+  icon_color: "#ff9800"  # Orange
+  unit: "kW"
+
+# Dynamic color from entity state
+header_sensor_1:
+  entity: sensor.dynamic_color  # Entity state is "#ff5722"
+  name: "Status"
+  icon: "mdi:information"
+  icon_color: "state"  # Uses the entity's state as color
+
+# Color from entity attribute (like RGB lights)
+header_sensor_1:
+  entity: light.rgb_light
+  name: "Light"
+  icon: "mdi:lightbulb"
+  icon_color: "attributes.rgb_color"  # Uses light's RGB attribute
+  unit: ""
+
+# Using template sensor for dynamic colors
+header_sensor_1:
+  entity: sensor.electricity_price
+  name: "Price"
+  icon: "mdi:cash"
+  icon_color: "attributes.icon_color"  # Template sensor sets color based on price
+  unit: "¢/kWh"
+```
+
+**Create a template sensor for dynamic colors:**
+```yaml
+template:
+  - sensor:
+      - name: "Electricity Price with Color"
+        state: "{{ states('sensor.electricity_price') }}"
+        unit_of_measurement: "¢/kWh"
+        attributes:
+          icon_color: >
+            {% set price = states('sensor.electricity_price') | float %}
+            {% if price < 10 %}
+              #4caf50
+            {% elif price < 20 %}
+              #ff9800
+            {% else %}
+              #f44336
+            {% endif %}
+```
+
+### Full Featured with Everything
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 13.2
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+grid_power_entity: sensor.grid_power
+color_palette: garden-fresh
+show_header: true
+header_title: "🏡 Solar"
+show_weather: true
+weather_entity: weather.home
+header_sensor_1:
+  entity: sensor.daily_solar_yield
+  name: "Today"
+  icon: "☀️"
+  unit: "kWh"
+show_stats: true
+show_legend: true
+show_legend_values: true
+show_bar_values: true
+import_history_entity: sensor.daily_grid_import
+export_history_entity: sensor.daily_grid_export
+show_net_indicator: true
+ev_charger_sensor: sensor.wallbox_power
+car_charger_load: 11
+use_solcast: true
+```
+
 ---
 
 ## 🤝 Contributing
@@ -618,9 +785,16 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
+**v2.1.0** (Current)
 
+* 📊 **Net Import/Export History** - Track daily energy with import/export history sensors
+* 🔴🟢 **Net Position Indicator** - Green/red dot on tiles showing if you're a net exporter or importer
+* 📈 **Daily Totals on Tiles** - Second line showing daily kWh on import/export tiles
+* 📍 **Header Sensors** - Add up to 2 custom sensors to the header bar
+* 🎯 **Spread Layout** - Header items evenly distributed (title, sensors, weather)
+* 🖱️ **Clickable Sensors** - Header sensors open entity history on click
 
-v2.0.7** (Current)
+**v2.0.8**
 
 * ⚖️ **Bar Width** - Fixed bar width when battery bar hidden
 * 🎨 **More Colours!** - Added more diverse profiles to the colour palette
@@ -629,7 +803,7 @@ v2.0.7** (Current)
 
 * ⚖️ **Decimal Precision** - Added configurable decimal places (1, 2 or 3 decimal places)
 
-**v2.0.5** 
+**v2.0.5**
 
 * 🐛 **Battery Flow Animation** - Fixed misaligned flow animation between battery and solar bars
 * 🎯 **Smoother Animation** - Improved flow animation with bigger particles and better overlap for mobile visibility

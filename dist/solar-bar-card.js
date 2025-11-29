@@ -33,7 +33,11 @@ class SolarBarCard extends HTMLElement {
       this.config.battery_power_entity,
       this.config.battery_charge_entity,
       this.config.battery_discharge_entity,
-      this.config.battery_soc_entity
+      this.config.battery_soc_entity,
+      this.config.import_history_entity,
+      this.config.export_history_entity,
+      this.config.header_sensor_1?.entity,
+      this.config.header_sensor_2?.entity
     ].filter(Boolean);
 
     const shouldUpdate = relevantEntities.some(
@@ -111,6 +115,13 @@ class SolarBarCard extends HTMLElement {
       show_battery_indicator: true,
       battery_flow_animation_speed: 2,
       decimal_places: 1,
+      // Net import/export history
+      import_history_entity: null,
+      export_history_entity: null,
+      show_net_indicator: true,
+      // Header sensors
+      header_sensor_1: null,
+      header_sensor_2: null,
       ...config
     };
     this.updateCard();
@@ -153,7 +164,14 @@ class SolarBarCard extends HTMLElement {
       show_battery_flow = true,
       show_battery_indicator = true,
       battery_flow_animation_speed = 2,
-      decimal_places = 1
+      decimal_places = 1,
+      // Net import/export history
+      import_history_entity = null,
+      export_history_entity = null,
+      show_net_indicator = true,
+      // Header sensors
+      header_sensor_1 = null,
+      header_sensor_2 = null
     } = this.config;
 
     // Get colors from palette
@@ -345,6 +363,93 @@ class SolarBarCard extends HTMLElement {
     const hasGridImport = gridImportPower > 0.05;
     const hasGridExport = exportPower > 0.05;
 
+    // Net import/export history calculation
+    let dailyImport = null;
+    let dailyExport = null;
+    let netPosition = null; // positive = net exporter, negative = net importer
+    let hasHistoryData = false;
+
+    if (import_history_entity) {
+      const importState = this._hass.states[import_history_entity];
+      if (importState) {
+        dailyImport = parseFloat(importState.state);
+        if (!isNaN(dailyImport)) hasHistoryData = true;
+      }
+    }
+
+    if (export_history_entity) {
+      const exportState = this._hass.states[export_history_entity];
+      if (exportState) {
+        dailyExport = parseFloat(exportState.state);
+        if (!isNaN(dailyExport)) hasHistoryData = true;
+      }
+    }
+
+    if (hasHistoryData && dailyImport !== null && dailyExport !== null) {
+      netPosition = dailyExport - dailyImport;
+    }
+
+    // Helper to get header sensor value and format
+    const getHeaderSensorData = (sensorConfig) => {
+      if (!sensorConfig || !sensorConfig.entity) return null;
+
+      const entityState = this._hass.states[sensorConfig.entity];
+      if (!entityState) return null;
+
+      const value = parseFloat(entityState.state);
+      const icon = sensorConfig.icon || '📊';
+      const isMdiIcon = icon.startsWith('mdi:');
+
+      // Process icon_color - can be a direct color value or reference to an entity attribute
+      let iconColor = null;
+      if (sensorConfig.icon_color) {
+        // Check if it's an attribute reference (e.g., "attributes.rgb_color")
+        if (sensorConfig.icon_color.startsWith('attributes.')) {
+          const attrPath = sensorConfig.icon_color.substring(11); // Remove "attributes."
+          const attrValue = entityState.attributes[attrPath];
+
+          // Handle RGB array format [r, g, b]
+          if (Array.isArray(attrValue) && attrValue.length === 3) {
+            iconColor = `rgb(${attrValue[0]}, ${attrValue[1]}, ${attrValue[2]})`;
+          } else if (attrValue) {
+            iconColor = attrValue;
+          }
+        } else if (sensorConfig.icon_color.startsWith('state')) {
+          // Use the entity state as color
+          iconColor = entityState.state;
+        } else {
+          // Direct color value (hex, rgb, named color)
+          iconColor = sensorConfig.icon_color;
+        }
+      }
+
+      if (isNaN(value)) {
+        // Non-numeric state - just return as-is
+        return {
+          value: entityState.state,
+          unit: sensorConfig.unit || '',
+          name: sensorConfig.name || '',
+          icon: icon,
+          isMdiIcon: isMdiIcon,
+          iconColor: iconColor
+        };
+      }
+
+      // For numeric values, format appropriately
+      const unit = sensorConfig.unit || entityState.attributes.unit_of_measurement || '';
+      return {
+        value: value.toFixed(decimal_places),
+        unit: unit,
+        name: sensorConfig.name || '',
+        icon: icon,
+        isMdiIcon: isMdiIcon,
+        iconColor: iconColor
+      };
+    };
+
+    const headerSensor1Data = getHeaderSensorData(header_sensor_1);
+    const headerSensor2Data = getHeaderSensorData(header_sensor_2);
+
     // Usage indicator line (shows where total usage is on the solar bar when solar doesn't cover it)
     const usagePercent = (selfConsumption / inverter_size) * 100;
     const showUsageIndicator = selfConsumption > solarProduction && selfConsumption > 0.05;
@@ -364,31 +469,6 @@ class SolarBarCard extends HTMLElement {
     // Query the bars container or use the card's width
     const barsContainer = this.shadowRoot?.querySelector('.bars-container');
     const actualContainerWidth = barsContainer?.offsetWidth || this.offsetWidth || 500;
-
-    // Debug: Check if percentages add up to 100%
-    const totalPercent = solarHomePercent + solarEvPercent + batteryChargePercent + exportPercent + evPotentialPercent + unusedPercent;
-    const totalKw = solarToHome + solarToEv + solarToBattery + exportPower + evDisplayPower + unusedCapacityKw;
-    console.log('Segment Percentages:', {
-      solarHomePercent: solarHomePercent.toFixed(2),
-      solarEvPercent: solarEvPercent.toFixed(2),
-      batteryChargePercent: batteryChargePercent.toFixed(2),
-      exportPercent: exportPercent.toFixed(2),
-      evPotentialPercent: evPotentialPercent.toFixed(2),
-      unusedPercent: unusedPercent.toFixed(2),
-      totalPercent: totalPercent.toFixed(2),
-      gap: (100 - totalPercent).toFixed(2)
-    });
-    console.log('Segment kW Values:', {
-      solarToHome: solarToHome.toFixed(2),
-      solarToEv: solarToEv.toFixed(2),
-      solarToBattery: solarToBattery.toFixed(2),
-      exportPower: exportPower.toFixed(2),
-      evDisplayPower: evDisplayPower.toFixed(2),
-      unusedCapacityKw: unusedCapacityKw.toFixed(2),
-      totalKw: totalKw.toFixed(2),
-      inverter_size: inverter_size.toFixed(2),
-      kWgap: (inverter_size - totalKw).toFixed(2)
-    });
 
     // Helper function to determine if segment text should be shown based on width
     const shouldShowSegmentText = (segmentPercent, text, powerBarWidthPercent) => {
@@ -459,21 +539,34 @@ class SolarBarCard extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 8px;
+          gap: 12px;
+          flex-wrap: wrap;
         }
 
-        .card-header-left {
+        .card-header-item {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
+        }
+
+        .card-header-sensor {
+          font-size: 14px;
+          color: var(--secondary-text-color);
+          cursor: pointer;
+          transition: opacity 0.2s ease;
+        }
+
+        .card-header-sensor:hover {
+          opacity: 0.7;
+        }
+
+        .card-header-sensor ha-icon {
+          --mdc-icon-size: 18px;
         }
 
         .card-header-weather {
-          font-size: 16px;
+          font-size: 14px;
           color: var(--secondary-text-color);
-          display: flex;
-          align-items: center;
-          gap: 4px;
         }
 
         .power-stats {
@@ -505,12 +598,39 @@ class SolarBarCard extends HTMLElement {
           color: var(--secondary-text-color);
           font-size: 12px;
           margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
         }
 
         .stat-value {
           color: var(--primary-text-color);
           font-size: 16px;
           font-weight: 600;
+        }
+
+        .stat-history {
+          color: var(--secondary-text-color);
+          font-size: 11px;
+          margin-top: 2px;
+        }
+
+        .net-indicator {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+
+        .net-indicator.net-export {
+          background-color: var(--solar-export-color);
+          box-shadow: 0 0 4px var(--solar-export-color);
+        }
+
+        .net-indicator.net-import {
+          background-color: var(--grid-usage-color);
+          box-shadow: 0 0 4px var(--grid-usage-color);
         }
 
         .battery-container {
@@ -965,16 +1085,28 @@ class SolarBarCard extends HTMLElement {
       </style>
 
       <ha-card>
-        ${show_header || show_weather ? `
+        ${show_header || show_weather || headerSensor1Data || headerSensor2Data ? `
           <div class="card-header">
-            <div class="card-header-left">
-              ${show_header ? `
+            ${show_header ? `
+              <div class="card-header-item">
                 <span>☀️</span>
                 <span>${header_title}</span>
-              ` : ''}
-            </div>
+              </div>
+            ` : ''}
+            ${headerSensor1Data ? `
+              <div class="card-header-item card-header-sensor" data-entity="${header_sensor_1.entity}" title="Click to view history">
+                ${headerSensor1Data.isMdiIcon ? `<ha-icon icon="${headerSensor1Data.icon}"${headerSensor1Data.iconColor ? ` style="color: ${headerSensor1Data.iconColor};"` : ''}></ha-icon>` : `<span${headerSensor1Data.iconColor ? ` style="color: ${headerSensor1Data.iconColor};"` : ''}>${headerSensor1Data.icon}</span>`}
+                <span>${headerSensor1Data.name ? `${headerSensor1Data.name}: ` : ''}${headerSensor1Data.value}${headerSensor1Data.unit}</span>
+              </div>
+            ` : ''}
+            ${headerSensor2Data ? `
+              <div class="card-header-item card-header-sensor" data-entity="${header_sensor_2.entity}" title="Click to view history">
+                ${headerSensor2Data.isMdiIcon ? `<ha-icon icon="${headerSensor2Data.icon}"${headerSensor2Data.iconColor ? ` style="color: ${headerSensor2Data.iconColor};"` : ''}></ha-icon>` : `<span${headerSensor2Data.iconColor ? ` style="color: ${headerSensor2Data.iconColor};"` : ''}>${headerSensor2Data.icon}</span>`}
+                <span>${headerSensor2Data.name ? `${headerSensor2Data.name}: ` : ''}${headerSensor2Data.value}${headerSensor2Data.unit}</span>
+              </div>
+            ` : ''}
             ${show_weather && weatherTemp !== null ? `
-              <div class="card-header-weather">
+              <div class="card-header-item card-header-weather">
                 <span>${weatherIcon}</span>
                 <span>${weatherTemp}${weatherUnit}</span>
               </div>
@@ -990,13 +1122,21 @@ class SolarBarCard extends HTMLElement {
             </div>
             ${exportPower > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
-                <div class="stat-label">Export</div>
+                <div class="stat-label">
+                  Export
+                  ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
+                </div>
                 <div class="stat-value">${exportPower.toFixed(decimal_places)} kW</div>
+                ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh net</div>` : hasHistoryData && dailyExport !== null ? `<div class="stat-history">+${dailyExport.toFixed(decimal_places)} kWh</div>` : ''}
               </div>
             ` : totalGridImport > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
-                <div class="stat-label">Import</div>
+                <div class="stat-label">
+                  Import
+                  ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
+                </div>
                 <div class="stat-value">${totalGridImport.toFixed(decimal_places)} kW</div>
+                ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh net</div>` : hasHistoryData && dailyImport !== null ? `<div class="stat-history">-${dailyImport.toFixed(decimal_places)} kWh</div>` : ''}
               </div>
             ` : ''}
             <div class="stat" data-entity="${self_consumption_entity}" title="Click to view usage history">
@@ -1659,6 +1799,71 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
+      // HEADER SENSORS
+      {
+        name: "header_sensor_1",
+        selector: {
+          object: {}
+        }
+      },
+      {
+        name: "header_sensor_2",
+        selector: {
+          object: {}
+        }
+      },
+      // NET IMPORT/EXPORT HISTORY
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "import_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "export_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        name: "show_net_indicator",
+        default: true,
+        selector: {
+          boolean: {}
+        }
+      },
       // DISPLAY OPTIONS
       {
         type: "grid",
@@ -1762,6 +1967,11 @@ class SolarBarCard extends HTMLElement {
         header_title: "Header Title",
         show_weather: "Show Weather/Temperature",
         weather_entity: "Weather or Temperature Sensor",
+        header_sensor_1: "Header Sensor 1",
+        header_sensor_2: "Header Sensor 2",
+        import_history_entity: "Daily Import Energy Sensor",
+        export_history_entity: "Daily Export Energy Sensor",
+        show_net_indicator: "Show Net Import/Export Indicator",
         show_stats: "Show Individual Stats",
         show_legend: "Show Legend",
         show_legend_values: "Show Legend Values",
@@ -1805,6 +2015,11 @@ class SolarBarCard extends HTMLElement {
         header_title: "Custom title for the card header",
         show_weather: "Display current temperature in the top-right corner",
         weather_entity: "Weather entity or temperature sensor (auto-detects which type)",
+        header_sensor_1: "HEADER SENSORS - Add sensor to header. Format: {entity: 'sensor.x', name: 'Label', icon: '⚡', unit: 'kWh'}",
+        header_sensor_2: "Second header sensor. Format: {entity: 'sensor.x', name: 'Label', icon: '💰', unit: '¢'}",
+        import_history_entity: "NET HISTORY - Daily grid import energy sensor (kWh) for net import/export calculation",
+        export_history_entity: "Daily grid export energy sensor (kWh) for net import/export calculation",
+        show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
         show_stats: "DISPLAY OPTIONS - Display individual power statistics above the bar (max 4 tiles)",
         show_legend: "Display color-coded legend below the bar",
         show_legend_values: "Show current kW values in the legend",
@@ -1854,4 +2069,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.0.7 loaded! --- Fix bar sized when battery bar hidden. Add more colour profiles', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.1.0 loaded! --- Add net import/export history indicator and header sensors', 'color: #4CAF50; font-weight: bold;');
