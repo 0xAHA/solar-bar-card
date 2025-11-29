@@ -1134,7 +1134,7 @@ class SolarBarCard extends HTMLElement {
                   ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
                 </div>
                 <div class="stat-value">${exportPower.toFixed(decimal_places)} kW</div>
-                ${hasHistoryData && dailyExport !== null ? `<div class="stat-history">+${dailyExport.toFixed(decimal_places)} kWh</div>` : ''}
+                ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh net</div>` : hasHistoryData && dailyExport !== null ? `<div class="stat-history">+${dailyExport.toFixed(decimal_places)} kWh</div>` : ''}
               </div>
             ` : totalGridImport > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
@@ -1143,7 +1143,7 @@ class SolarBarCard extends HTMLElement {
                   ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
                 </div>
                 <div class="stat-value">${totalGridImport.toFixed(decimal_places)} kW</div>
-                ${hasHistoryData && dailyImport !== null ? `<div class="stat-history">-${dailyImport.toFixed(decimal_places)} kWh</div>` : ''}
+                ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh net</div>` : hasHistoryData && dailyImport !== null ? `<div class="stat-history">-${dailyImport.toFixed(decimal_places)} kWh</div>` : ''}
               </div>
             ` : ''}
             <div class="stat" data-entity="${self_consumption_entity}" title="Click to view usage history">
