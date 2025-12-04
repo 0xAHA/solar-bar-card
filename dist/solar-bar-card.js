@@ -528,6 +528,7 @@ class SolarBarCard extends HTMLElement {
         ha-card {
           padding: 4px 8px;
           position: relative;
+          background: var(--ha-card-background, var(--card-background-color, white));
         }
 
         .card-header {
@@ -2069,4 +2070,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.1.0 loaded! --- Add net import/export history indicator and header sensors', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.1.1 loaded! --- Fix card transparency issue with themes', 'color: #4CAF50; font-weight: bold;');
