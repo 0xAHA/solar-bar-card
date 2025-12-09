@@ -34,6 +34,8 @@ class SolarBarCard extends HTMLElement {
       this.config.battery_charge_entity,
       this.config.battery_discharge_entity,
       this.config.battery_soc_entity,
+      this.config.production_history_entity,
+      this.config.consumption_history_entity,
       this.config.import_history_entity,
       this.config.export_history_entity,
       this.config.header_sensor_1?.entity,
@@ -118,6 +120,9 @@ class SolarBarCard extends HTMLElement {
       // Net import/export history
       import_history_entity: null,
       export_history_entity: null,
+      // Usage History
+      production_history_entity: null,
+      consumption_history_entity: null,
       show_net_indicator: true,
       // Header sensors
       header_sensor_1: null,
@@ -168,6 +173,9 @@ class SolarBarCard extends HTMLElement {
       // Net import/export history
       import_history_entity = null,
       export_history_entity = null,
+      // Usage History
+      production_history_entity = null,
+      consumption_history_entity = null,
       show_net_indicator = true,
       // Header sensors
       header_sensor_1 = null,
@@ -367,7 +375,11 @@ class SolarBarCard extends HTMLElement {
     let dailyImport = null;
     let dailyExport = null;
     let netPosition = null; // positive = net exporter, negative = net importer
+    let dailyProduction = null;
+    let dailyConsumption = null;
     let hasHistoryData = false;
+    let hasProdHistoryData = false;
+    let hasConsHistoryData = false;
 
     if (import_history_entity) {
       const importState = this._hass.states[import_history_entity];
@@ -382,6 +394,22 @@ class SolarBarCard extends HTMLElement {
       if (exportState) {
         dailyExport = parseFloat(exportState.state);
         if (!isNaN(dailyExport)) hasHistoryData = true;
+      }
+    }
+
+    if ( production_history_entity) {
+      const prodState = this._hass.states[production_history_entity];
+      if (prodState) {
+        dailyProduction = parseFloat(prodState.state);
+        if (!isNaN(dailyProduction)) hasProdHistoryData = true;
+      }
+    }
+
+    if ( consumption_history_entity) {
+      const consState = this._hass.states[consumption_history_entity];
+      if (consState) {
+        dailyConsumption = parseFloat(consState.state);
+        if (!isNaN(dailyConsumption)) hasConsHistoryData = true;
       }
     }
 
@@ -1120,6 +1148,7 @@ class SolarBarCard extends HTMLElement {
             <div class="stat" data-entity="${production_entity}" title="Click to view solar production history">
               <div class="stat-label">Solar</div>
               <div class="stat-value">${solarProduction.toFixed(decimal_places)} kW</div>
+              ${hasProdHistoryData && dailyProduction !== null ? `<div class="stat-history">${dailyProduction.toFixed(decimal_places)} kWh</div>` : ''}
             </div>
             ${exportPower > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
@@ -1143,6 +1172,7 @@ class SolarBarCard extends HTMLElement {
             <div class="stat" data-entity="${self_consumption_entity}" title="Click to view usage history">
               <div class="stat-label">Usage</div>
               <div class="stat-value">${selfConsumption.toFixed(decimal_places)} kW</div>
+              ${hasConsHistoryData && dailyConsumption !== null ? `<div class="stat-history">${dailyConsumption.toFixed(decimal_places)} kWh</div>` : ''}
             </div>
             ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
               <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" title="Click to view battery history">
@@ -1858,6 +1888,51 @@ class SolarBarCard extends HTMLElement {
           }
         ]
       },
+      // NET PRODUCTION/CONSUMPTION HISTORY
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "production_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "consumption_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
       {
         name: "show_net_indicator",
         default: true,
@@ -1972,6 +2047,8 @@ class SolarBarCard extends HTMLElement {
         header_sensor_2: "Header Sensor 2",
         import_history_entity: "Daily Import Energy Sensor",
         export_history_entity: "Daily Export Energy Sensor",
+        production_history_entity: "Daily Solar Production",
+        consumption_history_entity: "Daily Home Consumption",
         show_net_indicator: "Show Net Import/Export Indicator",
         show_stats: "Show Individual Stats",
         show_legend: "Show Legend",
@@ -2020,6 +2097,8 @@ class SolarBarCard extends HTMLElement {
         header_sensor_2: "Second header sensor. Format: {entity: 'sensor.x', name: 'Label', icon: '💰', unit: '¢'}",
         import_history_entity: "NET HISTORY - Daily grid import energy sensor (kWh) for net import/export calculation",
         export_history_entity: "Daily grid export energy sensor (kWh) for net import/export calculation",
+        production_history_entity: "Daily solar power production (kWh)",
+        consumption_history_entity: "Daily home conumption (kWh)",
         show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
         show_stats: "DISPLAY OPTIONS - Display individual power statistics above the bar (max 4 tiles)",
         show_legend: "Display color-coded legend below the bar",
