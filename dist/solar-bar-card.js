@@ -2149,4 +2149,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.1.1 loaded! --- Fix card transparency issue with themes', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.1.2 loaded! --- Add history entities', 'color: #4CAF50; font-weight: bold;');
