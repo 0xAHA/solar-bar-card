@@ -1446,174 +1446,302 @@ class SolarBarCard extends HTMLElement {
 
   static getConfigForm() {
     const SCHEMA = [
-      // ========================================
-      // GENERAL (Core Sensors Required)
-      // ========================================
+      // GENERAL - Core Sensors (Required)
       {
-        type: "expandable",
-        title: "General",
-        collapsed: false,
+        name: "",
+        type: "heading",
+        heading: "General"
+      },
+      {
+        name: "inverter_size",
+        default: 10,
+        selector: {
+          number: {
+            min: 1,
+            max: 100,
+            step: 0.1,
+            mode: "box",
+            unit_of_measurement: "kW"
+          }
+        }
+      },
+      {
+        type: "grid",
+        name: "",
         schema: [
           {
-            name: "inverter_size",
-            default: 10,
+            name: "production_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "self_consumption_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        name: "grid_power_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "power"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["W", "kW", "MW"]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: "invert_grid_power",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "export_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "import_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+
+      // OPTIONAL SENSORS
+      {
+        name: "",
+        type: "heading",
+        heading: "Optional Sensors"
+      },
+      // Battery Sensors
+      {
+        name: "battery_soc_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "battery"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["%"]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: "battery_power_entity",
+        selector: {
+          entity: {
+            filter: [
+              {
+                domain: "sensor",
+                device_class: "power"
+              },
+              {
+                domain: "sensor",
+                attributes: {
+                  unit_of_measurement: ["W", "kW", "MW"]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        name: "invert_battery_power",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "battery_charge_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "battery_discharge_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        name: "battery_capacity",
+        default: 10,
+        selector: {
+          number: {
+            min: 0,
+            max: 100,
+            step: 0.5,
+            mode: "box",
+            unit_of_measurement: "kWh"
+          }
+        }
+      },
+      // EV Charger Sensors
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "ev_charger_sensor",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "power"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["W", "kW", "MW"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "car_charger_load",
+            default: 0,
             selector: {
               number: {
-                min: 1,
-                max: 100,
-                step: 0.1,
+                min: 0,
+                max: 50,
+                step: 0.5,
                 mode: "box",
                 unit_of_measurement: "kW"
               }
             }
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "production_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "self_consumption_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          },
-          {
-            name: "grid_power_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            name: "invert_grid_power",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "export_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "import_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
           }
         ]
       },
-
-      // ========================================
-      // OPTIONAL SENSORS
-      // ========================================
+      // Solar Forecast Sensors
       {
-        type: "expandable",
-        title: "Optional Sensors",
-        collapsed: true,
+        type: "grid",
+        name: "",
         schema: [
-          // Battery Sensors
           {
-            name: "battery_soc_entity",
+            name: "use_solcast",
+            default: false,
             selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "battery"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["%"]
-                    }
-                  }
-                ]
-              }
+              boolean: {}
             }
           },
           {
-            name: "battery_power_entity",
+            name: "forecast_entity",
             selector: {
               entity: {
                 filter: [
@@ -1630,424 +1758,280 @@ class SolarBarCard extends HTMLElement {
                 ]
               }
             }
-          },
-          {
-            name: "invert_battery_power",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
+          }
+        ]
+      },
+      // Weather Sensor
+      {
+        name: "weather_entity",
+        selector: {
+          entity: {
+            filter: [
               {
-                name: "battery_charge_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
+                domain: "weather"
               },
               {
-                name: "battery_discharge_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
+                domain: "sensor",
+                device_class: "temperature"
               }
             ]
-          },
+          }
+        }
+      },
+      // Import/Export History Sensors
+      {
+        type: "grid",
+        name: "",
+        schema: [
           {
-            name: "battery_capacity",
-            default: 10,
-            selector: {
-              number: {
-                min: 0,
-                max: 100,
-                step: 0.5,
-                mode: "box",
-                unit_of_measurement: "kWh"
-              }
-            }
-          },
-          // EV Charger Sensors
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "ev_charger_sensor",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "car_charger_load",
-                default: 0,
-                selector: {
-                  number: {
-                    min: 0,
-                    max: 50,
-                    step: 0.5,
-                    mode: "box",
-                    unit_of_measurement: "kW"
-                  }
-                }
-              }
-            ]
-          },
-          // Solar Forecast Sensors
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "use_solcast",
-                default: false,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "forecast_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "power"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["W", "kW", "MW"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          },
-          // Weather Sensor
-          {
-            name: "weather_entity",
+            name: "import_history_entity",
             selector: {
               entity: {
                 filter: [
                   {
-                    domain: "weather"
+                    domain: "sensor",
+                    device_class: "energy"
                   },
                   {
                     domain: "sensor",
-                    device_class: "temperature"
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
                   }
                 ]
               }
             }
           },
-          // Import/Export History Sensors
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "import_history_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "energy"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["kWh", "Wh", "MWh"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "export_history_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "energy"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["kWh", "Wh", "MWh"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          },
-          // Production/Consumption History Sensors
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "production_history_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "energy"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["kWh", "Wh", "MWh"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                name: "consumption_history_entity",
-                selector: {
-                  entity: {
-                    filter: [
-                      {
-                        domain: "sensor",
-                        device_class: "energy"
-                      },
-                      {
-                        domain: "sensor",
-                        attributes: {
-                          unit_of_measurement: ["kWh", "Wh", "MWh"]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          },
-          // Header Sensors
-          {
-            name: "header_sensor_1",
+            name: "export_history_entity",
             selector: {
-              object: {}
-            }
-          },
-          {
-            name: "header_sensor_2",
-            selector: {
-              object: {}
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
             }
           }
         ]
       },
+      // Production/Consumption History Sensors
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "production_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "consumption_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      // Header Sensors
+      {
+        name: "header_sensor_1",
+        selector: {
+          object: {}
+        }
+      },
+      {
+        name: "header_sensor_2",
+        selector: {
+          object: {}
+        }
+      },
 
-      // ========================================
       // DISPLAY OPTIONS
-      // ========================================
       {
-        type: "expandable",
-        title: "Display",
-        collapsed: true,
+        name: "",
+        type: "heading",
+        heading: "Display"
+      },
+      {
+        type: "grid",
+        name: "",
         schema: [
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_header",
-                default: false,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "header_title",
-                default: "Solar Power",
-                selector: {
-                  text: {}
-                }
-              }
-            ]
-          },
-          {
-            name: "show_weather",
+            name: "show_header",
             default: false,
             selector: {
               boolean: {}
             }
           },
           {
-            name: "show_stats",
-            default: false,
+            name: "header_title",
+            default: "Solar Power",
             selector: {
-              boolean: {}
+              text: {}
             }
-          },
+          }
+        ]
+      },
+      {
+        name: "show_weather",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
+        name: "show_stats",
+        default: false,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
           {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_bar_label",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "show_bar_values",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              }
-            ]
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_legend",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "show_legend_values",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              }
-            ]
-          },
-          {
-            type: "grid",
-            name: "",
-            schema: [
-              {
-                name: "show_battery_indicator",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              },
-              {
-                name: "show_battery_flow",
-                default: true,
-                selector: {
-                  boolean: {}
-                }
-              }
-            ]
-          },
-          {
-            name: "battery_flow_animation_speed",
-            default: 2,
-            selector: {
-              number: {
-                min: 0.5,
-                max: 10,
-                step: 0.5,
-                mode: "box",
-                unit_of_measurement: "s"
-              }
-            }
-          },
-          {
-            name: "show_net_indicator",
+            name: "show_bar_label",
             default: true,
             selector: {
               boolean: {}
             }
           },
           {
-            name: "decimal_places",
-            default: 1,
+            name: "show_bar_values",
+            default: true,
             selector: {
-              select: {
-                options: [
-                  { value: 1, label: "1 decimal place" },
-                  { value: 2, label: "2 decimal places" },
-                  { value: 3, label: "3 decimal places" }
-                ],
-                mode: "dropdown"
-              }
+              boolean: {}
             }
           }
         ]
       },
-
-      // ========================================
-      // COLOR PALETTE
-      // ========================================
       {
-        type: "expandable",
-        title: "Color Palette",
-        collapsed: true,
+        type: "grid",
+        name: "",
         schema: [
           {
-            name: "color_palette",
-            default: "classic-solar",
+            name: "show_legend",
+            default: true,
             selector: {
-              select: {
-                options: getPaletteOptions(),
-                mode: "dropdown"
-              }
+              boolean: {}
+            }
+          },
+          {
+            name: "show_legend_values",
+            default: true,
+            selector: {
+              boolean: {}
             }
           }
         ]
+      },
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "show_battery_indicator",
+            default: true,
+            selector: {
+              boolean: {}
+            }
+          },
+          {
+            name: "show_battery_flow",
+            default: true,
+            selector: {
+              boolean: {}
+            }
+          }
+        ]
+      },
+      {
+        name: "battery_flow_animation_speed",
+        default: 2,
+        selector: {
+          number: {
+            min: 0.5,
+            max: 10,
+            step: 0.5,
+            mode: "box",
+            unit_of_measurement: "s"
+          }
+        }
+      },
+      {
+        name: "show_net_indicator",
+        default: true,
+        selector: {
+          boolean: {}
+        }
+      },
+      {
+        name: "decimal_places",
+        default: 1,
+        selector: {
+          select: {
+            options: [
+              { value: 1, label: "1 decimal place" },
+              { value: 2, label: "2 decimal places" },
+              { value: 3, label: "3 decimal places" }
+            ],
+            mode: "dropdown"
+          }
+        }
+      },
+
+      // COLOR PALETTE
+      {
+        name: "",
+        type: "heading",
+        heading: "Color Palette"
+      },
+      {
+        name: "color_palette",
+        default: "classic-solar",
+        selector: {
+          select: {
+            options: getPaletteOptions(),
+            mode: "dropdown"
+          }
+        }
       }
     ];
 
