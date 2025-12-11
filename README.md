@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.1.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.1.1-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -785,7 +785,12 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v2.1.0** (Current)
+**v2.1.1** (Current)
+
+* 🐛 **Card Transparency Fix** - Fixed issue where card would become transparent when using Home Assistant themes
+* 🎨 **Theme Compatibility** - Card now properly respects theme background colors
+
+**v2.1.0**
 
 * 📊 **Net Import/Export History** - Track daily energy with import/export history sensors
 * 🔴🟢 **Net Position Indicator** - Green/red dot on tiles showing if you're a net exporter or importer
