@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.1.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.1.2-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -62,17 +62,16 @@
 * **Custom color overrides** - Override any individual color while keeping the palette
 * **Color picker integration** in the UI editor
 
-### ⚙️ Organized Configuration UI
+### ⚙️ Organized Configuration UI (NEW in v2.1.2!)
 
-* **Well-organized sections** with emoji visual grouping:
-  * ⚙️ Basic Settings - Inverter capacity
-  * 🔌 Entity Configuration - Power sensors
-  * 🚗 EV Charger - EV-related settings
-  * 🔮 Forecast - Solcast and custom forecast
-  * 🎨 Appearance & Colors - Palette, header, weather
-  * 👁️ Display Options - Stats, legend, bar options
-* **Visual palette selector** with emoji icons
-* **Clear section headers** in helper text for easy navigation
+* **Logical expandable sections** for better organization:
+  * **General** - Core solar and grid sensors (expanded by default for quick setup)
+  * **Battery** - All battery-related sensors and display options grouped together
+  * **Display** - Visual customization including color palette, legend, and bar options
+  * **Other** - EV charger, solar forecast, history sensors, and custom header sensors
+* **Smart state preservation** - Sections stay open/closed while you configure
+* **Improved flow** - Battery flow animation controls now properly located with battery settings
+* **Clean interface** - Over 30 configuration options organized into intuitive groups
 
 ### 🌙 Smart Idle Detection
 
@@ -225,6 +224,8 @@ use_solcast: true
 | `header_sensor_2`         | object  | `null`            | 📍 Second header sensor `{entity, name, icon, icon_color, unit}`                                                             |
 | `import_history_entity`   | string  | `null`            | 📊 Daily grid import energy sensor (kWh)                                                                                      |
 | `export_history_entity`   | string  | `null`            | 📊 Daily grid export energy sensor (kWh)                                                                                      |
+| `production_history_entity` | string  | `null`            | 📊 Daily solar production energy sensor (kWh) - NEW in v2.1.2                                                                 |
+| `consumption_history_entity` | string  | `null`            | 📊 Daily consumption energy sensor (kWh) - NEW in v2.1.2                                                                      |
 | `show_net_indicator`      | boolean | `true`            | 🔴🟢 Show net import/export indicator on tiles                                                                               |
 | `show_stats`              | boolean | `false`           | 📊 Display power statistics tiles                                                                                             |
 | `show_legend`             | boolean | `true`            | 🎨 Display color-coded legend                                                                                                 |
@@ -785,7 +786,16 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v2.1.1** (Current)
+**v2.1.2** (Current)
+
+* 📊 **Daily Solar Production and Usage Statistics** (#36 by @jchaager) - Track daily solar production totals and consumption values with history tracking (fixes #35)
+* ⚙️ **Redesigned Configuration UI** - Reorganized settings into 4 logical expandable sections (General, Battery, Display, Other) with improved layout flow
+* 🔋 **Better Battery Organization** - Battery flow animation controls now properly grouped in Battery section
+* 🎨 **Merged Color Palette** - Color palette selection integrated into Display section for streamlined customization
+* 🐛 **Fixed Expandable Sections** - Sections no longer collapse when toggling options
+* 🛠️ **Technical Improvements** - Custom editor element with optimized form rendering and proper state preservation
+
+**v2.1.1**
 
 * 🐛 **Card Transparency Fix** - Fixed issue where card would become transparent when using Home Assistant themes
 * 🎨 **Theme Compatibility** - Card now properly respects theme background colors
