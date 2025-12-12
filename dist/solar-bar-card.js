@@ -1623,7 +1623,7 @@ class SolarBarCardEditor extends HTMLElement {
       },
       {
         type: "expandable",
-        title: "Optional Sensors",
+        title: "Battery",
         expanded: false,
         flatten: true,
         schema: [
@@ -1641,34 +1641,11 @@ class SolarBarCardEditor extends HTMLElement {
           {
             type: "grid",
             schema: [
-              { name: "ev_charger_sensor", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
-              { name: "car_charger_load", label: "EV Charger Capacity", default: 0, selector: { number: { min: 0, max: 50, step: 0.5, mode: "box", unit_of_measurement: "kW" } } }
+              { name: "show_battery_indicator", default: true, selector: { boolean: {} } },
+              { name: "show_battery_flow", default: true, selector: { boolean: {} } }
             ]
           },
-          {
-            type: "grid",
-            schema: [
-              { name: "use_solcast", default: false, selector: { boolean: {} } },
-              { name: "forecast_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
-            ]
-          },
-          { name: "weather_entity", selector: { entity: { filter: [{ domain: "weather" }, { domain: "sensor", device_class: "temperature" }] } } },
-          {
-            type: "grid",
-            schema: [
-              { name: "import_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } },
-              { name: "export_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } }
-            ]
-          },
-          {
-            type: "grid",
-            schema: [
-              { name: "production_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } },
-              { name: "consumption_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } }
-            ]
-          },
-          { name: "header_sensor_1", selector: { object: {} } },
-          { name: "header_sensor_2", selector: { object: {} } }
+          { name: "battery_flow_animation_speed", default: 2, selector: { number: { min: 0.5, max: 10, step: 0.5, mode: "box", unit_of_measurement: "s" } } }
         ]
       },
       {
@@ -1700,14 +1677,6 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "show_legend_values", default: true, selector: { boolean: {} } }
             ]
           },
-          {
-            type: "grid",
-            schema: [
-              { name: "show_battery_indicator", default: true, selector: { boolean: {} } },
-              { name: "show_battery_flow", default: true, selector: { boolean: {} } }
-            ]
-          },
-          { name: "battery_flow_animation_speed", default: 2, selector: { number: { min: 0.5, max: 10, step: 0.5, mode: "box", unit_of_measurement: "s" } } },
           { name: "show_net_indicator", default: true, selector: { boolean: {} } },
           {
             name: "decimal_places",
@@ -1722,15 +1691,7 @@ class SolarBarCardEditor extends HTMLElement {
                 mode: "dropdown"
               }
             }
-          }
-        ]
-      },
-      {
-        type: "expandable",
-        title: "Color Palette",
-        expanded: false,
-        flatten: true,
-        schema: [
+          },
           {
             name: "color_palette",
             default: "classic-solar",
@@ -1741,6 +1702,45 @@ class SolarBarCardEditor extends HTMLElement {
               }
             }
           }
+        ]
+      },
+      {
+        type: "expandable",
+        title: "Other",
+        expanded: false,
+        flatten: true,
+        schema: [
+          {
+            type: "grid",
+            schema: [
+              { name: "ev_charger_sensor", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "car_charger_load", label: "EV Charger Capacity", default: 0, selector: { number: { min: 0, max: 50, step: 0.5, mode: "box", unit_of_measurement: "kW" } } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "use_solcast", default: false, selector: { boolean: {} } },
+              { name: "forecast_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
+            ]
+          },
+          { name: "weather_entity", selector: { entity: { filter: [{ domain: "weather" }, { domain: "sensor", device_class: "temperature" }] } } },
+          {
+            type: "grid",
+            schema: [
+              { name: "import_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } },
+              { name: "export_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "production_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } },
+              { name: "consumption_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } }
+            ]
+          },
+          { name: "header_sensor_1", selector: { object: {} } },
+          { name: "header_sensor_2", selector: { object: {} } }
         ]
       }
     ];
