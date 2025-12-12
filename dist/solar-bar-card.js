@@ -1642,7 +1642,7 @@ class SolarBarCardEditor extends HTMLElement {
             type: "grid",
             schema: [
               { name: "ev_charger_sensor", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
-              { name: "car_charger_load", default: 0, selector: { number: { min: 0, max: 50, step: 0.5, mode: "box", unit_of_measurement: "kW" } } }
+              { name: "car_charger_load", label: "EV Charger Capacity", default: 0, selector: { number: { min: 0, max: 50, step: 0.5, mode: "box", unit_of_measurement: "kW" } } }
             ]
           },
           {
