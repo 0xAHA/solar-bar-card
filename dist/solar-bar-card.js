@@ -1704,6 +1704,51 @@ class SolarBarCardEditor extends HTMLElement {
           }
         ]
       },
+      // NET PRODUCTION/CONSUMPTION HISTORY
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "production_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "consumption_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
       {
         type: "expandable",
         title: "Other",
