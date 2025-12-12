@@ -34,6 +34,8 @@ class SolarBarCard extends HTMLElement {
       this.config.battery_charge_entity,
       this.config.battery_discharge_entity,
       this.config.battery_soc_entity,
+      this.config.production_history_entity,
+      this.config.consumption_history_entity,
       this.config.import_history_entity,
       this.config.export_history_entity,
       this.config.header_sensor_1?.entity,
@@ -118,6 +120,9 @@ class SolarBarCard extends HTMLElement {
       // Net import/export history
       import_history_entity: null,
       export_history_entity: null,
+      // Usage History
+      production_history_entity: null,
+      consumption_history_entity: null,
       show_net_indicator: true,
       // Header sensors
       header_sensor_1: null,
@@ -168,6 +173,9 @@ class SolarBarCard extends HTMLElement {
       // Net import/export history
       import_history_entity = null,
       export_history_entity = null,
+      // Usage History
+      production_history_entity = null,
+      consumption_history_entity = null,
       show_net_indicator = true,
       // Header sensors
       header_sensor_1 = null,
@@ -367,7 +375,11 @@ class SolarBarCard extends HTMLElement {
     let dailyImport = null;
     let dailyExport = null;
     let netPosition = null; // positive = net exporter, negative = net importer
+    let dailyProduction = null;
+    let dailyConsumption = null;
     let hasHistoryData = false;
+    let hasProdHistoryData = false;
+    let hasConsHistoryData = false;
 
     if (import_history_entity) {
       const importState = this._hass.states[import_history_entity];
@@ -382,6 +394,22 @@ class SolarBarCard extends HTMLElement {
       if (exportState) {
         dailyExport = parseFloat(exportState.state);
         if (!isNaN(dailyExport)) hasHistoryData = true;
+      }
+    }
+
+    if ( production_history_entity) {
+      const prodState = this._hass.states[production_history_entity];
+      if (prodState) {
+        dailyProduction = parseFloat(prodState.state);
+        if (!isNaN(dailyProduction)) hasProdHistoryData = true;
+      }
+    }
+
+    if ( consumption_history_entity) {
+      const consState = this._hass.states[consumption_history_entity];
+      if (consState) {
+        dailyConsumption = parseFloat(consState.state);
+        if (!isNaN(dailyConsumption)) hasConsHistoryData = true;
       }
     }
 
@@ -1120,6 +1148,7 @@ class SolarBarCard extends HTMLElement {
             <div class="stat" data-entity="${production_entity}" title="Click to view solar production history">
               <div class="stat-label">Solar</div>
               <div class="stat-value">${solarProduction.toFixed(decimal_places)} kW</div>
+              ${hasProdHistoryData && dailyProduction !== null ? `<div class="stat-history">${dailyProduction.toFixed(decimal_places)} kWh</div>` : ''}
             </div>
             ${exportPower > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
@@ -1143,6 +1172,7 @@ class SolarBarCard extends HTMLElement {
             <div class="stat" data-entity="${self_consumption_entity}" title="Click to view usage history">
               <div class="stat-label">Usage</div>
               <div class="stat-value">${selfConsumption.toFixed(decimal_places)} kW</div>
+              ${hasConsHistoryData && dailyConsumption !== null ? `<div class="stat-history">${dailyConsumption.toFixed(decimal_places)} kWh</div>` : ''}
             </div>
             ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
               <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" title="Click to view battery history">
@@ -1414,629 +1444,8 @@ class SolarBarCard extends HTMLElement {
     };
   }
 
-  static getConfigForm() {
-    const SCHEMA = [
-      // BASIC SETTINGS
-      {
-        name: "inverter_size",
-        default: 10,
-        selector: {
-          number: {
-            min: 1,
-            max: 100,
-            step: 0.1,
-            mode: "box",
-            unit_of_measurement: "kW"
-          }
-        }
-      },
-      // ENTITY CONFIGURATION
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "production_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            name: "self_consumption_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      {
-        name: "grid_power_entity",
-        selector: {
-          entity: {
-            filter: [
-              {
-                domain: "sensor",
-                device_class: "power"
-              },
-              {
-                domain: "sensor",
-                attributes: {
-                  unit_of_measurement: ["W", "kW", "MW"]
-                }
-              }
-            ]
-          }
-        }
-      },
-      {
-        name: "invert_grid_power",
-        default: false,
-        selector: {
-          boolean: {}
-        }
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "export_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            name: "import_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      // BATTERY
-      {
-        name: "battery_soc_entity",
-        selector: {
-          entity: {
-            filter: [
-              {
-                domain: "sensor",
-                device_class: "battery"
-              },
-              {
-                domain: "sensor",
-                attributes: {
-                  unit_of_measurement: ["%"]
-                }
-              }
-            ]
-          }
-        }
-      },
-      {
-        name: "battery_power_entity",
-        selector: {
-          entity: {
-            filter: [
-              {
-                domain: "sensor",
-                device_class: "power"
-              },
-              {
-                domain: "sensor",
-                attributes: {
-                  unit_of_measurement: ["W", "kW", "MW"]
-                }
-              }
-            ]
-          }
-        }
-      },
-      {
-        name: "invert_battery_power",
-        default: false,
-        selector: {
-          boolean: {}
-        }
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "battery_charge_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            name: "battery_discharge_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "battery_capacity",
-            default: 10,
-            selector: {
-              number: {
-                min: 0,
-                max: 100,
-                step: 0.5,
-                mode: "box",
-                unit_of_measurement: "kWh"
-              }
-            }
-          },
-          {
-            name: "show_battery_indicator",
-            default: true,
-            selector: {
-              boolean: {}
-            }
-          }
-        ]
-      },
-      {
-        name: "show_battery_flow",
-        default: true,
-        selector: {
-          boolean: {}
-        }
-      },
-      // EV CHARGER
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "ev_charger_sensor",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            name: "car_charger_load",
-            default: 0,
-            selector: {
-              number: {
-                min: 0,
-                max: 50,
-                step: 0.5,
-                mode: "box",
-                unit_of_measurement: "kW"
-              }
-            }
-          }
-        ]
-      },
-      // FORECAST
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "use_solcast",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "forecast_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "power"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["W", "kW", "MW"]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      // APPEARANCE & COLORS
-      {
-        name: "color_palette",
-        default: "classic-solar",
-        selector: {
-          select: {
-            options: getPaletteOptions(),
-            mode: "dropdown"
-          }
-        }
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "show_header",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "header_title",
-            default: "Solar Power",
-            selector: {
-              text: {}
-            }
-          }
-        ]
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "show_weather",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "weather_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "weather"
-                  },
-                  {
-                    domain: "sensor",
-                    device_class: "temperature"
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      // HEADER SENSORS
-      {
-        name: "header_sensor_1",
-        selector: {
-          object: {}
-        }
-      },
-      {
-        name: "header_sensor_2",
-        selector: {
-          object: {}
-        }
-      },
-      // NET IMPORT/EXPORT HISTORY
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "import_history_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "energy"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["kWh", "Wh", "MWh"]
-                    }
-                  }
-                ]
-              }
-            }
-          },
-          {
-            name: "export_history_entity",
-            selector: {
-              entity: {
-                filter: [
-                  {
-                    domain: "sensor",
-                    device_class: "energy"
-                  },
-                  {
-                    domain: "sensor",
-                    attributes: {
-                      unit_of_measurement: ["kWh", "Wh", "MWh"]
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      },
-      {
-        name: "show_net_indicator",
-        default: true,
-        selector: {
-          boolean: {}
-        }
-      },
-      // DISPLAY OPTIONS
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "show_stats",
-            default: false,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "show_bar_label",
-            default: true,
-            selector: {
-              boolean: {}
-            }
-          }
-        ]
-      },
-      {
-        type: "grid",
-        name: "",
-        schema: [
-          {
-            name: "show_bar_values",
-            default: true,
-            selector: {
-              boolean: {}
-            }
-          },
-          {
-            name: "show_legend",
-            default: true,
-            selector: {
-              boolean: {}
-            }
-          }
-        ]
-      },
-      {
-        name: "show_legend_values",
-        default: true,
-        selector: {
-          boolean: {}
-        }
-      },
-      {
-        name: "decimal_places",
-        default: 1,
-        selector: {
-          select: {
-            options: [
-              { value: 1, label: "1 decimal place" },
-              { value: 2, label: "2 decimal places" },
-              { value: 3, label: "3 decimal places" }
-            ],
-            mode: "dropdown"
-          }
-        }
-      }
-    ];
-
-    const assertConfig = (config) => {
-      if (config.inverter_size !== undefined && (isNaN(Number(config.inverter_size)) || Number(config.inverter_size) <= 0)) {
-        throw new Error('Inverter size must be a positive number');
-      }
-    };
-
-    const computeLabel = (schema) => {
-      const labels = {
-        inverter_size: "Inverter Size",
-        production_entity: "Solar Production Sensor",
-        self_consumption_entity: "Self Consumption Sensor",
-        export_entity: "Export to Grid Sensor",
-        import_entity: "Import from Grid Sensor",
-        grid_power_entity: "Combined Grid Power Sensor",
-        invert_grid_power: "Invert Grid Power Values",
-        battery_power_entity: "Battery Power Sensor (Single)",
-        battery_charge_entity: "Battery Charge Sensor (Dual)",
-        battery_discharge_entity: "Battery Discharge Sensor (Dual)",
-        invert_battery_power: "Invert Battery Power Values",
-        battery_soc_entity: "Battery State of Charge Sensor",
-        battery_capacity: "Battery Capacity",
-        show_battery_indicator: "Show Battery Bar",
-        show_battery_flow: "Show Animated Flow Lines",
-        ev_charger_sensor: "EV Charger Power Sensor",
-        car_charger_load: "EV Charger Capacity",
-        use_solcast: "Auto-detect Solcast",
-        forecast_entity: "Forecast Solar Sensor",
-        color_palette: "Color Palette",
-        "custom_colors.solar": "Solar Power Color",
-        "custom_colors.export": "Export Power Color",
-        "custom_colors.import": "Import Power Color",
-        "custom_colors.self_usage": "Self Usage Color",
-        "custom_colors.ev_charge": "EV Charge Color",
-        "custom_colors.battery_charge": "Battery Charge Color",
-        "custom_colors.battery_discharge": "Battery Discharge Color",
-        show_header: "Show Header",
-        header_title: "Header Title",
-        show_weather: "Show Weather/Temperature",
-        weather_entity: "Weather or Temperature Sensor",
-        header_sensor_1: "Header Sensor 1",
-        header_sensor_2: "Header Sensor 2",
-        import_history_entity: "Daily Import Energy Sensor",
-        export_history_entity: "Daily Export Energy Sensor",
-        show_net_indicator: "Show Net Import/Export Indicator",
-        show_stats: "Show Individual Stats",
-        show_legend: "Show Legend",
-        show_legend_values: "Show Legend Values",
-        show_bar_label: "Show Bar Label",
-        show_bar_values: "Show Bar Values",
-        decimal_places: "Decimal Places"
-      };
-      return labels[schema.name] || schema.name;
-    };
-
-    const computeHelper = (schema) => {
-      const helpers = {
-        inverter_size: "BASIC SETTINGS - Your solar system's maximum capacity in kW",
-        production_entity: "ENTITY CONFIGURATION - Sensor showing current solar production power",
-        self_consumption_entity: "Sensor showing power used by your home (includes EV charging if active)",
-        export_entity: "Sensor showing power exported to the grid",
-        import_entity: "Sensor showing power imported from the grid",
-        grid_power_entity: "Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors",
-        invert_grid_power: "Enable if your grid sensor reports from meter perspective (positive=import, negative=export)",
-        battery_soc_entity: "BATTERY - Battery state of charge sensor (0-100%)",
-        battery_power_entity: "Single battery power sensor (positive=charging, negative=discharging) - use this OR dual sensors below",
-        invert_battery_power: "Enable if your battery sensor reports opposite sign (positive=discharging, negative=charging)",
-        battery_charge_entity: "Battery charging power sensor (dual sensor mode) - leave empty if using single sensor above",
-        battery_discharge_entity: "Battery discharging power sensor (dual sensor mode) - leave empty if using single sensor above",
-        battery_capacity: "Battery total capacity in kWh - determines proportional bar width",
-        show_battery_indicator: "Show battery bar adjacent to power bar (proportional width based on capacity)",
-        show_battery_flow: "Show animated flow lines indicating battery charge/discharge direction",
-        ev_charger_sensor: "EV CHARGER - Actual EV charger power sensor - automatically splits usage into solar vs grid",
-        car_charger_load: "EV charger capacity in kW to show potential usage (grey dashed bar when not charging)",
-        use_solcast: "FORECAST - Automatically detect Solcast forecast sensors",
-        forecast_entity: "Sensor showing solar forecast data (ignored if Solcast auto-detect is enabled)",
-        color_palette: "APPEARANCE & COLORS - Choose a preset color scheme",
-        "custom_colors.solar": "Override the solar power color from the palette",
-        "custom_colors.export": "Override the export power color from the palette",
-        "custom_colors.import": "Override the import power color from the palette",
-        "custom_colors.self_usage": "Override the self usage color from the palette",
-        "custom_colors.ev_charge": "Override the EV charge color from the palette",
-        "custom_colors.battery_charge": "Override the battery charging color from the palette",
-        "custom_colors.battery_discharge": "Override the battery discharging color from the palette",
-        show_header: "Display a title at the top of the card",
-        header_title: "Custom title for the card header",
-        show_weather: "Display current temperature in the top-right corner",
-        weather_entity: "Weather entity or temperature sensor (auto-detects which type)",
-        header_sensor_1: "HEADER SENSORS - Add sensor to header. Format: {entity: 'sensor.x', name: 'Label', icon: '⚡', unit: 'kWh'}",
-        header_sensor_2: "Second header sensor. Format: {entity: 'sensor.x', name: 'Label', icon: '💰', unit: '¢'}",
-        import_history_entity: "NET HISTORY - Daily grid import energy sensor (kWh) for net import/export calculation",
-        export_history_entity: "Daily grid export energy sensor (kWh) for net import/export calculation",
-        show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
-        show_stats: "DISPLAY OPTIONS - Display individual power statistics above the bar (max 4 tiles)",
-        show_legend: "Display color-coded legend below the bar",
-        show_legend_values: "Show current kW values in the legend",
-        show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
-        show_bar_values: "Show kW values and labels on the bar segments",
-        decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage"
-      };
-      return helpers[schema.name];
-    };
-
-    return {
-      schema: SCHEMA,
-      assertConfig: assertConfig,
-      computeLabel: computeLabel,
-      computeHelper: computeHelper
-    };
+  static getConfigElement() {
+    return document.createElement("solar-bar-card-editor");
   }
 
   static getStubConfig() {
@@ -2057,8 +1466,350 @@ class SolarBarCard extends HTMLElement {
   }
 }
 
+// Solar Bar Card Editor
+class SolarBarCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = config;
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: 'open' });
+      this.render();
+    } else if (this._form) {
+      // Just update the form data without re-rendering
+      this._form.data = config;
+    }
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (this._form) {
+      this._form.hass = hass;
+    }
+  }
+
+  _valueChanged(ev) {
+    if (!this._config || !this._hass) {
+      return;
+    }
+    const event = new CustomEvent('config-changed', {
+      detail: { config: ev.detail.value },
+      bubbles: true,
+      composed: true
+    });
+    this.dispatchEvent(event);
+  }
+
+  _computeLabel(schema) {
+    const labels = {
+      inverter_size: "Inverter Size",
+      production_entity: "Solar Production Sensor",
+      self_consumption_entity: "Self Consumption Sensor",
+      export_entity: "Export to Grid Sensor",
+      import_entity: "Import from Grid Sensor",
+      grid_power_entity: "Combined Grid Power Sensor",
+      invert_grid_power: "Invert Grid Power Values",
+      battery_power_entity: "Battery Power Sensor (Single)",
+      battery_charge_entity: "Battery Charge Sensor (Dual)",
+      battery_discharge_entity: "Battery Discharge Sensor (Dual)",
+      invert_battery_power: "Invert Battery Power Values",
+      battery_soc_entity: "Battery State of Charge Sensor",
+      battery_capacity: "Battery Capacity",
+      show_battery_indicator: "Show Battery Bar",
+      show_battery_flow: "Show Animated Flow Lines",
+      battery_flow_animation_speed: "Battery Flow Animation Speed",
+      ev_charger_sensor: "EV Charger Power Sensor",
+      car_charger_load: "EV Charger Capacity",
+      use_solcast: "Auto-detect Solcast",
+      forecast_entity: "Forecast Solar Sensor",
+      color_palette: "Color Palette",
+      show_header: "Show Header",
+      header_title: "Header Title",
+      show_weather: "Show Weather/Temperature",
+      weather_entity: "Weather or Temperature Sensor",
+      header_sensor_1: "Header Sensor 1",
+      header_sensor_2: "Header Sensor 2",
+      import_history_entity: "Daily Import Energy Sensor",
+      export_history_entity: "Daily Export Energy Sensor",
+      production_history_entity: "Daily Solar Production Sensor",
+      consumption_history_entity: "Daily Home Consumption Sensor",
+      show_net_indicator: "Show Net Import/Export Indicator",
+      show_stats: "Show Individual Stats",
+      show_legend: "Show Legend",
+      show_legend_values: "Show Legend Values",
+      show_bar_label: "Show Bar Label",
+      show_bar_values: "Show Bar Values",
+      decimal_places: "Decimal Places"
+    };
+    return labels[schema.name] || schema.name;
+  }
+
+  _computeHelper(schema) {
+    const helpers = {
+      inverter_size: "Your solar system's maximum capacity in kW",
+      production_entity: "Sensor showing current solar production power",
+      self_consumption_entity: "Sensor showing power used by your home (includes EV charging if active)",
+      export_entity: "Sensor showing power exported to the grid",
+      import_entity: "Sensor showing power imported from the grid",
+      grid_power_entity: "Combined grid sensor (positive=export, negative=import) - overrides separate import/export sensors",
+      invert_grid_power: "Enable if your grid sensor reports from meter perspective (positive=import, negative=export)",
+      battery_soc_entity: "Battery state of charge sensor (0-100%)",
+      battery_power_entity: "Single battery power sensor (positive=charging, negative=discharging) - use this OR dual sensors below",
+      invert_battery_power: "Enable if your battery sensor reports opposite sign (positive=discharging, negative=charging)",
+      battery_charge_entity: "Battery charging power sensor (dual sensor mode) - leave empty if using single sensor above",
+      battery_discharge_entity: "Battery discharging power sensor (dual sensor mode) - leave empty if using single sensor above",
+      battery_capacity: "Battery total capacity in kWh - determines proportional bar width",
+      show_battery_indicator: "Show battery bar adjacent to power bar (proportional width based on capacity)",
+      show_battery_flow: "Show animated flow lines indicating battery charge/discharge direction",
+      battery_flow_animation_speed: "Speed of battery flow animation in seconds (lower is faster)",
+      ev_charger_sensor: "Actual EV charger power sensor - automatically splits usage into solar vs grid",
+      car_charger_load: "EV charger capacity in kW to show potential usage (grey dashed bar when not charging)",
+      use_solcast: "Automatically detect Solcast forecast sensors",
+      forecast_entity: "Sensor showing solar forecast data (ignored if Solcast auto-detect is enabled)",
+      color_palette: "Choose a preset color scheme",
+      show_header: "Display a title at the top of the card",
+      header_title: "Custom title for the card header",
+      show_weather: "Display current temperature in the top-right corner",
+      weather_entity: "Weather entity or temperature sensor (auto-detects which type)",
+      header_sensor_1: "Add sensor to header. Format: {entity: 'sensor.x', name: 'Label', icon: '⚡', unit: 'kWh'}",
+      header_sensor_2: "Second header sensor. Format: {entity: 'sensor.x', name: 'Label', icon: '💰', unit: '¢'}",
+      import_history_entity: "Daily grid import energy sensor (kWh) for net import/export calculation",
+      export_history_entity: "Daily grid export energy sensor (kWh) for net import/export calculation",
+      production_history_entity: "Daily solar power production sensor (kWh) - shows total energy produced today",
+      consumption_history_entity: "Daily home consumption sensor (kWh) - shows total energy used today",
+      show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
+      show_stats: "Display individual power statistics above the bar (max 4 tiles)",
+      show_legend: "Display color-coded legend below the bar",
+      show_legend_values: "Show current kW values in the legend",
+      show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
+      show_bar_values: "Show kW values and labels on the bar segments",
+      decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage"
+    };
+    return helpers[schema.name];
+  }
+
+  render() {
+    if (!this._config || !this.shadowRoot) {
+      return;
+    }
+
+    const schema = [
+      {
+        type: "expandable",
+        title: "General",
+        expanded: true,
+        flatten: true,
+        schema: [
+          {
+            name: "inverter_size",
+            default: 10,
+            selector: { number: { min: 1, max: 100, step: 0.1, mode: "box", unit_of_measurement: "kW" } }
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "production_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "self_consumption_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
+            ]
+          },
+          { name: "grid_power_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+          { name: "invert_grid_power", default: false, selector: { boolean: {} } },
+          {
+            type: "grid",
+            schema: [
+              { name: "export_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "import_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
+            ]
+          },
+          {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "production_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            name: "consumption_history_entity",
+            selector: {
+              entity: {
+                filter: [
+                  {
+                    domain: "sensor",
+                    device_class: "energy"
+                  },
+                  {
+                    domain: "sensor",
+                    attributes: {
+                      unit_of_measurement: ["kWh", "Wh", "MWh"]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+        ]
+      },
+      {
+        type: "expandable",
+        title: "Battery",
+        expanded: false,
+        flatten: true,
+        schema: [
+          { name: "battery_soc_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "battery" }] } } },
+          { name: "battery_power_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+          { name: "invert_battery_power", default: false, selector: { boolean: {} } },
+          {
+            type: "grid",
+            schema: [
+              { name: "battery_charge_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "battery_discharge_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
+            ]
+          },
+          { name: "battery_capacity", default: 10, selector: { number: { min: 0, max: 100, step: 0.5, mode: "box", unit_of_measurement: "kWh" } } },
+          {
+            type: "grid",
+            schema: [
+              { name: "show_battery_indicator", default: true, selector: { boolean: {} } },
+              { name: "show_battery_flow", default: true, selector: { boolean: {} } }
+            ]
+          },
+          { name: "battery_flow_animation_speed", default: 2, selector: { number: { min: 0.5, max: 10, step: 0.5, mode: "box", unit_of_measurement: "s" } } }
+        ]
+      },
+      {
+        type: "expandable",
+        title: "Display",
+        expanded: false,
+        flatten: true,
+        schema: [
+          {
+            type: "grid",
+            schema: [
+              { name: "show_header", default: false, selector: { boolean: {} } },
+              { name: "header_title", default: "Solar Power", selector: { text: {} } }
+            ]
+          },
+          { name: "show_weather", default: false, selector: { boolean: {} } },
+          { name: "show_stats", default: false, selector: { boolean: {} } },
+          {
+            type: "grid",
+            schema: [
+              { name: "show_bar_label", default: true, selector: { boolean: {} } },
+              { name: "show_bar_values", default: true, selector: { boolean: {} } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "show_legend", default: true, selector: { boolean: {} } },
+              { name: "show_legend_values", default: true, selector: { boolean: {} } }
+            ]
+          },
+          { name: "show_net_indicator", default: true, selector: { boolean: {} } },
+          {
+            name: "decimal_places",
+            default: 1,
+            selector: {
+              select: {
+                options: [
+                  { value: 1, label: "1 decimal place" },
+                  { value: 2, label: "2 decimal places" },
+                  { value: 3, label: "3 decimal places" }
+                ],
+                mode: "dropdown"
+              }
+            }
+          },
+          {
+            name: "color_palette",
+            default: "classic-solar",
+            selector: {
+              select: {
+                options: getPaletteOptions(),
+                mode: "dropdown"
+              }
+            }
+          }
+        ]
+      },
+      // NET PRODUCTION/CONSUMPTION HISTORY
+      
+      {
+        type: "expandable",
+        title: "Other",
+        expanded: false,
+        flatten: true,
+        schema: [
+          {
+            type: "grid",
+            schema: [
+              { name: "ev_charger_sensor", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "car_charger_load", label: "EV Charger Capacity", default: 0, selector: { number: { min: 0, max: 50, step: 0.5, mode: "box", unit_of_measurement: "kW" } } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "use_solcast", default: false, selector: { boolean: {} } },
+              { name: "forecast_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
+            ]
+          },
+          { name: "weather_entity", selector: { entity: { filter: [{ domain: "weather" }, { domain: "sensor", device_class: "temperature" }] } } },
+          {
+            type: "grid",
+            schema: [
+              { name: "import_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } },
+              { name: "export_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "production_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } },
+              { name: "consumption_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }] } } }
+            ]
+          },
+          { name: "header_sensor_1", selector: { object: {} } },
+          { name: "header_sensor_2", selector: { object: {} } }
+        ]
+      }
+    ];
+
+    // Clear and recreate the form
+    this.shadowRoot.innerHTML = '';
+
+    const form = document.createElement('ha-form');
+    form.hass = this._hass;
+    form.data = this._config;
+    form.schema = schema;
+    form.computeLabel = this._computeLabel.bind(this);
+    form.computeHelper = this._computeHelper.bind(this);
+
+    form.addEventListener('value-changed', this._valueChanged.bind(this));
+
+    this.shadowRoot.appendChild(form);
+  }
+}
+
 // Register the custom elements
 customElements.define('solar-bar-card', SolarBarCard);
+customElements.define('solar-bar-card-editor', SolarBarCardEditor);
 
 // Add to custom card registry
 window.customCards = window.customCards || [];
@@ -2070,4 +1821,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.1.1 loaded! --- Fix card transparency issue with themes', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.1.2 loaded! --- Improved configuration UI layout', 'color: #4CAF50; font-weight: bold;');
