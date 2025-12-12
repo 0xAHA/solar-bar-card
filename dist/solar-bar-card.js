@@ -1472,12 +1472,18 @@ class SolarBarCardEditor extends HTMLElement {
     this._config = config;
     if (!this.shadowRoot) {
       this.attachShadow({ mode: 'open' });
+      this.render();
+    } else if (this._form) {
+      // Just update the form data without re-rendering
+      this._form.data = config;
     }
-    this.render();
   }
 
   set hass(hass) {
     this._hass = hass;
+    if (this._form) {
+      this._form.hass = hass;
+    }
   }
 
   _valueChanged(ev) {
