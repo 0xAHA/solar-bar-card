@@ -127,6 +127,10 @@ class SolarBarCard extends HTMLElement {
       // Header sensors
       header_sensor_1: null,
       header_sensor_2: null,
+      // Custom labels (object format for backward compatibility)
+      custom_labels: {},
+      // Tap actions (object format for backward compatibility)
+      tap_actions: {},
       ...config
     };
     this.updateCard();
@@ -134,6 +138,233 @@ class SolarBarCard extends HTMLElement {
 
   getConfig() {
     return this.config;
+  }
+
+  getTranslations() {
+    return {
+      en: {
+        solar: 'Solar',
+        import: 'Import',
+        export: 'Export',
+        usage: 'Usage',
+        battery: 'Battery',
+        ev: 'EV',
+        power_flow: 'Power Flow',
+        solar_power: 'Solar Power',
+        standby_mode: 'Solar system in standby mode',
+        click_history: 'Click to view history',
+        grid_import: 'Grid Import',
+        grid_export: 'Grid Export',
+        forecast_potential: 'Forecast solar potential',
+        total_usage: 'Total usage',
+        excess_solar_half: 'Excess solar can cover 50%+ of EV charging',
+        excess_solar_full: 'Excess solar can fully power EV charging'
+      },
+      de: {
+        solar: 'Solar',
+        import: 'Import',
+        export: 'Export',
+        usage: 'Verbrauch',
+        battery: 'Batterie',
+        ev: 'EV',
+        power_flow: 'Leistungsfluss',
+        solar_power: 'Solarstrom',
+        standby_mode: 'Solarsystem im Standby-Modus',
+        click_history: 'Klicken für Verlauf',
+        grid_import: 'Netzbezug',
+        grid_export: 'Netzeinspeisung',
+        forecast_potential: 'Prognose Solarpotenzial',
+        total_usage: 'Gesamtverbrauch',
+        excess_solar_half: 'Überschüssiger Solarstrom kann 50%+ des EV-Ladens abdecken',
+        excess_solar_full: 'Überschüssiger Solarstrom kann EV-Laden vollständig versorgen'
+      },
+      fr: {
+        solar: 'Solaire',
+        import: 'Import',
+        export: 'Export',
+        usage: 'Consommation',
+        battery: 'Batterie',
+        ev: 'VE',
+        power_flow: 'Flux de puissance',
+        solar_power: 'Énergie solaire',
+        standby_mode: 'Système solaire en veille',
+        click_history: 'Cliquer pour voir l\'historique',
+        grid_import: 'Import réseau',
+        grid_export: 'Export réseau',
+        forecast_potential: 'Potentiel solaire prévu',
+        total_usage: 'Consommation totale',
+        excess_solar_half: 'L\'excédent solaire peut couvrir 50%+ de la charge VE',
+        excess_solar_full: 'L\'excédent solaire peut alimenter complètement la charge VE'
+      },
+      es: {
+        solar: 'Solar',
+        import: 'Importación',
+        export: 'Exportación',
+        usage: 'Consumo',
+        battery: 'Batería',
+        ev: 'VE',
+        power_flow: 'Flujo de energía',
+        solar_power: 'Energía solar',
+        standby_mode: 'Sistema solar en modo de espera',
+        click_history: 'Haga clic para ver el historial',
+        grid_import: 'Importación de red',
+        grid_export: 'Exportación de red',
+        forecast_potential: 'Potencial solar previsto',
+        total_usage: 'Consumo total',
+        excess_solar_half: 'El exceso solar puede cubrir el 50%+ de la carga VE',
+        excess_solar_full: 'El exceso solar puede alimentar completamente la carga VE'
+      },
+      it: {
+        solar: 'Solare',
+        import: 'Importazione',
+        export: 'Esportazione',
+        usage: 'Consumo',
+        battery: 'Batteria',
+        ev: 'VE',
+        power_flow: 'Flusso di potenza',
+        solar_power: 'Energia solare',
+        standby_mode: 'Sistema solare in modalità standby',
+        click_history: 'Clicca per vedere la cronologia',
+        grid_import: 'Importazione rete',
+        grid_export: 'Esportazione rete',
+        forecast_potential: 'Potenziale solare previsto',
+        total_usage: 'Consumo totale',
+        excess_solar_half: 'L\'eccesso solare può coprire il 50%+ della ricarica VE',
+        excess_solar_full: 'L\'eccesso solare può alimentare completamente la ricarica VE'
+      },
+      nl: {
+        solar: 'Zonne-energie',
+        import: 'Import',
+        export: 'Export',
+        usage: 'Verbruik',
+        battery: 'Batterij',
+        ev: 'EV',
+        power_flow: 'Energiestroom',
+        solar_power: 'Zonne-energie',
+        standby_mode: 'Zonnesysteem in standby-modus',
+        click_history: 'Klik voor geschiedenis',
+        grid_import: 'Netimport',
+        grid_export: 'Netexport',
+        forecast_potential: 'Voorspeld zonnepotentieel',
+        total_usage: 'Totaal verbruik',
+        excess_solar_half: 'Overschot zonne-energie kan 50%+ van EV-opladen dekken',
+        excess_solar_full: 'Overschot zonne-energie kan EV-opladen volledig voorzien'
+      },
+      pt: {
+        solar: 'Solar',
+        import: 'Importação',
+        export: 'Exportação',
+        usage: 'Consumo',
+        battery: 'Bateria',
+        ev: 'VE',
+        power_flow: 'Fluxo de energia',
+        solar_power: 'Energia solar',
+        standby_mode: 'Sistema solar em modo de espera',
+        click_history: 'Clique para ver o histórico',
+        grid_import: 'Importação da rede',
+        grid_export: 'Exportação da rede',
+        forecast_potential: 'Potencial solar previsto',
+        total_usage: 'Consumo total',
+        excess_solar_half: 'O excesso solar pode cobrir 50%+ do carregamento VE',
+        excess_solar_full: 'O excesso solar pode alimentar completamente o carregamento VE'
+      },
+      pl: {
+        solar: 'Solarne',
+        import: 'Import',
+        export: 'Eksport',
+        usage: 'Zużycie',
+        battery: 'Bateria',
+        ev: 'EV',
+        power_flow: 'Przepływ energii',
+        solar_power: 'Energia słoneczna',
+        standby_mode: 'System solarny w trybie czuwania',
+        click_history: 'Kliknij, aby zobaczyć historię',
+        grid_import: 'Import z sieci',
+        grid_export: 'Eksport do sieci',
+        forecast_potential: 'Prognozowany potencjał słoneczny',
+        total_usage: 'Całkowite zużycie',
+        excess_solar_half: 'Nadmiar energii słonecznej może pokryć 50%+ ładowania EV',
+        excess_solar_full: 'Nadmiar energii słonecznej może w pełni zasilić ładowanie EV'
+      },
+      sv: {
+        solar: 'Sol',
+        import: 'Import',
+        export: 'Export',
+        usage: 'Förbrukning',
+        battery: 'Batteri',
+        ev: 'EV',
+        power_flow: 'Energiflöde',
+        solar_power: 'Solenergi',
+        standby_mode: 'Solsystem i viloläge',
+        click_history: 'Klicka för att visa historik',
+        grid_import: 'Nätimport',
+        grid_export: 'Nätexport',
+        forecast_potential: 'Prognostiserad solpotential',
+        total_usage: 'Total förbrukning',
+        excess_solar_half: 'Överskott av solenergi kan täcka 50%+ av EV-laddning',
+        excess_solar_full: 'Överskott av solenergi kan helt driva EV-laddning'
+      },
+      da: {
+        solar: 'Sol',
+        import: 'Import',
+        export: 'Eksport',
+        usage: 'Forbrug',
+        battery: 'Batteri',
+        ev: 'EV',
+        power_flow: 'Energiflow',
+        solar_power: 'Solenergi',
+        standby_mode: 'Solsystem i standbytilstand',
+        click_history: 'Klik for at se historik',
+        grid_import: 'Netimport',
+        grid_export: 'Neteksport',
+        forecast_potential: 'Forventet solpotentiale',
+        total_usage: 'Samlet forbrug',
+        excess_solar_half: 'Overskydende solenergi kan dække 50%+ af EV-opladning',
+        excess_solar_full: 'Overskydende solenergi kan fuldt ud forsyne EV-opladning'
+      },
+      no: {
+        solar: 'Sol',
+        import: 'Import',
+        export: 'Eksport',
+        usage: 'Forbruk',
+        battery: 'Batteri',
+        ev: 'EV',
+        power_flow: 'Energiflyt',
+        solar_power: 'Solenergi',
+        standby_mode: 'Solsystem i standby-modus',
+        click_history: 'Klikk for å se historikk',
+        grid_import: 'Nettimport',
+        grid_export: 'Netteksport',
+        forecast_potential: 'Forventet solpotensial',
+        total_usage: 'Totalt forbruk',
+        excess_solar_half: 'Overskudd av solenergi kan dekke 50%+ av EV-lading',
+        excess_solar_full: 'Overskudd av solenergi kan fullt ut forsyne EV-lading'
+      }
+    };
+  }
+
+  getLabel(key) {
+    const { custom_labels = {} } = this.config;
+
+    // First check custom labels
+    if (custom_labels[key]) {
+      return custom_labels[key];
+    }
+
+    // Then check individual label config options (for UI compatibility)
+    const labelKey = `label_${key}`;
+    if (this.config[labelKey]) {
+      return this.config[labelKey];
+    }
+
+    // Auto-detect language from Home Assistant
+    const language = this._hass?.language || this._hass?.locale?.language || 'en';
+
+    // Then check translations
+    const translations = this.getTranslations();
+    const langTranslations = translations[language] || translations['en'];
+
+    return langTranslations[key] || key;
   }
 
   updateCard() {
@@ -1145,43 +1376,43 @@ class SolarBarCard extends HTMLElement {
 
         ${show_stats ? `
           <div class="power-stats">
-            <div class="stat" data-entity="${production_entity}" title="Click to view solar production history">
-              <div class="stat-label">Solar</div>
+            <div class="stat" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
+              <div class="stat-label">${this.getLabel('solar')}</div>
               <div class="stat-value">${solarProduction.toFixed(decimal_places)} kW</div>
               ${hasProdHistoryData && dailyProduction !== null ? `<div class="stat-history">${dailyProduction.toFixed(decimal_places)} kWh</div>` : ''}
             </div>
             ${exportPower > 0 ? `
-              <div class="stat" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
+              <div class="stat" data-entity="${grid_power_entity || export_entity}" data-action-key="export" title="${this.getLabel('click_history')}">
                 <div class="stat-label">
-                  Export
+                  ${this.getLabel('export')}
                   ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
                 </div>
                 <div class="stat-value">${exportPower.toFixed(decimal_places)} kW</div>
                 ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh net</div>` : hasHistoryData && dailyExport !== null ? `<div class="stat-history">+${dailyExport.toFixed(decimal_places)} kWh</div>` : ''}
               </div>
             ` : totalGridImport > 0 ? `
-              <div class="stat" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
+              <div class="stat" data-entity="${grid_power_entity || import_entity}" data-action-key="import" title="${this.getLabel('click_history')}">
                 <div class="stat-label">
-                  Import
+                  ${this.getLabel('import')}
                   ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
                 </div>
                 <div class="stat-value">${totalGridImport.toFixed(decimal_places)} kW</div>
                 ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh net</div>` : hasHistoryData && dailyImport !== null ? `<div class="stat-history">-${dailyImport.toFixed(decimal_places)} kWh</div>` : ''}
               </div>
             ` : ''}
-            <div class="stat" data-entity="${self_consumption_entity}" title="Click to view usage history">
-              <div class="stat-label">Usage</div>
+            <div class="stat" data-entity="${self_consumption_entity}" data-action-key="usage" title="${this.getLabel('click_history')}">
+              <div class="stat-label">${this.getLabel('usage')}</div>
               <div class="stat-value">${selfConsumption.toFixed(decimal_places)} kW</div>
               ${hasConsHistoryData && dailyConsumption !== null ? `<div class="stat-history">${dailyConsumption.toFixed(decimal_places)} kWh</div>` : ''}
             </div>
             ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
-              <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" title="Click to view battery history">
-                <div class="stat-label">Battery ${batterySOC.toFixed(decimal_places)}%</div>
+              <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
+                <div class="stat-label">${this.getLabel('battery')} ${batterySOC.toFixed(decimal_places)}%</div>
                 <div class="stat-value">${batteryCharging ? '↑' : batteryDischarging ? '↓' : ''}${Math.abs(batteryPower).toFixed(decimal_places)} kW</div>
               </div>
             ` : isActuallyCharging ? `
-              <div class="stat" data-entity="${ev_charger_sensor}" title="Click to view EV charging history">
-                <div class="stat-label">EV</div>
+              <div class="stat" data-entity="${ev_charger_sensor}" data-action-key="ev" title="${this.getLabel('click_history')}">
+                <div class="stat-label">${this.getLabel('ev')}</div>
                 <div class="stat-value">${evUsage.toFixed(decimal_places)} kW</div>
               </div>
             ` : ''}
@@ -1192,61 +1423,62 @@ class SolarBarCard extends HTMLElement {
         ${(production_entity || self_consumption_entity || export_entity) ? `
           ${isIdle && !hasBattery ? `
             <div class="idle-state">
-              🌙 Solar system in standby mode
+              🌙 ${this.getLabel('standby_mode')}
             </div>
           ` : `
           ${isIdle && hasBattery ? `
             <div class="idle-state">
-              🌙 Solar system in standby mode
+              🌙 ${this.getLabel('standby_mode')}
             </div>
           ` : ''}
           <div class="solar-bar-container">
             ${show_bar_label ? `
               <div class="solar-bar-label">
-                <span>Power Flow</span>
+                <span>${this.getLabel('power_flow')}</span>
                 <span class="capacity-label">
-                  ${hasBattery && show_battery_indicator ? `Battery ${batterySOC.toFixed(decimal_places)}% | ` : ''}0 - ${inverter_size}kW
+                  ${hasBattery && show_battery_indicator ? `${this.getLabel('battery')} ${batterySOC.toFixed(decimal_places)}% | ` : ''}0 - ${inverter_size}kW
                 </span>
               </div>
             ` : ''}
             <div class="bars-container">
               ${hasBattery && show_battery_indicator ? `
-                <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" title="Click to view battery history">
+                <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
                   ${shouldShowSegmentText((batterySOC / 100) * batteryBarWidth, `${batterySOC.toFixed(decimal_places)}%`, 100) ? `<div class="bar-overlay-label">${batterySOC.toFixed(decimal_places)}%</div>` : ''}
                 </div>
               ` : ''}
-              <div class="solar-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${powerBarWidth}%" data-entity="${production_entity}" title="Click to view solar production history">
+              <div class="solar-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${powerBarWidth}%" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
                 <div class="solar-bar">
                   ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 && shouldShowSegmentText(solarHomePercent, `${solarToHome.toFixed(decimal_places)}kW`, powerBarWidth) ? `${solarToHome.toFixed(decimal_places)}kW` : ''}</div>` : ''}
-                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 && shouldShowSegmentText(solarEvPercent, `${solarToEv.toFixed(decimal_places)}kW EV`, powerBarWidth) ? `${solarToEv.toFixed(decimal_places)}kW EV` : ''}</div>` : ''}
-                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 && shouldShowSegmentText(batteryChargePercent, `${solarToBattery.toFixed(decimal_places)}kW Batt`, powerBarWidth) ? `${solarToBattery.toFixed(decimal_places)}kW Batt` : ''}</div>` : ''}
-                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, `${exportPower.toFixed(decimal_places)}kW Export`, powerBarWidth) ? `${exportPower.toFixed(decimal_places)}kW Export` : ''}</div>` : ''}
-                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, `${car_charger_load}kW EV`, powerBarWidth) ? `${car_charger_load}kW EV` : ''}</div>` : ''}
+                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 && shouldShowSegmentText(solarEvPercent, `${solarToEv.toFixed(decimal_places)}kW ${this.getLabel('ev')}`, powerBarWidth) ? `${solarToEv.toFixed(decimal_places)}kW ${this.getLabel('ev')}` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 && shouldShowSegmentText(batteryChargePercent, `${solarToBattery.toFixed(decimal_places)}kW ${this.getLabel('battery')}`, powerBarWidth) ? `${solarToBattery.toFixed(decimal_places)}kW ${this.getLabel('battery')}` : ''}</div>` : ''}
+                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, `${exportPower.toFixed(decimal_places)}kW ${this.getLabel('export')}`, powerBarWidth) ? `${exportPower.toFixed(decimal_places)}kW ${this.getLabel('export')}` : ''}</div>` : ''}
+                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, `${car_charger_load}kW ${this.getLabel('ev')}`, powerBarWidth) ? `${car_charger_load}kW ${this.getLabel('ev')}` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
-                ${hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">Solar</div>` : ''}
+                ${hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">${this.getLabel('solar')}</div>` : ''}
                 ${evReadyHalf ? `
                   <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
-                       title="${evReadyFull ? 'Excess solar can fully power EV charging' : 'Excess solar can cover 50%+ of EV charging'}">
+                       title="${evReadyFull ? this.getLabel('excess_solar_full') : this.getLabel('excess_solar_half')}">
                     <ha-icon icon="mdi:car-electric"></ha-icon>
                   </div>
                 ` : ''}
                 ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
                   <div class="forecast-indicator"
                        style="left: ${anticipatedPercent}%"
-                       title="Forecast solar potential: ${anticipatedPotential.toFixed(decimal_places)}kW"></div>
+                       title="${this.getLabel('forecast_potential')}: ${anticipatedPotential.toFixed(decimal_places)}kW"></div>
                 ` : ''}
                 ${showUsageIndicator ? `
                   <div class="usage-indicator"
                        style="left: ${usagePercent}%"
-                       title="Total usage: ${selfConsumption.toFixed(decimal_places)}kW"></div>
+                       title="${this.getLabel('total_usage')}: ${selfConsumption.toFixed(decimal_places)}kW"></div>
                 ` : ''}
               </div>
               ${(hasGridImport || hasGridExport) ? `
                 <div class="grid-icon ${hasGridImport ? 'import' : 'export'}"
                      data-entity="${grid_power_entity || (hasGridImport ? import_entity : export_entity)}"
-                     title="${hasGridImport ? `Grid Import: ${gridImportPower.toFixed(decimal_places)}kW - Click for history` : `Grid Export: ${exportPower.toFixed(decimal_places)}kW - Click for history`}">
+                     data-action-key="${hasGridImport ? 'import' : 'export'}"
+                     title="${hasGridImport ? `${this.getLabel('grid_import')}: ${gridImportPower.toFixed(decimal_places)}kW - ${this.getLabel('click_history')}` : `${this.getLabel('grid_export')}: ${exportPower.toFixed(decimal_places)}kW - ${this.getLabel('click_history')}`}">
                   <ha-icon icon="mdi:transmission-tower"></ha-icon>
                 </div>
               ` : ''}
@@ -1297,45 +1529,45 @@ class SolarBarCard extends HTMLElement {
           ${show_legend ? `
             <div class="legend">
               ${solarProduction > 0 ? `
-                <div class="legend-item" data-entity="${production_entity}" title="Click to view solar production history">
+                <div class="legend-item" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
                   <span>☀️</span>
-                  <span>Solar${show_legend_values ? ` ${solarProduction.toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('solar')}${show_legend_values ? ` ${solarProduction.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${solarToHome > 0 ? `
-                <div class="legend-item" data-entity="${self_consumption_entity}" title="Click to view usage history">
+                <div class="legend-item" data-entity="${self_consumption_entity}" data-action-key="usage" title="${this.getLabel('click_history')}">
                   <div class="legend-color solar-home-color"></div>
-                  <span>Usage${show_legend_values ? ` ${selfConsumption.toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('usage')}${show_legend_values ? ` ${selfConsumption.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${(solarToEv > 0 || gridToEv > 0) ? `
-                <div class="legend-item" data-entity="${ev_charger_sensor}" title="Click to view EV charging history">
+                <div class="legend-item" data-entity="${ev_charger_sensor}" data-action-key="ev" title="${this.getLabel('click_history')}">
                   <div class="legend-color ev-charging-color"></div>
-                  <span>EV${show_legend_values ? ` ${(solarToEv + gridToEv).toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('ev')}${show_legend_values ? ` ${(solarToEv + gridToEv).toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${hasBattery && batteryCharging ? `
-                <div class="legend-item" data-entity="${battery_power_entity || battery_charge_entity || battery_soc_entity}" title="Click to view battery history">
+                <div class="legend-item" data-entity="${battery_power_entity || battery_charge_entity || battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
                   <div class="legend-color battery-charge-color"></div>
-                  <span>Batt${show_legend_values ? ` ${batteryPower.toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('battery')}${show_legend_values ? ` ${batteryPower.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${hasBattery && batteryDischarging ? `
-                <div class="legend-item" data-entity="${battery_power_entity || battery_discharge_entity || battery_soc_entity}" title="Click to view battery history">
+                <div class="legend-item" data-entity="${battery_power_entity || battery_discharge_entity || battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
                   <div class="legend-color battery-discharge-color"></div>
-                  <span>Batt${show_legend_values ? ` ${Math.abs(batteryPower).toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('battery')}${show_legend_values ? ` ${Math.abs(batteryPower).toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${exportPower > 0 ? `
-                <div class="legend-item" data-entity="${grid_power_entity || export_entity}" title="Click to view export history">
+                <div class="legend-item" data-entity="${grid_power_entity || export_entity}" data-action-key="export" title="${this.getLabel('click_history')}">
                   <div class="legend-color export-color"></div>
-                  <span>Export${show_legend_values ? ` ${exportPower.toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('export')}${show_legend_values ? ` ${exportPower.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
               ${gridToHome > 0 ? `
-                <div class="legend-item" data-entity="${grid_power_entity || import_entity}" title="Click to view import history">
+                <div class="legend-item" data-entity="${grid_power_entity || import_entity}" data-action-key="import" title="${this.getLabel('click_history')}">
                   <div class="legend-color grid-home-color"></div>
-                  <span>Import${show_legend_values ? ` ${gridToHome.toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('import')}${show_legend_values ? ` ${gridToHome.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
             </div>
@@ -1355,8 +1587,9 @@ class SolarBarCard extends HTMLElement {
         const target = e.target.closest('[data-entity]');
         if (target) {
           const entityId = target.getAttribute('data-entity');
+          const actionKey = target.getAttribute('data-action-key');
           if (entityId && entityId !== 'null' && entityId !== 'undefined') {
-            this.showEntityHistory(entityId);
+            this.showEntityHistory(entityId, actionKey);
           }
         }
       });
@@ -1364,14 +1597,32 @@ class SolarBarCard extends HTMLElement {
     }
   }
 
-  showEntityHistory(entityId) {
+  showEntityHistory(entityId, actionKey = null) {
     if (!entityId) return;
+
+    // Get the tap action configuration for this element
+    const { tap_actions = {} } = this.config;
+    let tapAction = { action: "more-info" }; // Default
+
+    // Check individual tap_action_* config (for UI compatibility)
+    if (actionKey) {
+      const tapActionConfigKey = `tap_action_${actionKey}`;
+      if (this.config[tapActionConfigKey]) {
+        tapAction = this.config[tapActionConfigKey];
+      } else if (tap_actions[actionKey]) {
+        // Fallback to object format (for backward compatibility)
+        tapAction = tap_actions[actionKey];
+      }
+    }
+
+    // Handle different action types
+    if (tapAction.action === "none") {
+      return; // Do nothing
+    }
 
     const actionConfig = {
       entity: entityId,
-      tap_action: {
-        action: "more-info"
-      }
+      tap_action: tapAction
     };
 
     const event = new Event("hass-action", {
@@ -1537,7 +1788,22 @@ class SolarBarCardEditor extends HTMLElement {
       show_legend_values: "Show Legend Values",
       show_bar_label: "Show Bar Label",
       show_bar_values: "Show Bar Values",
-      decimal_places: "Decimal Places"
+      decimal_places: "Decimal Places",
+      // Individual label fields
+      label_solar: "Solar Label",
+      label_import: "Import Label",
+      label_export: "Export Label",
+      label_usage: "Usage Label",
+      label_battery: "Battery Label",
+      label_ev: "EV Label",
+      label_power_flow: "Power Flow Label",
+      // Individual tap action fields
+      tap_action_solar: "Solar Tap Action",
+      tap_action_import: "Import Tap Action",
+      tap_action_export: "Export Tap Action",
+      tap_action_usage: "Usage Tap Action",
+      tap_action_battery: "Battery Tap Action",
+      tap_action_ev: "EV Tap Action"
     };
     return labels[schema.name] || schema.name;
   }
@@ -1581,7 +1847,22 @@ class SolarBarCardEditor extends HTMLElement {
       show_legend_values: "Show current kW values in the legend",
       show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
       show_bar_values: "Show kW values and labels on the bar segments",
-      decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage"
+      decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage",
+      // Individual label helpers
+      label_solar: "Custom label for Solar (leave empty to use auto-detected language translation)",
+      label_import: "Custom label for Import (leave empty to use auto-detected language translation)",
+      label_export: "Custom label for Export (leave empty to use auto-detected language translation)",
+      label_usage: "Custom label for Usage (leave empty to use auto-detected language translation)",
+      label_battery: "Custom label for Battery (leave empty to use auto-detected language translation)",
+      label_ev: "Custom label for EV (leave empty to use auto-detected language translation)",
+      label_power_flow: "Custom label for Power Flow (leave empty to use auto-detected language translation)",
+      // Individual tap action helpers
+      tap_action_solar: "Action when tapping Solar elements (stats tile, bar, legend). Defaults to showing entity history.",
+      tap_action_import: "Action when tapping Import elements (stats tile, grid icon when importing, legend). Defaults to showing entity history.",
+      tap_action_export: "Action when tapping Export elements (stats tile, grid icon when exporting, legend). Defaults to showing entity history.",
+      tap_action_usage: "Action when tapping Usage elements (stats tile, legend). Defaults to showing entity history.",
+      tap_action_battery: "Action when tapping Battery elements (stats tile, battery bar, legend). Defaults to showing entity history.",
+      tap_action_ev: "Action when tapping EV elements (stats tile, legend). Defaults to showing entity history."
     };
     return helpers[schema.name];
   }
@@ -1748,8 +2029,52 @@ class SolarBarCardEditor extends HTMLElement {
           }
         ]
       },
+      {
+        type: "expandable",
+        title: "Custom Labels",
+        expanded: false,
+        flatten: true,
+        schema: [
+          {
+            type: "grid",
+            schema: [
+              { name: "label_solar", selector: { text: {} } },
+              { name: "label_import", selector: { text: {} } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "label_export", selector: { text: {} } },
+              { name: "label_usage", selector: { text: {} } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "label_battery", selector: { text: {} } },
+              { name: "label_ev", selector: { text: {} } }
+            ]
+          },
+          { name: "label_power_flow", selector: { text: {} } }
+        ]
+      },
+      {
+        type: "expandable",
+        title: "Tap Actions",
+        expanded: false,
+        flatten: true,
+        schema: [
+          { name: "tap_action_solar", selector: { "ui-action": {} } },
+          { name: "tap_action_import", selector: { "ui-action": {} } },
+          { name: "tap_action_export", selector: { "ui-action": {} } },
+          { name: "tap_action_usage", selector: { "ui-action": {} } },
+          { name: "tap_action_battery", selector: { "ui-action": {} } },
+          { name: "tap_action_ev", selector: { "ui-action": {} } }
+        ]
+      },
       // NET PRODUCTION/CONSUMPTION HISTORY
-      
+
       {
         type: "expandable",
         title: "Other",
@@ -1821,4 +2146,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.1.2 loaded! --- Improved configuration UI layout', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.2.0 loaded! --- Custom labels, configurable tap actions, and auto-detected multi-language support', 'color: #4CAF50; font-weight: bold;');

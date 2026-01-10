@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.1.2-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.2.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -38,6 +38,29 @@
 * **Spread layout** - Title, sensors, and weather evenly distributed across header
 * **Flexible formatting** - Custom icons (emoji or MDI), labels, and units
 * **Click for history** - All header sensors are clickable to show entity history
+
+### 🏷️ Custom Labels (NEW in v2.2.0!)
+
+* **Fully customizable labels** - Rename any item: Solar, Import, Export, Usage, Battery, EV, Power Flow
+* **Fallback to translations** - If custom labels not set, uses language translations
+* **Apply everywhere** - Custom labels appear in stats, legend, bar segments, and tooltips
+* **Example**: Call "Import" → "Grid In", "Export" → "Grid Out", "Battery" → "Storage"
+
+### 🖱️ Configurable Tap Actions (NEW in v2.2.0!)
+
+* **Per-element tap actions** - Configure different actions for Solar, Import, Export, Usage, Battery, EV, and Grid
+* **Standard HA actions** - Supports `more-info` (default), `navigate`, `call-service`, `url`, and `none`
+* **Navigate to dashboards** - Tap solar to go to your solar dashboard
+* **Trigger automations** - Tap battery to call a service or toggle a switch
+* **Flexible configuration** - Use HA's standard tap action interface
+
+### 🌍 Multi-Language Support (NEW in v2.2.0!)
+
+* **11 languages included** - English, German, French, Spanish, Italian, Dutch, Portuguese, Polish, Swedish, Danish, Norwegian
+* **Automatic detection** - Uses your Home Assistant language setting automatically
+* **Zero configuration** - No need to manually select language
+* **Seamless integration** - Works alongside custom labels (custom labels take priority)
+* **Easy to extend** - Clean translation structure for adding more languages
 
 ### 🎨 Visual Power Distribution
 
@@ -232,6 +255,21 @@ use_solcast: true
 | `show_legend_values`      | boolean | `true`            | 🔢 Show kW values in legend                                                                                                   |
 | `show_bar_label`          | boolean | `true`            | 🏷️ Show power distribution label above bar                                                                                  |
 | `show_bar_values`         | boolean | `true`            | 📊 Show kW values on bar segments                                                                                             |
+| `label_solar`             | string  | `null`            | 🏷️ Custom label for Solar - NEW in v2.2.0 (configure via UI)                                                                |
+| `label_import`            | string  | `null`            | 🏷️ Custom label for Import - NEW in v2.2.0 (configure via UI)                                                               |
+| `label_export`            | string  | `null`            | 🏷️ Custom label for Export - NEW in v2.2.0 (configure via UI)                                                               |
+| `label_usage`             | string  | `null`            | 🏷️ Custom label for Usage - NEW in v2.2.0 (configure via UI)                                                                |
+| `label_battery`           | string  | `null`            | 🏷️ Custom label for Battery - NEW in v2.2.0 (configure via UI)                                                              |
+| `label_ev`                | string  | `null`            | 🏷️ Custom label for EV - NEW in v2.2.0 (configure via UI)                                                                   |
+| `label_power_flow`        | string  | `null`            | 🏷️ Custom label for Power Flow - NEW in v2.2.0 (configure via UI)                                                           |
+| `tap_action_solar`        | object  | `{action: "more-info"}` | 🖱️ Tap action for Solar elements - NEW in v2.2.0 (configure via UI)                                                   |
+| `tap_action_import`       | object  | `{action: "more-info"}` | 🖱️ Tap action for Import elements - NEW in v2.2.0 (configure via UI)                                                  |
+| `tap_action_export`       | object  | `{action: "more-info"}` | 🖱️ Tap action for Export elements - NEW in v2.2.0 (configure via UI)                                                  |
+| `tap_action_usage`        | object  | `{action: "more-info"}` | 🖱️ Tap action for Usage elements - NEW in v2.2.0 (configure via UI)                                                   |
+| `tap_action_battery`      | object  | `{action: "more-info"}` | 🖱️ Tap action for Battery elements - NEW in v2.2.0 (configure via UI)                                                 |
+| `tap_action_ev`           | object  | `{action: "more-info"}` | 🖱️ Tap action for EV elements - NEW in v2.2.0 (configure via UI)                                                      |
+
+**Note:** Language is automatically detected from your Home Assistant language setting. Custom labels override auto-detected translations.
 
 ---
 
@@ -320,6 +358,203 @@ In the Home Assistant UI editor:
 3. Select a palette from the dropdown (shows emoji + name)
 4. Optionally expand **Custom Color Overrides** to tweak individual colors
 5. Use the color picker for visual selection
+
+---
+
+## 🏷️ Custom Labels
+
+Customize the labels displayed for any item in the card. Custom labels appear in stats tiles, legend, bar segments, and tooltips.
+
+### Available Label Keys
+
+| Key           | Default Label | Where It Appears                                    |
+| ------------- | ------------- | --------------------------------------------------- |
+| `solar`       | Solar         | Stats tile, legend, bar overlay, tooltips           |
+| `import`      | Import        | Stats tile, legend, grid icon tooltip               |
+| `export`      | Export        | Stats tile, legend, bar segment, grid icon tooltip  |
+| `usage`       | Usage         | Stats tile, legend                                  |
+| `battery`     | Battery       | Stats tile, legend, bar segment, battery bar label  |
+| `ev`          | EV            | Stats tile, legend, bar segment                     |
+| `power_flow`  | Power Flow    | Bar label above the power distribution bar          |
+
+### Example Configuration
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+import_entity: sensor.grid_import_power
+label_solar: "PV"
+label_import: "Grid In"
+label_export: "Grid Out"
+label_usage: "Home"
+label_battery: "Storage"
+label_ev: "Car"
+label_power_flow: "Energy Flow"
+```
+
+### Using the Visual Editor
+
+1. Add or edit the Solar Bar Card
+2. Expand the **🏷️ Custom Labels** section
+3. Enter custom labels in the text fields (leave empty to use auto-detected language)
+4. Each label has its own field with a clear description
+5. Labels update immediately in the preview
+
+### Fallback Behavior
+
+- If a label is not set, the card uses the auto-detected language translation (from Home Assistant settings)
+- Custom labels override translations
+- If Home Assistant language is not supported, defaults to English
+
+---
+
+## 🖱️ Tap Actions
+
+Configure what happens when you tap on different elements in the card. Each element (Solar, Import, Export, Usage, Battery, EV, Grid) can have its own tap action.
+
+### Available Action Keys
+
+| Key      | Applies To                                    |
+| -------- | --------------------------------------------- |
+| `solar`  | Solar stat tile, solar bar, solar legend item |
+| `import` | Import stat tile, grid icon (when importing), import legend item |
+| `export` | Export stat tile, grid icon (when exporting), export legend item |
+| `usage`  | Usage stat tile, usage legend item            |
+| `battery`| Battery stat tile, battery bar, battery legend item |
+| `ev`     | EV stat tile, EV legend item                  |
+
+### Supported Actions
+
+| Action         | Description                                       | Required Parameters                  |
+| -------------- | ------------------------------------------------- | ------------------------------------ |
+| `more-info`    | Show entity history (default)                     | None                                 |
+| `navigate`     | Navigate to a dashboard or view                   | `navigation_path`                    |
+| `call-service` | Call a Home Assistant service                     | `service`, `service_data` (optional) |
+| `url`          | Open a URL in a new tab                           | `url_path`                           |
+| `none`         | Do nothing (disable tap action)                   | None                                 |
+
+### Example Configurations
+
+#### Navigate to Dashboard
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+tap_action_solar:
+  action: navigate
+  navigation_path: /dashboard-solar
+tap_action_battery:
+  action: navigate
+  navigation_path: /dashboard-energy
+```
+
+#### Call Service
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+tap_action_battery:
+  action: call-service
+  service: switch.toggle
+  service_data:
+    entity_id: switch.battery_charge_control
+tap_action_ev:
+  action: call-service
+  service: script.start_ev_charging
+```
+
+#### Open URL
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+tap_action_solar:
+  action: url
+  url_path: https://pvoutput.org/list.jsp
+```
+
+#### Disable Tap Action
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+tap_action_import:
+  action: none
+tap_action_export:
+  action: none
+```
+
+### Using the Visual Editor
+
+1. Add or edit the Solar Bar Card
+2. Expand the **🖱️ Tap Actions** section
+3. For each element (Solar, Import, Export, Usage, Battery, EV), use Home Assistant's standard action selector
+4. Choose action type from dropdown (more-info, navigate, call-service, url, none)
+5. Configure action parameters based on selected action type
+6. Changes apply immediately
+
+---
+
+## 🌍 Multi-Language Support
+
+The card includes built-in translations for 11 languages. **Language is automatically detected** from your Home Assistant language setting - no configuration needed!
+
+### Supported Languages
+
+| Language Code | Language   | Labels Translated                                          |
+| ------------- | ---------- | ---------------------------------------------------------- |
+| `en`          | English    | Solar, Import, Export, Usage, Battery, EV, Power Flow, etc.|
+| `de`          | German     | Solar, Import, Export, Verbrauch, Batterie, EV, etc.       |
+| `fr`          | French     | Solaire, Import, Export, Consommation, Batterie, VE, etc.  |
+| `es`          | Spanish    | Solar, Importación, Exportación, Consumo, Batería, VE, etc.|
+| `it`          | Italian    | Solare, Importazione, Esportazione, Consumo, Batteria, etc.|
+| `nl`          | Dutch      | Zonne-energie, Import, Export, Verbruik, Batterij, etc.    |
+| `pt`          | Portuguese | Solar, Importação, Exportação, Consumo, Bateria, VE, etc.  |
+| `pl`          | Polish     | Solarne, Import, Eksport, Zużycie, Bateria, EV, etc.       |
+| `sv`          | Swedish    | Sol, Import, Export, Förbrukning, Batteri, EV, etc.        |
+| `da`          | Danish     | Sol, Import, Eksport, Forbrug, Batteri, EV, etc.           |
+| `no`          | Norwegian  | Sol, Import, Eksport, Forbruk, Batteri, EV, etc.           |
+
+### How It Works
+
+The card automatically detects your language from:
+1. **Home Assistant language setting** (Settings → System → General → Language)
+2. If not supported, falls back to English
+
+**No configuration needed!** The card uses your Home Assistant language automatically.
+
+### Priority Order
+
+Labels are resolved in this order:
+1. **Custom Labels** (highest priority) - If set via `label_*` config options
+2. **Auto-Detected Language** - Based on your Home Assistant language setting
+3. **English Fallback** - If language not supported
+
+### Example with Custom Labels
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+import_entity: sensor.grid_import_power
+# Language auto-detected from HA settings (e.g., German)
+label_solar: "PV-Anlage"  # Custom label overrides auto-detected German translation
+label_battery: "Speicher"  # Custom label overrides auto-detected German translation
+# Other labels automatically use German translations
+```
 
 ---
 
