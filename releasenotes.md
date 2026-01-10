@@ -14,17 +14,19 @@ You can now customize all labels displayed in the card! Rename any item to match
 
 **Configuration Example:**
 ```yaml
-custom_labels:
-  solar: "PV"
-  import: "Grid In"
-  export: "Grid Out"
-  usage: "Home"
-  battery: "Storage"
-  ev: "Car"
-  power_flow: "Energy Flow"
+label_solar: "PV"
+label_import: "Grid In"
+label_export: "Grid Out"
+label_usage: "Home"
+label_battery: "Storage"
+label_ev: "Car"
+label_power_flow: "Energy Flow"
 ```
 
-Custom labels appear everywhere: stats tiles, legend, bar segments, and tooltips.
+**UI Configuration:**
+- Each label has its own text field in the "Custom Labels" section
+- Leave empty to use auto-detected language translation
+- Custom labels appear everywhere: stats tiles, legend, bar segments, and tooltips
 
 ---
 
@@ -40,26 +42,31 @@ Each element in the card can now have its own tap action! No more being limited 
 
 **Configuration Example:**
 ```yaml
-tap_actions:
-  solar:
-    action: navigate
-    navigation_path: /dashboard-solar
-  battery:
-    action: call-service
-    service: switch.toggle
-    service_data:
-      entity_id: switch.battery_charge_control
-  import:
-    action: url
-    url_path: https://pvoutput.org
+tap_action_solar:
+  action: navigate
+  navigation_path: /dashboard-solar
+tap_action_battery:
+  action: call-service
+  service: switch.toggle
+  service_data:
+    entity_id: switch.battery_charge_control
+tap_action_import:
+  action: url
+  url_path: https://pvoutput.org
 ```
 
-**Available Action Keys:** `solar`, `import`, `export`, `usage`, `battery`, `ev`
+**UI Configuration:**
+- Each element has its own action selector using Home Assistant's standard `ui-action` control
+- Choose action type from dropdown (more-info, navigate, call-service, url, none)
+- Configure action parameters based on selected type
+- Visual, user-friendly interface - no manual YAML editing needed
+
+**Available Elements:** `solar`, `import`, `export`, `usage`, `battery`, `ev`
 
 ---
 
 ### 🌍 Multi-Language Support
-The card now includes built-in translations for 11 languages!
+The card now includes built-in translations for 11 languages with **automatic detection** from your Home Assistant language setting!
 
 **Supported Languages:**
 - 🇬🇧 English (en)
@@ -74,19 +81,17 @@ The card now includes built-in translations for 11 languages!
 - 🇩🇰 Danish (da)
 - 🇳🇴 Norwegian (no)
 
-**Configuration Example:**
-```yaml
-language: de  # German
-```
-
-All labels automatically translate: Solar, Import, Export, Usage, Battery, EV, Power Flow, tooltips, and messages.
+**Zero Configuration:**
+- Language is automatically detected from your Home Assistant language setting (Settings → System → General → Language)
+- No manual configuration needed!
+- All labels automatically translate: Solar, Import, Export, Usage, Battery, EV, Power Flow, tooltips, and messages
 
 **Priority Order:**
-1. Custom Labels (highest)
-2. Language Translations
+1. Custom Labels (highest priority)
+2. Auto-Detected Language Translation
 3. English Fallback
 
-You can mix custom labels with translations - custom labels override translated labels for specific items.
+You can mix custom labels with auto-detected translations - custom labels override translated labels for specific items.
 
 ---
 
@@ -98,7 +103,7 @@ This release adds three powerful customization features that work seamlessly tog
 2. **Tap Actions** - Make your card interactive with custom actions for each element
 3. **Multi-Language** - Use the card in your native language
 
-### Example: German Card with Custom Labels and Actions
+### Example: Card with Auto-Detected Language, Custom Labels, and Actions
 
 ```yaml
 type: custom:solar-bar-card
@@ -107,28 +112,39 @@ production_entity: sensor.solar_production_power
 self_consumption_entity: sensor.home_consumption
 export_entity: sensor.grid_export_power
 import_entity: sensor.grid_import_power
-language: de
-custom_labels:
-  solar: "PV-Anlage"  # Override translation for solar only
-  battery: "Speicher"
-tap_actions:
-  solar:
-    action: navigate
-    navigation_path: /dashboard-solar
-  battery:
-    action: navigate
-    navigation_path: /dashboard-battery
+# Language auto-detected from HA settings (e.g., German)
+label_solar: "PV-Anlage"  # Override auto-detected translation
+label_battery: "Speicher"  # Override auto-detected translation
+# Other labels use auto-detected German translations
+tap_action_solar:
+  action: navigate
+  navigation_path: /dashboard-solar
+tap_action_battery:
+  action: navigate
+  navigation_path: /dashboard-battery
 ```
 
 ---
 
 ## 🎨 UI Configuration
 
-All new features are fully integrated into the visual configuration editor:
+All new features are fully integrated into the visual configuration editor with native Home Assistant controls:
 
-- **Custom Labels Section** - Add/edit label overrides with object editor
-- **Tap Actions Section** - Configure actions per element with object editor
-- **Language Section** - Dropdown selector with all 11 languages
+- **Custom Labels Section**
+  - Individual text fields for each label (Solar, Import, Export, Usage, Battery, EV, Power Flow)
+  - Grid layout for easy organization
+  - Clear descriptions for each field
+  - Leave empty to use auto-detected language
+
+- **Tap Actions Section**
+  - Uses Home Assistant's standard `ui-action` selector for each element
+  - Visual dropdown interface - no manual YAML needed
+  - Action type selector with parameter fields
+  - Per-element configuration (Solar, Import, Export, Usage, Battery, EV)
+
+- **Language**
+  - Automatically detected from Home Assistant settings
+  - No UI configuration needed!
 
 ---
 
@@ -138,9 +154,19 @@ All new features are fully integrated into the visual configuration editor:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `custom_labels` | object | `{}` | Custom label overrides |
-| `tap_actions` | object | `{}` | Tap action configuration per element |
-| `language` | string | `"en"` | Language code for translations |
+| `label_solar` | string | `null` | Custom label for Solar |
+| `label_import` | string | `null` | Custom label for Import |
+| `label_export` | string | `null` | Custom label for Export |
+| `label_usage` | string | `null` | Custom label for Usage |
+| `label_battery` | string | `null` | Custom label for Battery |
+| `label_ev` | string | `null` | Custom label for EV |
+| `label_power_flow` | string | `null` | Custom label for Power Flow |
+| `tap_action_solar` | object | `{action: "more-info"}` | Tap action for Solar elements |
+| `tap_action_import` | object | `{action: "more-info"}` | Tap action for Import elements |
+| `tap_action_export` | object | `{action: "more-info"}` | Tap action for Export elements |
+| `tap_action_usage` | object | `{action: "more-info"}` | Tap action for Usage elements |
+| `tap_action_battery` | object | `{action: "more-info"}` | Tap action for Battery elements |
+| `tap_action_ev` | object | `{action: "more-info"}` | Tap action for EV elements |
 
 ### Breaking Changes
 
@@ -150,8 +176,8 @@ None! This release is fully backward compatible. All existing configurations wil
 
 - If you don't configure these new options, the card behaves exactly as it did in v2.1.2
 - Default tap action is `more-info` (entity history)
-- Default language is English
-- Default labels are in English
+- Language is auto-detected from Home Assistant settings
+- Default labels use auto-detected language (or English fallback)
 
 ---
 

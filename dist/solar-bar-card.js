@@ -127,12 +127,10 @@ class SolarBarCard extends HTMLElement {
       // Header sensors
       header_sensor_1: null,
       header_sensor_2: null,
-      // Custom labels
+      // Custom labels (object format for backward compatibility)
       custom_labels: {},
-      // Tap actions
+      // Tap actions (object format for backward compatibility)
       tap_actions: {},
-      // Language
-      language: 'en',
       ...config
     };
     this.updateCard();
@@ -346,12 +344,21 @@ class SolarBarCard extends HTMLElement {
   }
 
   getLabel(key) {
-    const { custom_labels = {}, language = 'en' } = this.config;
+    const { custom_labels = {} } = this.config;
 
     // First check custom labels
     if (custom_labels[key]) {
       return custom_labels[key];
     }
+
+    // Then check individual label config options (for UI compatibility)
+    const labelKey = `label_${key}`;
+    if (this.config[labelKey]) {
+      return this.config[labelKey];
+    }
+
+    // Auto-detect language from Home Assistant
+    const language = this._hass?.language || this._hass?.locale?.language || 'en';
 
     // Then check translations
     const translations = this.getTranslations();
@@ -1597,9 +1604,15 @@ class SolarBarCard extends HTMLElement {
     const { tap_actions = {} } = this.config;
     let tapAction = { action: "more-info" }; // Default
 
-    // Check if there's a custom tap action for this specific element
-    if (actionKey && tap_actions[actionKey]) {
-      tapAction = tap_actions[actionKey];
+    // Check individual tap_action_* config (for UI compatibility)
+    if (actionKey) {
+      const tapActionConfigKey = `tap_action_${actionKey}`;
+      if (this.config[tapActionConfigKey]) {
+        tapAction = this.config[tapActionConfigKey];
+      } else if (tap_actions[actionKey]) {
+        // Fallback to object format (for backward compatibility)
+        tapAction = tap_actions[actionKey];
+      }
     }
 
     // Handle different action types
@@ -1699,10 +1712,7 @@ class SolarBarCard extends HTMLElement {
       show_battery_flow: true,
       show_battery_indicator: true,
       battery_flow_animation_speed: 2,
-      decimal_places: 1,
-      custom_labels: {},
-      tap_actions: {},
-      language: 'en'
+      decimal_places: 1
     };
   }
 }
@@ -1779,9 +1789,21 @@ class SolarBarCardEditor extends HTMLElement {
       show_bar_label: "Show Bar Label",
       show_bar_values: "Show Bar Values",
       decimal_places: "Decimal Places",
-      custom_labels: "Custom Labels",
-      tap_actions: "Tap Actions",
-      language: "Language"
+      // Individual label fields
+      label_solar: "Solar Label",
+      label_import: "Import Label",
+      label_export: "Export Label",
+      label_usage: "Usage Label",
+      label_battery: "Battery Label",
+      label_ev: "EV Label",
+      label_power_flow: "Power Flow Label",
+      // Individual tap action fields
+      tap_action_solar: "Solar Tap Action",
+      tap_action_import: "Import Tap Action",
+      tap_action_export: "Export Tap Action",
+      tap_action_usage: "Usage Tap Action",
+      tap_action_battery: "Battery Tap Action",
+      tap_action_ev: "EV Tap Action"
     };
     return labels[schema.name] || schema.name;
   }
@@ -1826,9 +1848,21 @@ class SolarBarCardEditor extends HTMLElement {
       show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
       show_bar_values: "Show kW values and labels on the bar segments",
       decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage",
-      custom_labels: "Customize labels for Solar, Import, Export, Usage, Battery, EV, and Power Flow. Format: {solar: 'My Solar', import: 'Grid In', export: 'Grid Out', usage: 'Home', battery: 'Storage', ev: 'Car', power_flow: 'Energy Flow'}",
-      tap_actions: "Configure tap actions for each element. Format: {solar: {action: 'more-info'}, import: {action: 'navigate', navigation_path: '/dashboard'}, export: {action: 'call-service', service: 'light.toggle', service_data: {entity_id: 'light.living_room'}}}. Supported actions: more-info, navigate, call-service, url, none",
-      language: "Select the language for card labels (falls back to English if custom labels not set)"
+      // Individual label helpers
+      label_solar: "Custom label for Solar (leave empty to use auto-detected language translation)",
+      label_import: "Custom label for Import (leave empty to use auto-detected language translation)",
+      label_export: "Custom label for Export (leave empty to use auto-detected language translation)",
+      label_usage: "Custom label for Usage (leave empty to use auto-detected language translation)",
+      label_battery: "Custom label for Battery (leave empty to use auto-detected language translation)",
+      label_ev: "Custom label for EV (leave empty to use auto-detected language translation)",
+      label_power_flow: "Custom label for Power Flow (leave empty to use auto-detected language translation)",
+      // Individual tap action helpers
+      tap_action_solar: "Action when tapping Solar elements (stats tile, bar, legend). Defaults to showing entity history.",
+      tap_action_import: "Action when tapping Import elements (stats tile, grid icon when importing, legend). Defaults to showing entity history.",
+      tap_action_export: "Action when tapping Export elements (stats tile, grid icon when exporting, legend). Defaults to showing entity history.",
+      tap_action_usage: "Action when tapping Usage elements (stats tile, legend). Defaults to showing entity history.",
+      tap_action_battery: "Action when tapping Battery elements (stats tile, battery bar, legend). Defaults to showing entity history.",
+      tap_action_ev: "Action when tapping EV elements (stats tile, legend). Defaults to showing entity history."
     };
     return helpers[schema.name];
   }
@@ -2001,7 +2035,28 @@ class SolarBarCardEditor extends HTMLElement {
         expanded: false,
         flatten: true,
         schema: [
-          { name: "custom_labels", selector: { object: {} } }
+          {
+            type: "grid",
+            schema: [
+              { name: "label_solar", selector: { text: {} } },
+              { name: "label_import", selector: { text: {} } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "label_export", selector: { text: {} } },
+              { name: "label_usage", selector: { text: {} } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "label_battery", selector: { text: {} } },
+              { name: "label_ev", selector: { text: {} } }
+            ]
+          },
+          { name: "label_power_flow", selector: { text: {} } }
         ]
       },
       {
@@ -2010,37 +2065,12 @@ class SolarBarCardEditor extends HTMLElement {
         expanded: false,
         flatten: true,
         schema: [
-          { name: "tap_actions", selector: { object: {} } }
-        ]
-      },
-      {
-        type: "expandable",
-        title: "Language",
-        expanded: false,
-        flatten: true,
-        schema: [
-          {
-            name: "language",
-            default: "en",
-            selector: {
-              select: {
-                options: [
-                  { value: "en", label: "English" },
-                  { value: "de", label: "Deutsch (German)" },
-                  { value: "fr", label: "Français (French)" },
-                  { value: "es", label: "Español (Spanish)" },
-                  { value: "it", label: "Italiano (Italian)" },
-                  { value: "nl", label: "Nederlands (Dutch)" },
-                  { value: "pt", label: "Português (Portuguese)" },
-                  { value: "pl", label: "Polski (Polish)" },
-                  { value: "sv", label: "Svenska (Swedish)" },
-                  { value: "da", label: "Dansk (Danish)" },
-                  { value: "no", label: "Norsk (Norwegian)" }
-                ],
-                mode: "dropdown"
-              }
-            }
-          }
+          { name: "tap_action_solar", selector: { "ui-action": {} } },
+          { name: "tap_action_import", selector: { "ui-action": {} } },
+          { name: "tap_action_export", selector: { "ui-action": {} } },
+          { name: "tap_action_usage", selector: { "ui-action": {} } },
+          { name: "tap_action_battery", selector: { "ui-action": {} } },
+          { name: "tap_action_ev", selector: { "ui-action": {} } }
         ]
       },
       // NET PRODUCTION/CONSUMPTION HISTORY
@@ -2116,4 +2146,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.2.0 loaded! --- Custom labels, configurable tap actions, and multi-language support', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.2.0 loaded! --- Custom labels, configurable tap actions, and auto-detected multi-language support', 'color: #4CAF50; font-weight: bold;');
