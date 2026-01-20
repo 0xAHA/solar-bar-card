@@ -339,6 +339,24 @@ class SolarBarCard extends HTMLElement {
         total_usage: 'Totalt forbruk',
         excess_solar_half: 'Overskudd av solenergi kan dekke 50%+ av EV-lading',
         excess_solar_full: 'Overskudd av solenergi kan fullt ut forsyne EV-lading'
+      },
+      uk: {
+        solar: 'Сонячна',
+        import: 'Імпорт',
+        export: 'Експорт',
+        usage: 'Споживання',
+        battery: 'Батарея',
+        ev: 'Електромобіль',
+        power_flow: 'Потік енергії',
+        solar_power: 'Сонячна енергія',
+        standby_mode: 'Сонячна система в режимі очікування',
+        click_history: 'Клацніть, щоб побачити історію',
+        grid_import: 'Імпорт з мережі',
+        grid_export: 'Експорт до мережі',
+        forecast_potential: 'Прогноз потенціалу сонячної енергії',
+        total_usage: 'Загальне споживання',
+        excess_solar_half: 'Надлишок сонячної енергії може покрити 50%+ навантаження електромобіля',
+        excess_solar_full: 'Надлишок сонячної енергії може повністю покрити навантаження електромобіля'
       }
     };
   }
