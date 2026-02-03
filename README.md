@@ -7,6 +7,9 @@
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
+<a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
+
 ![1759611909382.png](https://github.com/0xAHA/solar-bar-card/raw/main/1759611909382.png)
 
 ![1761360830828.png](https://github.com/0xAHA/solar-bar-card/raw/main/1761360830828.png)
