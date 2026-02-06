@@ -12,10 +12,11 @@
 ## v2.2.0
 
 ### Changes
-- **Custom Labels**: Customize all labels displayed in the card (Solar, Import, Export, Usage, Battery, EV, Power Flow).
-- **Configurable Tap Actions**: Each element supports its own tap action (more-info, navigate, call-service, url, none).
-- **Multi-Language Support**: Built-in translations for 11 languages with automatic detection from Home Assistant language settings.
+- **Custom Labels**: Customize all labels displayed in the card (Solar, Import, Export, Usage, Battery, EV, Power Flow). Each label has its own text field in the visual editor; leave empty to use auto-detected language translation.
+- **Configurable Tap Actions**: Each element supports its own tap action (more-info, navigate, call-service, url, none). Uses Home Assistant's standard `ui-action` selector per element.
+- **Multi-Language Support**: Built-in translations for 12 languages (EN, DE, FR, ES, IT, NL, PT, PL, SV, DA, NO, UK) with automatic detection from Home Assistant language settings. Zero configuration needed — custom labels override auto-detected translations when set.
 - Full visual configuration editor integration with native Home Assistant controls.
+- No breaking changes — fully backward compatible with v2.1.x configurations.
 
 ---
 
