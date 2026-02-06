@@ -151,7 +151,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'EV',
         power_flow: 'Power Flow',
         solar_power: 'Solar Power',
-        standby_mode: 'Solar system in standby mode',
+        standby_mode: 'Standby Mode',
         click_history: 'Click to view history',
         grid_import: 'Grid Import',
         grid_export: 'Grid Export',
@@ -169,7 +169,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'EV',
         power_flow: 'Leistungsfluss',
         solar_power: 'Solarstrom',
-        standby_mode: 'Solarsystem im Standby-Modus',
+        standby_mode: 'Standby-Modus',
         click_history: 'Klicken für Verlauf',
         grid_import: 'Netzbezug',
         grid_export: 'Netzeinspeisung',
@@ -187,7 +187,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'VE',
         power_flow: 'Flux de puissance',
         solar_power: 'Énergie solaire',
-        standby_mode: 'Système solaire en veille',
+        standby_mode: 'Mode veille',
         click_history: 'Cliquer pour voir l\'historique',
         grid_import: 'Import réseau',
         grid_export: 'Export réseau',
@@ -205,7 +205,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'VE',
         power_flow: 'Flujo de energía',
         solar_power: 'Energía solar',
-        standby_mode: 'Sistema solar en modo de espera',
+        standby_mode: 'Modo espera',
         click_history: 'Haga clic para ver el historial',
         grid_import: 'Importación de red',
         grid_export: 'Exportación de red',
@@ -223,7 +223,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'VE',
         power_flow: 'Flusso di potenza',
         solar_power: 'Energia solare',
-        standby_mode: 'Sistema solare in modalità standby',
+        standby_mode: 'Modalità standby',
         click_history: 'Clicca per vedere la cronologia',
         grid_import: 'Importazione rete',
         grid_export: 'Esportazione rete',
@@ -241,7 +241,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'EV',
         power_flow: 'Energiestroom',
         solar_power: 'Zonne-energie',
-        standby_mode: 'Zonnesysteem in standby-modus',
+        standby_mode: 'Standby-modus',
         click_history: 'Klik voor geschiedenis',
         grid_import: 'Netimport',
         grid_export: 'Netexport',
@@ -259,7 +259,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'VE',
         power_flow: 'Fluxo de energia',
         solar_power: 'Energia solar',
-        standby_mode: 'Sistema solar em modo de espera',
+        standby_mode: 'Modo espera',
         click_history: 'Clique para ver o histórico',
         grid_import: 'Importação da rede',
         grid_export: 'Exportação da rede',
@@ -277,7 +277,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'EV',
         power_flow: 'Przepływ energii',
         solar_power: 'Energia słoneczna',
-        standby_mode: 'System solarny w trybie czuwania',
+        standby_mode: 'Tryb czuwania',
         click_history: 'Kliknij, aby zobaczyć historię',
         grid_import: 'Import z sieci',
         grid_export: 'Eksport do sieci',
@@ -295,7 +295,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'EV',
         power_flow: 'Energiflöde',
         solar_power: 'Solenergi',
-        standby_mode: 'Solsystem i viloläge',
+        standby_mode: 'Viloläge',
         click_history: 'Klicka för att visa historik',
         grid_import: 'Nätimport',
         grid_export: 'Nätexport',
@@ -313,7 +313,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'EV',
         power_flow: 'Energiflow',
         solar_power: 'Solenergi',
-        standby_mode: 'Solsystem i standbytilstand',
+        standby_mode: 'Standbytilstand',
         click_history: 'Klik for at se historik',
         grid_import: 'Netimport',
         grid_export: 'Neteksport',
@@ -331,7 +331,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'EV',
         power_flow: 'Energiflyt',
         solar_power: 'Solenergi',
-        standby_mode: 'Solsystem i standby-modus',
+        standby_mode: 'Standby-modus',
         click_history: 'Klikk for å se historikk',
         grid_import: 'Nettimport',
         grid_export: 'Netteksport',
@@ -349,7 +349,7 @@ class SolarBarCard extends HTMLElement {
         ev: 'Електромобіль',
         power_flow: 'Потік енергії',
         solar_power: 'Сонячна енергія',
-        standby_mode: 'Сонячна система в режимі очікування',
+        standby_mode: 'Режим очікування',
         click_history: 'Клацніть, щоб побачити історію',
         grid_import: 'Імпорт з мережі',
         grid_export: 'Експорт до мережі',
@@ -1058,7 +1058,7 @@ class SolarBarCard extends HTMLElement {
         }
 
         .battery-bar-wrapper.standby {
-          opacity: 0.3;
+          opacity: 0.5;
         }
 
         .battery-bar-fill {
@@ -1115,7 +1115,7 @@ class SolarBarCard extends HTMLElement {
         }
 
         .solar-bar-wrapper.standby {
-          opacity: 0.3;
+          opacity: 0.6;
         }
 
         .solar-bar-wrapper.standby .bar-segment {
@@ -1230,12 +1230,18 @@ class SolarBarCard extends HTMLElement {
           color: #81C784;
         }
 
-        .idle-state {
-          text-align: center;
-          color: var(--secondary-text-color);
-          padding: 12px;
+        .standby-label {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: var(--secondary-text-color, #666);
+          font-size: 12px;
+          font-weight: 600;
           font-style: italic;
-          opacity: 0.7;
+          pointer-events: none;
+          z-index: 5;
+          white-space: nowrap;
         }
 
         .unused-segment {
@@ -1439,16 +1445,6 @@ class SolarBarCard extends HTMLElement {
 
 
         ${(production_entity || self_consumption_entity || export_entity) ? `
-          ${isIdle && !hasBattery ? `
-            <div class="idle-state">
-              🌙 ${this.getLabel('standby_mode')}
-            </div>
-          ` : `
-          ${isIdle && hasBattery ? `
-            <div class="idle-state">
-              🌙 ${this.getLabel('standby_mode')}
-            </div>
-          ` : ''}
           <div class="solar-bar-container">
             ${show_bar_label ? `
               <div class="solar-bar-label">
@@ -1474,7 +1470,8 @@ class SolarBarCard extends HTMLElement {
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, `${car_charger_load}kW ${this.getLabel('ev')}`, powerBarWidth) ? `${car_charger_load}kW ${this.getLabel('ev')}` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
-                ${hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">${this.getLabel('solar')}</div>` : ''}
+                ${isIdle ? `<div class="standby-label">🌙 ${this.getLabel('standby_mode')}</div>` : ''}
+                ${!isIdle && hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">${this.getLabel('solar')}</div>` : ''}
                 ${evReadyHalf ? `
                   <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
                        title="${evReadyFull ? this.getLabel('excess_solar_full') : this.getLabel('excess_solar_half')}">
@@ -1590,7 +1587,6 @@ class SolarBarCard extends HTMLElement {
               ` : ''}
             </div>
           ` : ''}
-          `}
         ` : `
           <div class="no-data">
             Configure sensor entities to display solar data
@@ -2164,4 +2160,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.2.0 loaded! --- Custom labels, configurable tap actions, and auto-detected multi-language support', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.2.1 loaded! --- Standby mode embedded in bar', 'color: #4CAF50; font-weight: bold;');
