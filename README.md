@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.2.2-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.3.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -18,6 +18,10 @@
 
 ## ✨ Features
 
+### 🔋 Battery Integration (NEW in v2.3.0!)
+
+* **Background Colors** - Added color selections for the statistics tiles and main card background
+  
 ### 🔋 Battery Integration (NEW in v2.0.0!)
 
 * **Adjacent bars layout** - Battery and solar bars side-by-side with proportional widths
