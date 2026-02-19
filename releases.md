@@ -2,6 +2,25 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.3.0
+
+### Changes
+- **Custom background colors for stats tiles**: Each stats tile (Solar, Export, Import, Usage, Battery, EV) can now have its own background color via the palette or `custom_colors` configuration. New color keys: `stats_solar_background`, `stats_export_background`, `stats_import_background`, `stats_usage_background`, `stats_battery_background`, `stats_ev_background`.
+- **Custom card background color**: The main card background can now be overridden with the `card_background` color key.
+- All new background color keys are included in every palette (defaulting to `null` to preserve existing Home Assistant theme behavior). Set a value in the palette or via `custom_colors` to override.
+
+#### Example
+```yaml
+type: custom:solar-bar-card
+custom_colors:
+  card_background: '#1a1a2e'
+  stats_solar_background: '#2d2d44'
+  stats_export_background: '#1e3a2f'
+  stats_usage_background: '#3a1e2f'
+```
+
+---
+
 ## v2.2.2
 
 ### Changes
