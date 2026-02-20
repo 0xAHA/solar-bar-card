@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.3.0 - Add custom background colors for stats tiles and card
+// Version 2.4.0 - Dynamic stats tile layout: adapts rows based on configured entities
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -851,11 +851,17 @@ class SolarBarCard extends HTMLElement {
           color: var(--secondary-text-color);
         }
 
+        .power-stats-container {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
         .power-stats {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
           gap: 8px;
-          margin-bottom: 12px;
         }
 
         .stat {
@@ -1409,14 +1415,15 @@ class SolarBarCard extends HTMLElement {
           </div>
         ` : ''}
 
-        ${show_stats ? `
-          <div class="power-stats">
-            <div class="stat" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
+        ${show_stats ? (() => {
+          // Core tiles (always present): Solar, Export/Import, Usage
+          const coreTiles = [
+            `<div class="stat" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
               <div class="stat-label">${this.getLabel('solar')}</div>
               <div class="stat-value">${solarProduction.toFixed(decimal_places)} kW</div>
               ${hasProdHistoryData && dailyProduction !== null ? `<div class="stat-history">${dailyProduction.toFixed(decimal_places)} kWh</div>` : ''}
-            </div>
-            ${exportPower > 0 ? `
+            </div>`,
+            exportPower > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || export_entity}" data-action-key="export" title="${this.getLabel('click_history')}">
                 <div class="stat-label">
                   ${this.getLabel('export')}
@@ -1434,26 +1441,41 @@ class SolarBarCard extends HTMLElement {
                 <div class="stat-value">${totalGridImport.toFixed(decimal_places)} kW</div>
                 ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh</div>` : hasHistoryData && dailyImport !== null ? `<div class="stat-history">-${dailyImport.toFixed(decimal_places)} kWh</div>` : ''}
               </div>
-            ` : ''}
-            <div class="stat" data-entity="${self_consumption_entity}" data-action-key="usage" title="${this.getLabel('click_history')}">
+            ` : null,
+            `<div class="stat" data-entity="${self_consumption_entity}" data-action-key="usage" title="${this.getLabel('click_history')}">
               <div class="stat-label">${this.getLabel('usage')}</div>
               <div class="stat-value">${selfConsumption.toFixed(decimal_places)} kW</div>
               ${hasConsHistoryData && dailyConsumption !== null ? `<div class="stat-history">${dailyConsumption.toFixed(decimal_places)} kWh</div>` : ''}
-            </div>
-            ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
+            </div>`
+          ].filter(Boolean);
+
+          // Extra tiles (dynamic): Battery, EV, future consumers
+          const extraTiles = [];
+          if (hasBattery) {
+            extraTiles.push(`
               <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
                 <div class="stat-label">${this.getLabel('battery')}</div>
                 <div class="stat-value">${batteryCharging ? '↑' : batteryDischarging ? '↓' : ''}${Math.abs(batteryPower).toFixed(decimal_places)} kW</div>
                 <div class="stat-history">${batterySOC.toFixed(decimal_places)}%</div>
               </div>
-            ` : isActuallyCharging ? `
+            `);
+          }
+          if (isActuallyCharging) {
+            extraTiles.push(`
               <div class="stat" data-entity="${ev_charger_sensor}" data-action-key="ev" title="${this.getLabel('click_history')}">
                 <div class="stat-label">${this.getLabel('ev')}</div>
                 <div class="stat-value">${evUsage.toFixed(decimal_places)} kW</div>
               </div>
-            ` : ''}
-          </div>
-        ` : ''}
+            `);
+          }
+
+          // Layout: ≤1 extra → single row; 2+ extras → two rows
+          if (extraTiles.length <= 1) {
+            return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}${extraTiles.join('')}</div></div>`;
+          } else {
+            return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}</div><div class="power-stats">${extraTiles.join('')}</div></div>`;
+          }
+        })() : ''}
 
 
         ${(production_entity || self_consumption_entity || export_entity) ? `
@@ -1706,7 +1728,13 @@ class SolarBarCard extends HTMLElement {
 
     let size = 0.8;
     if (this.config.show_header || this.config.show_weather) size += 0.5;
-    if (this.config.show_stats) size += 1.2;
+    if (this.config.show_stats) {
+      size += 1.2;
+      // Extra row possible when both battery and EV/consumers are configured
+      const hasBatteryConfig = this.config.battery_soc_entity && (this.config.battery_power_entity || (this.config.battery_charge_entity && this.config.battery_discharge_entity));
+      const hasEvConfig = this.config.ev_charger_sensor;
+      if (hasBatteryConfig && hasEvConfig) size += 1.0;
+    }
     if (this.config.battery_power_entity && this.config.battery_soc_entity) size += 1.5;
     if (this.config.show_bar_label) size += 0.3;
     if (this.config.show_legend) size += 0.4;
@@ -1870,7 +1898,7 @@ class SolarBarCardEditor extends HTMLElement {
       production_history_entity: "Daily solar power production sensor (kWh) - shows total energy produced today",
       consumption_history_entity: "Daily home consumption sensor (kWh) - shows total energy used today",
       show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
-      show_stats: "Display individual power statistics above the bar (max 4 tiles)",
+      show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
       show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
