@@ -2,16 +2,59 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.4.0
+
+### Changes
+- **Dynamic stats tile layout**: Stats tiles now adapt dynamically based on which entities are configured. No more fixed 4-tile maximum — the layout grows with your setup.
+- **Battery and EV coexistence**: Battery and EV tiles are no longer mutually exclusive. If you have both configured, both tiles display simultaneously.
+- **Smart row splitting**: The tile grid automatically splits into two rows when there are 5+ tiles (3 core tiles on row 1, extras on row 2). For 4 or fewer tiles, everything stays in a single row.
+- **Persistent battery tile**: Battery tile now always shows when configured, even when idle — useful for monitoring SOC at a glance.
+- **Additional consumer tiles**: New `consumer_1_entity`/`consumer_1_name` and `consumer_2_entity`/`consumer_2_name` config options. Add up to 2 extra power consumers (heat pump, pool heater, hot water, AC, etc.) as stats tiles. Consumers show as tiles only — the bar stays clean.
+- **Consumer idle visibility**: New `show_consumers_when_idle` option (default `false`). When enabled, consumer tiles always show even when power is 0 (like battery). When disabled, tiles only appear while actively consuming (like EV).
+- **Compact stats mode**: New `show_stats_detail` option (default `true`). Set to `false` to hide the detail row on all stats tiles (daily kWh, net position, battery %) for a slimmer card.
+- **Consumer tile background colors**: New palette keys `stats_consumer_1_background` and `stats_consumer_2_background` for per-consumer tile styling via `custom_colors`.
+
+#### Layout Examples
+
+| Your Setup | Row 1 | Row 2 |
+|---|---|---|
+| No battery, no EV | Solar \| Export/Import \| Usage | — |
+| No battery, EV charging | Solar \| Export/Import \| Usage \| EV | — |
+| Battery, no EV | Solar \| Export/Import \| Usage \| Battery | — |
+| Battery + EV charging | Solar \| Export/Import \| Usage | Battery \| EV |
+| Battery + EV + Heat Pump | Solar \| Export/Import \| Usage | Battery \| EV \| Heat Pump |
+
+#### Example: Consumer Tiles
+```yaml
+type: custom:solar-bar-card
+show_stats: true
+consumer_1_entity: sensor.heat_pump_power
+consumer_1_name: "Heat Pump"
+consumer_2_entity: sensor.pool_heater_power
+consumer_2_name: "Pool"
+```
+
+#### Example: Compact Stats (no detail row)
+```yaml
+type: custom:solar-bar-card
+show_stats: true
+show_stats_detail: false
+```
+
+---
+
 ## v2.3.0
 
 ### Changes
 - **Custom background colors for stats tiles**: Each stats tile (Solar, Export, Import, Usage, Battery, EV) can now have its own background color via the palette or `custom_colors` configuration. New color keys: `stats_solar_background`, `stats_export_background`, `stats_import_background`, `stats_usage_background`, `stats_battery_background`, `stats_ev_background`.
 - **Custom card background color**: The main card background can now be overridden with the `card_background` color key.
 - All new background color keys are included in every palette (defaulting to `null` to preserve existing Home Assistant theme behavior). Set a value in the palette or via `custom_colors` to override.
+- **Stats tile border radius**: New `stats_border_radius` option (default `8px`) in the Display config section. Increase to match rounded card themes like Bubble Cards.
 
 #### Example
 ```yaml
 type: custom:solar-bar-card
+stats_border_radius: 18
 custom_colors:
   card_background: '#1a1a2e'
   stats_solar_background: '#2d2d44'

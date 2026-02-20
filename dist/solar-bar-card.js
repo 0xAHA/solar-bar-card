@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.3.0 - Add custom background colors for stats tiles and card
+// Version 2.4.0 - Dynamic stats tile layout: adapts rows based on configured entities
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -39,7 +39,9 @@ class SolarBarCard extends HTMLElement {
       this.config.import_history_entity,
       this.config.export_history_entity,
       this.config.header_sensor_1?.entity,
-      this.config.header_sensor_2?.entity
+      this.config.header_sensor_2?.entity,
+      this.config.consumer_1_entity,
+      this.config.consumer_2_entity
     ].filter(Boolean);
 
     const shouldUpdate = relevantEntities.some(
@@ -131,6 +133,16 @@ class SolarBarCard extends HTMLElement {
       custom_labels: {},
       // Tap actions (object format for backward compatibility)
       tap_actions: {},
+      // Stats tile border radius
+      stats_border_radius: 8,
+      // Stats detail row (history/kWh/battery %)
+      show_stats_detail: true,
+      // Additional consumer entities (tiles only, no bar segments)
+      consumer_1_entity: null,
+      consumer_1_name: null,
+      consumer_2_entity: null,
+      consumer_2_name: null,
+      show_consumers_when_idle: false,
       ...config
     };
     this.updateCard();
@@ -428,7 +440,17 @@ class SolarBarCard extends HTMLElement {
       show_net_indicator = true,
       // Header sensors
       header_sensor_1 = null,
-      header_sensor_2 = null
+      header_sensor_2 = null,
+      // Stats tile border radius
+      stats_border_radius = 8,
+      // Stats detail row
+      show_stats_detail = true,
+      // Additional consumers
+      consumer_1_entity = null,
+      consumer_1_name = null,
+      consumer_2_entity = null,
+      consumer_2_name = null,
+      show_consumers_when_idle = false
     } = this.config;
 
     // Get colors from palette
@@ -847,17 +869,23 @@ class SolarBarCard extends HTMLElement {
           color: var(--secondary-text-color);
         }
 
+        .power-stats-container {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
         .power-stats {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
           gap: 8px;
-          margin-bottom: 12px;
         }
 
         .stat {
           background: var(--secondary-background-color);
           padding: 8px;
-          border-radius: 8px;
+          border-radius: ${stats_border_radius}px;
           text-align: center;
           cursor: pointer;
           transition: transform 0.2s ease, opacity 0.2s ease;
@@ -917,6 +945,8 @@ class SolarBarCard extends HTMLElement {
         ${colors.stats_usage_background ? `.stat[data-action-key="usage"] { background: ${colors.stats_usage_background}; }` : ''}
         ${colors.stats_battery_background ? `.stat[data-action-key="battery"] { background: ${colors.stats_battery_background}; }` : ''}
         ${colors.stats_ev_background ? `.stat[data-action-key="ev"] { background: ${colors.stats_ev_background}; }` : ''}
+        ${colors.stats_consumer_1_background ? `.stat[data-action-key="consumer_1"] { background: ${colors.stats_consumer_1_background}; }` : ''}
+        ${colors.stats_consumer_2_background ? `.stat[data-action-key="consumer_2"] { background: ${colors.stats_consumer_2_background}; }` : ''}
 
         .battery-container {
           position: relative;
@@ -1405,21 +1435,22 @@ class SolarBarCard extends HTMLElement {
           </div>
         ` : ''}
 
-        ${show_stats ? `
-          <div class="power-stats">
-            <div class="stat" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
+        ${show_stats ? (() => {
+          // Core tiles (always present): Solar, Export/Import, Usage
+          const coreTiles = [
+            `<div class="stat" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
               <div class="stat-label">${this.getLabel('solar')}</div>
               <div class="stat-value">${solarProduction.toFixed(decimal_places)} kW</div>
-              ${hasProdHistoryData && dailyProduction !== null ? `<div class="stat-history">${dailyProduction.toFixed(decimal_places)} kWh</div>` : ''}
-            </div>
-            ${exportPower > 0 ? `
+              ${show_stats_detail && hasProdHistoryData && dailyProduction !== null ? `<div class="stat-history">${dailyProduction.toFixed(decimal_places)} kWh</div>` : ''}
+            </div>`,
+            exportPower > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || export_entity}" data-action-key="export" title="${this.getLabel('click_history')}">
                 <div class="stat-label">
                   ${this.getLabel('export')}
                   ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
                 </div>
                 <div class="stat-value">${exportPower.toFixed(decimal_places)} kW</div>
-                ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh</div>` : hasHistoryData && dailyExport !== null ? `<div class="stat-history">+${dailyExport.toFixed(decimal_places)} kWh</div>` : ''}
+                ${show_stats_detail ? (hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh</div>` : hasHistoryData && dailyExport !== null ? `<div class="stat-history">+${dailyExport.toFixed(decimal_places)} kWh</div>` : '') : ''}
               </div>
             ` : totalGridImport > 0 ? `
               <div class="stat" data-entity="${grid_power_entity || import_entity}" data-action-key="import" title="${this.getLabel('click_history')}">
@@ -1428,28 +1459,66 @@ class SolarBarCard extends HTMLElement {
                   ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
                 </div>
                 <div class="stat-value">${totalGridImport.toFixed(decimal_places)} kW</div>
-                ${hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh</div>` : hasHistoryData && dailyImport !== null ? `<div class="stat-history">-${dailyImport.toFixed(decimal_places)} kWh</div>` : ''}
+                ${show_stats_detail ? (hasHistoryData && netPosition !== null ? `<div class="stat-history">${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh</div>` : hasHistoryData && dailyImport !== null ? `<div class="stat-history">-${dailyImport.toFixed(decimal_places)} kWh</div>` : '') : ''}
               </div>
-            ` : ''}
-            <div class="stat" data-entity="${self_consumption_entity}" data-action-key="usage" title="${this.getLabel('click_history')}">
+            ` : null,
+            `<div class="stat" data-entity="${self_consumption_entity}" data-action-key="usage" title="${this.getLabel('click_history')}">
               <div class="stat-label">${this.getLabel('usage')}</div>
               <div class="stat-value">${selfConsumption.toFixed(decimal_places)} kW</div>
-              ${hasConsHistoryData && dailyConsumption !== null ? `<div class="stat-history">${dailyConsumption.toFixed(decimal_places)} kWh</div>` : ''}
-            </div>
-            ${hasBattery && Math.abs(batteryPower) >= Math.max(evUsage, 0.1) ? `
+              ${show_stats_detail && hasConsHistoryData && dailyConsumption !== null ? `<div class="stat-history">${dailyConsumption.toFixed(decimal_places)} kWh</div>` : ''}
+            </div>`
+          ].filter(Boolean);
+
+          // Extra tiles (dynamic): Battery, EV, consumers
+          const extraTiles = [];
+          if (hasBattery) {
+            extraTiles.push(`
               <div class="stat battery-stat" data-entity="${battery_power_entity || battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
                 <div class="stat-label">${this.getLabel('battery')}</div>
                 <div class="stat-value">${batteryCharging ? '↑' : batteryDischarging ? '↓' : ''}${Math.abs(batteryPower).toFixed(decimal_places)} kW</div>
-                <div class="stat-history">${batterySOC.toFixed(decimal_places)}%</div>
+                ${show_stats_detail ? `<div class="stat-history">${batterySOC.toFixed(decimal_places)}%</div>` : ''}
               </div>
-            ` : isActuallyCharging ? `
+            `);
+          }
+          if (isActuallyCharging) {
+            extraTiles.push(`
               <div class="stat" data-entity="${ev_charger_sensor}" data-action-key="ev" title="${this.getLabel('click_history')}">
                 <div class="stat-label">${this.getLabel('ev')}</div>
                 <div class="stat-value">${evUsage.toFixed(decimal_places)} kW</div>
               </div>
-            ` : ''}
-          </div>
-        ` : ''}
+            `);
+          }
+          // Additional consumer tiles
+          if (consumer_1_entity) {
+            const c1Power = this.getSensorValue(consumer_1_entity) || 0;
+            if (c1Power > 0 || show_consumers_when_idle) {
+              extraTiles.push(`
+                <div class="stat" data-entity="${consumer_1_entity}" data-action-key="consumer_1" title="${this.getLabel('click_history')}">
+                  <div class="stat-label">${consumer_1_name || 'Consumer 1'}</div>
+                  <div class="stat-value">${c1Power.toFixed(decimal_places)} kW</div>
+                </div>
+              `);
+            }
+          }
+          if (consumer_2_entity) {
+            const c2Power = this.getSensorValue(consumer_2_entity) || 0;
+            if (c2Power > 0 || show_consumers_when_idle) {
+              extraTiles.push(`
+                <div class="stat" data-entity="${consumer_2_entity}" data-action-key="consumer_2" title="${this.getLabel('click_history')}">
+                  <div class="stat-label">${consumer_2_name || 'Consumer 2'}</div>
+                  <div class="stat-value">${c2Power.toFixed(decimal_places)} kW</div>
+                </div>
+              `);
+            }
+          }
+
+          // Layout: ≤1 extra → single row; 2+ extras → two rows
+          if (extraTiles.length <= 1) {
+            return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}${extraTiles.join('')}</div></div>`;
+          } else {
+            return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}</div><div class="power-stats">${extraTiles.join('')}</div></div>`;
+          }
+        })() : ''}
 
 
         ${(production_entity || self_consumption_entity || export_entity) ? `
@@ -1702,7 +1771,13 @@ class SolarBarCard extends HTMLElement {
 
     let size = 0.8;
     if (this.config.show_header || this.config.show_weather) size += 0.5;
-    if (this.config.show_stats) size += 1.2;
+    if (this.config.show_stats) {
+      size += 1.2;
+      // Extra row possible when multiple extras are configured
+      const hasBatteryConfig = this.config.battery_soc_entity && (this.config.battery_power_entity || (this.config.battery_charge_entity && this.config.battery_discharge_entity));
+      const extraCount = (hasBatteryConfig ? 1 : 0) + (this.config.ev_charger_sensor ? 1 : 0) + (this.config.consumer_1_entity ? 1 : 0) + (this.config.consumer_2_entity ? 1 : 0);
+      if (extraCount >= 2) size += 1.0;
+    }
     if (this.config.battery_power_entity && this.config.battery_soc_entity) size += 1.5;
     if (this.config.show_bar_label) size += 0.3;
     if (this.config.show_legend) size += 0.4;
@@ -1734,7 +1809,8 @@ class SolarBarCard extends HTMLElement {
       show_battery_flow: true,
       show_battery_indicator: true,
       battery_flow_animation_speed: 2,
-      decimal_places: 1
+      decimal_places: 1,
+      stats_border_radius: 8
     };
   }
 }
@@ -1811,6 +1887,13 @@ class SolarBarCardEditor extends HTMLElement {
       show_bar_label: "Show Bar Label",
       show_bar_values: "Show Bar Values",
       decimal_places: "Decimal Places",
+      stats_border_radius: "Stats Tile Border Radius",
+      show_stats_detail: "Show Stats Detail Row",
+      consumer_1_entity: "Consumer 1 Power Sensor",
+      consumer_1_name: "Consumer 1 Name",
+      consumer_2_entity: "Consumer 2 Power Sensor",
+      consumer_2_name: "Consumer 2 Name",
+      show_consumers_when_idle: "Show Consumers When Idle",
       // Individual label fields
       label_solar: "Solar Label",
       label_import: "Import Label",
@@ -1864,12 +1947,19 @@ class SolarBarCardEditor extends HTMLElement {
       production_history_entity: "Daily solar power production sensor (kWh) - shows total energy produced today",
       consumption_history_entity: "Daily home consumption sensor (kWh) - shows total energy used today",
       show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
-      show_stats: "Display individual power statistics above the bar (max 4 tiles)",
+      show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
       show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
       show_bar_values: "Show kW values and labels on the bar segments",
       decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage",
+      stats_border_radius: "Border radius for stats tiles in pixels (default 8px, increase to match rounded card themes like Bubble Cards)",
+      show_stats_detail: "Show the detail row on stats tiles (daily kWh, net position, battery %). Disable to save vertical space.",
+      consumer_1_entity: "Power sensor for an additional consumer (e.g., heat pump, pool heater). Shows as a stats tile only.",
+      consumer_1_name: "Display name for Consumer 1 (e.g., 'Heat Pump', 'Pool')",
+      consumer_2_entity: "Power sensor for a second additional consumer. Shows as a stats tile only.",
+      consumer_2_name: "Display name for Consumer 2 (e.g., 'Hot Water', 'AC')",
+      show_consumers_when_idle: "Always show consumer tiles even when power is 0. When off, tiles only appear while the consumer is actively drawing power.",
       // Individual label helpers
       label_solar: "Custom label for Solar (leave empty to use auto-detected language translation)",
       label_import: "Custom label for Import (leave empty to use auto-detected language translation)",
@@ -2009,7 +2099,13 @@ class SolarBarCardEditor extends HTMLElement {
             ]
           },
           { name: "show_weather", default: false, selector: { boolean: {} } },
-          { name: "show_stats", default: false, selector: { boolean: {} } },
+          {
+            type: "grid",
+            schema: [
+              { name: "show_stats", default: false, selector: { boolean: {} } },
+              { name: "show_stats_detail", default: true, selector: { boolean: {} } }
+            ]
+          },
           {
             type: "grid",
             schema: [
@@ -2048,7 +2144,8 @@ class SolarBarCardEditor extends HTMLElement {
                 mode: "dropdown"
               }
             }
-          }
+          },
+          { name: "stats_border_radius", default: 8, selector: { number: { min: 0, max: 28, step: 1, mode: "box", unit_of_measurement: "px" } } }
         ]
       },
       {
@@ -2134,6 +2231,29 @@ class SolarBarCardEditor extends HTMLElement {
           },
           { name: "header_sensor_1", selector: { object: {} } },
           { name: "header_sensor_2", selector: { object: {} } }
+        ]
+      },
+      {
+        type: "expandable",
+        title: "Additional Consumers",
+        expanded: false,
+        flatten: true,
+        schema: [
+          {
+            type: "grid",
+            schema: [
+              { name: "consumer_1_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "consumer_1_name", selector: { text: {} } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              { name: "consumer_2_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "consumer_2_name", selector: { text: {} } }
+            ]
+          },
+          { name: "show_consumers_when_idle", default: false, selector: { boolean: {} } }
         ]
       }
     ];
