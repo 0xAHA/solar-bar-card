@@ -259,6 +259,7 @@ use_solcast: true
 | `consumer_1_name`         | string  | `null`            | 🏷️ Display name for Consumer 1 (e.g., "Heat Pump") - NEW in v2.4.0                                                         |
 | `consumer_2_entity`       | string  | `null`            | 🔌 Power sensor for second additional consumer - NEW in v2.4.0                                                                |
 | `consumer_2_name`         | string  | `null`            | 🏷️ Display name for Consumer 2 (e.g., "Hot Water") - NEW in v2.4.0                                                         |
+| `show_consumers_when_idle`| boolean | `false`           | 🔌 Always show consumer tiles even when power is 0. When off, tiles only appear while actively consuming - NEW in v2.4.0     |
 | `show_legend`             | boolean | `true`            | 🎨 Display color-coded legend                                                                                                 |
 | `show_legend_values`      | boolean | `true`            | 🔢 Show kW values in legend                                                                                                   |
 | `show_bar_label`          | boolean | `true`            | 🏷️ Show power distribution label above bar                                                                                  |

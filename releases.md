@@ -10,6 +10,7 @@
 - **Smart row splitting**: The tile grid automatically splits into two rows when there are 5+ tiles (3 core tiles on row 1, extras on row 2). For 4 or fewer tiles, everything stays in a single row.
 - **Persistent battery tile**: Battery tile now always shows when configured, even when idle — useful for monitoring SOC at a glance.
 - **Additional consumer tiles**: New `consumer_1_entity`/`consumer_1_name` and `consumer_2_entity`/`consumer_2_name` config options. Add up to 2 extra power consumers (heat pump, pool heater, hot water, AC, etc.) as stats tiles. Consumers show as tiles only — the bar stays clean.
+- **Consumer idle visibility**: New `show_consumers_when_idle` option (default `false`). When enabled, consumer tiles always show even when power is 0 (like battery). When disabled, tiles only appear while actively consuming (like EV).
 - **Compact stats mode**: New `show_stats_detail` option (default `true`). Set to `false` to hide the detail row on all stats tiles (daily kWh, net position, battery %) for a slimmer card.
 - **Consumer tile background colors**: New palette keys `stats_consumer_1_background` and `stats_consumer_2_background` for per-consumer tile styling via `custom_colors`.
 

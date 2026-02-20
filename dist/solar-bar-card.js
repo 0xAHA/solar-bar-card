@@ -142,6 +142,7 @@ class SolarBarCard extends HTMLElement {
       consumer_1_name: null,
       consumer_2_entity: null,
       consumer_2_name: null,
+      show_consumers_when_idle: false,
       ...config
     };
     this.updateCard();
@@ -448,7 +449,8 @@ class SolarBarCard extends HTMLElement {
       consumer_1_entity = null,
       consumer_1_name = null,
       consumer_2_entity = null,
-      consumer_2_name = null
+      consumer_2_name = null,
+      show_consumers_when_idle = false
     } = this.config;
 
     // Get colors from palette
@@ -1489,7 +1491,7 @@ class SolarBarCard extends HTMLElement {
           // Additional consumer tiles
           if (consumer_1_entity) {
             const c1Power = this.getSensorValue(consumer_1_entity) || 0;
-            if (c1Power > 0) {
+            if (c1Power > 0 || show_consumers_when_idle) {
               extraTiles.push(`
                 <div class="stat" data-entity="${consumer_1_entity}" data-action-key="consumer_1" title="${this.getLabel('click_history')}">
                   <div class="stat-label">${consumer_1_name || 'Consumer 1'}</div>
@@ -1500,7 +1502,7 @@ class SolarBarCard extends HTMLElement {
           }
           if (consumer_2_entity) {
             const c2Power = this.getSensorValue(consumer_2_entity) || 0;
-            if (c2Power > 0) {
+            if (c2Power > 0 || show_consumers_when_idle) {
               extraTiles.push(`
                 <div class="stat" data-entity="${consumer_2_entity}" data-action-key="consumer_2" title="${this.getLabel('click_history')}">
                   <div class="stat-label">${consumer_2_name || 'Consumer 2'}</div>
@@ -1891,6 +1893,7 @@ class SolarBarCardEditor extends HTMLElement {
       consumer_1_name: "Consumer 1 Name",
       consumer_2_entity: "Consumer 2 Power Sensor",
       consumer_2_name: "Consumer 2 Name",
+      show_consumers_when_idle: "Show Consumers When Idle",
       // Individual label fields
       label_solar: "Solar Label",
       label_import: "Import Label",
@@ -1956,6 +1959,7 @@ class SolarBarCardEditor extends HTMLElement {
       consumer_1_name: "Display name for Consumer 1 (e.g., 'Heat Pump', 'Pool')",
       consumer_2_entity: "Power sensor for a second additional consumer. Shows as a stats tile only.",
       consumer_2_name: "Display name for Consumer 2 (e.g., 'Hot Water', 'AC')",
+      show_consumers_when_idle: "Always show consumer tiles even when power is 0. When off, tiles only appear while the consumer is actively drawing power.",
       // Individual label helpers
       label_solar: "Custom label for Solar (leave empty to use auto-detected language translation)",
       label_import: "Custom label for Import (leave empty to use auto-detected language translation)",
@@ -2248,7 +2252,8 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "consumer_2_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
               { name: "consumer_2_name", selector: { text: {} } }
             ]
-          }
+          },
+          { name: "show_consumers_when_idle", default: false, selector: { boolean: {} } }
         ]
       }
     ];
