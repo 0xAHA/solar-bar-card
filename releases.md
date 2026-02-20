@@ -2,17 +2,19 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-## v2.4.0
+## v2.5.0
 
 ### Changes
 - **Dynamic stats tile layout**: Stats tiles now adapt dynamically based on which entities are configured. No more fixed 4-tile maximum — the layout grows with your setup.
 - **Battery and EV coexistence**: Battery and EV tiles are no longer mutually exclusive. If you have both configured, both tiles display simultaneously.
 - **Smart row splitting**: The tile grid automatically splits into two rows when there are 5+ tiles (3 core tiles on row 1, extras on row 2). For 4 or fewer tiles, everything stays in a single row.
 - **Persistent battery tile**: Battery tile now always shows when configured, even when idle — useful for monitoring SOC at a glance.
+- **Battery bar text fix**: SOC percentage label on the battery bar now stays visible at all charge levels. Previously the text would disappear at low SOC because visibility was tied to the fill width rather than the full bar width.
 - **Additional consumer tiles**: New `consumer_1_entity`/`consumer_1_name` and `consumer_2_entity`/`consumer_2_name` config options. Add up to 2 extra power consumers (heat pump, pool heater, hot water, AC, etc.) as stats tiles. Consumers show as tiles only — the bar stays clean.
 - **Consumer idle visibility**: New `show_consumers_when_idle` option (default `false`). When enabled, consumer tiles always show even when power is 0 (like battery). When disabled, tiles only appear while actively consuming (like EV).
 - **Compact stats mode**: New `show_stats_detail` option (default `true`). Set to `false` to hide the detail row on all stats tiles (daily kWh, net position, battery %) for a slimmer card.
 - **Consumer tile background colors**: New palette keys `stats_consumer_1_background` and `stats_consumer_2_background` for per-consumer tile styling via `custom_colors`.
+- **README overhaul**: Streamlined documentation — concise feature overview, self-documenting config tables, version history moved to releases.md.
 
 #### Layout Examples
 
