@@ -254,6 +254,11 @@ use_solcast: true
 | `consumption_history_entity` | string  | `null`            | 📊 Daily consumption energy sensor (kWh) - NEW in v2.1.2                                                                      |
 | `show_net_indicator`      | boolean | `true`            | 🔴🟢 Show net import/export indicator on tiles                                                                               |
 | `show_stats`              | boolean | `false`           | 📊 Display power statistics tiles                                                                                             |
+| `show_stats_detail`       | boolean | `true`            | 📊 Show detail row on stats tiles (daily kWh, net position, battery %). Disable to save space - NEW in v2.4.0                |
+| `consumer_1_entity`       | string  | `null`            | 🔌 Power sensor for additional consumer (e.g., heat pump, pool). Shows as stats tile only - NEW in v2.4.0                    |
+| `consumer_1_name`         | string  | `null`            | 🏷️ Display name for Consumer 1 (e.g., "Heat Pump") - NEW in v2.4.0                                                         |
+| `consumer_2_entity`       | string  | `null`            | 🔌 Power sensor for second additional consumer - NEW in v2.4.0                                                                |
+| `consumer_2_name`         | string  | `null`            | 🏷️ Display name for Consumer 2 (e.g., "Hot Water") - NEW in v2.4.0                                                         |
 | `show_legend`             | boolean | `true`            | 🎨 Display color-coded legend                                                                                                 |
 | `show_legend_values`      | boolean | `true`            | 🔢 Show kW values in legend                                                                                                   |
 | `show_bar_label`          | boolean | `true`            | 🏷️ Show power distribution label above bar                                                                                  |
@@ -1030,7 +1035,8 @@ MIT License - see LICENSE file for details
 * 🔋⚡ **Battery + EV Coexistence** - Battery and EV tiles are no longer mutually exclusive; both display simultaneously when configured
 * 📐 **Smart Row Splitting** - Single row for 3-4 tiles, automatic two-row layout (core + extras) for 5+ tiles
 * 🔋 **Persistent Battery Tile** - Battery tile always shows when configured, even during idle (displays SOC)
-* 🏗️ **Extensible Architecture** - New "extras" tile system ready for future consumer tiles (heat pump, pool, etc.)
+* 🔌 **Additional Consumer Tiles** - Add up to 2 extra consumers (heat pump, pool, hot water, etc.) as stats tiles via `consumer_1_entity`/`consumer_2_entity`
+* 📏 **Compact Stats Mode** - New `show_stats_detail` toggle (default on) hides the detail row (kWh, net position, battery %) for a slimmer layout
 
 **v2.1.2**
 

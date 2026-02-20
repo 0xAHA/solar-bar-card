@@ -9,7 +9,9 @@
 - **Battery and EV coexistence**: Battery and EV tiles are no longer mutually exclusive. If you have both configured, both tiles display simultaneously.
 - **Smart row splitting**: The tile grid automatically splits into two rows when there are 5+ tiles (3 core tiles on row 1, extras on row 2). For 4 or fewer tiles, everything stays in a single row.
 - **Persistent battery tile**: Battery tile now always shows when configured, even when idle — useful for monitoring SOC at a glance.
-- **Extensible extras system**: New architecture supports future consumer tiles (heat pump, pool heater, etc.) that automatically flow into the dynamic second row.
+- **Additional consumer tiles**: New `consumer_1_entity`/`consumer_1_name` and `consumer_2_entity`/`consumer_2_name` config options. Add up to 2 extra power consumers (heat pump, pool heater, hot water, AC, etc.) as stats tiles. Consumers show as tiles only — the bar stays clean.
+- **Compact stats mode**: New `show_stats_detail` option (default `true`). Set to `false` to hide the detail row on all stats tiles (daily kWh, net position, battery %) for a slimmer card.
+- **Consumer tile background colors**: New palette keys `stats_consumer_1_background` and `stats_consumer_2_background` for per-consumer tile styling via `custom_colors`.
 
 #### Layout Examples
 
@@ -19,6 +21,24 @@
 | No battery, EV charging | Solar \| Export/Import \| Usage \| EV | — |
 | Battery, no EV | Solar \| Export/Import \| Usage \| Battery | — |
 | Battery + EV charging | Solar \| Export/Import \| Usage | Battery \| EV |
+| Battery + EV + Heat Pump | Solar \| Export/Import \| Usage | Battery \| EV \| Heat Pump |
+
+#### Example: Consumer Tiles
+```yaml
+type: custom:solar-bar-card
+show_stats: true
+consumer_1_entity: sensor.heat_pump_power
+consumer_1_name: "Heat Pump"
+consumer_2_entity: sensor.pool_heater_power
+consumer_2_name: "Pool"
+```
+
+#### Example: Compact Stats (no detail row)
+```yaml
+type: custom:solar-bar-card
+show_stats: true
+show_stats_detail: false
+```
 
 ---
 
