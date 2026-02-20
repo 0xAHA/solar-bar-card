@@ -2,6 +2,18 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.6.0
+
+### Changes
+- **Inline stats detail mode**: New `stats_detail_position` option — set to `"inline"` to show the detail value next to the kW value separated by a slash (e.g., "1.2 kW / 12.5 kWh") instead of on a separate 3rd row. Saves vertical space while keeping the information visible.
+- **EV always-show toggle**: New `show_ev_when_idle` option (default `false`). When enabled, the EV tile always shows even when not charging — same pattern as battery and consumer idle toggles.
+- **EV daily energy history**: New `ev_history_entity` config option. Connect a daily kWh sensor to show energy totals on the EV stats tile.
+- **Consumer daily energy history**: New `consumer_1_history_entity` and `consumer_2_history_entity` config options. Show daily kWh totals on consumer tiles, following the same `show_stats_detail` / `stats_detail_position` toggle as all other tiles.
+- **Reduced tile spacing**: Stats tiles now use tighter padding (6px vs 8px), smaller gaps (6px vs 8px), reduced margins, and smaller label font (11px vs 12px) for a more compact card.
+- **Inline detail styling**: New `.stat-detail-inline` CSS class renders the slash-separated detail in a smaller, lighter font on the same line as the kW value.
+
+---
+
 ## v2.5.0
 
 ### Changes

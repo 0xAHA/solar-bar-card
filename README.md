@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.5.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.6.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -103,6 +103,8 @@ show_legend: true
 |---|---|---|---|
 | `ev_charger_sensor` | string | `null` | Active EV charger power sensor. When set, the bar automatically splits EV charging into solar-powered (bright orange) vs grid-powered (darker orange) segments. |
 | `car_charger_load` | number | `0` | EV charger capacity in kW. When set, shows a grey dashed bar segment for potential/unused charging capacity. Also enables the EV-ready indicator icon when excess solar is available. |
+| `show_ev_when_idle` | boolean | `false` | Always show EV tile even when not charging. When off (default), tile only appears while actively charging. |
+| `ev_history_entity` | string | `null` | Daily EV energy sensor (kWh). Shows daily total on the EV stats tile when stats detail is enabled. |
 
 ### Additional Consumers
 
@@ -110,8 +112,10 @@ show_legend: true
 |---|---|---|---|
 | `consumer_1_entity` | string | `null` | Power sensor for an additional consumer (e.g., heat pump, pool heater, hot water). Appears as a stats tile only — no bar segment. |
 | `consumer_1_name` | string | `null` | Display name for Consumer 1 (e.g., "Heat Pump", "Pool"). Defaults to "Consumer 1" if not set. |
+| `consumer_1_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 1. Shows daily total on tile when stats detail is enabled. |
 | `consumer_2_entity` | string | `null` | Power sensor for a second additional consumer. Same behavior as Consumer 1. |
 | `consumer_2_name` | string | `null` | Display name for Consumer 2 (e.g., "Hot Water", "AC"). |
+| `consumer_2_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 2. Shows daily total on tile when stats detail is enabled. |
 | `show_consumers_when_idle` | boolean | `false` | When enabled, consumer tiles always show (even at 0 kW), like the battery tile. When disabled, consumer tiles only appear while the consumer is actively drawing power (> 0 kW). |
 
 ### Solar Forecast
@@ -142,6 +146,7 @@ show_legend: true
 | `header_sensor_2` | object | `null` | Second custom header sensor. Same format as `header_sensor_1`. |
 | `show_stats` | boolean | `false` | Display power statistics tiles above the bar. Layout adapts dynamically: 3 core tiles (Solar, Import/Export, Usage) plus extras (Battery, EV, Consumers) on a second row when needed. |
 | `show_stats_detail` | boolean | `true` | Show the detail row (3rd line) on stats tiles — daily kWh totals, net import/export position, battery SOC%. Set to `false` for a more compact card. |
+| `stats_detail_position` | string | `"below"` | Where to show the detail: `"below"` as a 3rd row, or `"inline"` next to the kW value separated by a slash (e.g., "1.2 kW / 12.5 kWh"). |
 | `show_net_indicator` | boolean | `true` | Show a colored dot on import/export tiles: green = net exporter for the day, red = net importer. Requires history entities. |
 | `show_bar_label` | boolean | `true` | Show "Power Flow 0-XkW" label above the power bar, including battery SOC if configured. |
 | `show_bar_values` | boolean | `true` | Show kW values and labels directly on bar segments. Hidden automatically when a segment is too narrow. |
