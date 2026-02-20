@@ -8,10 +8,12 @@
 - **Custom background colors for stats tiles**: Each stats tile (Solar, Export, Import, Usage, Battery, EV) can now have its own background color via the palette or `custom_colors` configuration. New color keys: `stats_solar_background`, `stats_export_background`, `stats_import_background`, `stats_usage_background`, `stats_battery_background`, `stats_ev_background`.
 - **Custom card background color**: The main card background can now be overridden with the `card_background` color key.
 - All new background color keys are included in every palette (defaulting to `null` to preserve existing Home Assistant theme behavior). Set a value in the palette or via `custom_colors` to override.
+- **Stats tile border radius**: New `stats_border_radius` option (default `8px`) in the Display config section. Increase to match rounded card themes like Bubble Cards.
 
 #### Example
 ```yaml
 type: custom:solar-bar-card
+stats_border_radius: 18
 custom_colors:
   card_background: '#1a1a2e'
   stats_solar_background: '#2d2d44'

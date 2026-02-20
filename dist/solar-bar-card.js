@@ -131,6 +131,8 @@ class SolarBarCard extends HTMLElement {
       custom_labels: {},
       // Tap actions (object format for backward compatibility)
       tap_actions: {},
+      // Stats tile border radius
+      stats_border_radius: 8,
       ...config
     };
     this.updateCard();
@@ -428,7 +430,9 @@ class SolarBarCard extends HTMLElement {
       show_net_indicator = true,
       // Header sensors
       header_sensor_1 = null,
-      header_sensor_2 = null
+      header_sensor_2 = null,
+      // Stats tile border radius
+      stats_border_radius = 8
     } = this.config;
 
     // Get colors from palette
@@ -857,7 +861,7 @@ class SolarBarCard extends HTMLElement {
         .stat {
           background: var(--secondary-background-color);
           padding: 8px;
-          border-radius: 8px;
+          border-radius: ${stats_border_radius}px;
           text-align: center;
           cursor: pointer;
           transition: transform 0.2s ease, opacity 0.2s ease;
@@ -1734,7 +1738,8 @@ class SolarBarCard extends HTMLElement {
       show_battery_flow: true,
       show_battery_indicator: true,
       battery_flow_animation_speed: 2,
-      decimal_places: 1
+      decimal_places: 1,
+      stats_border_radius: 8
     };
   }
 }
@@ -1811,6 +1816,7 @@ class SolarBarCardEditor extends HTMLElement {
       show_bar_label: "Show Bar Label",
       show_bar_values: "Show Bar Values",
       decimal_places: "Decimal Places",
+      stats_border_radius: "Stats Tile Border Radius",
       // Individual label fields
       label_solar: "Solar Label",
       label_import: "Import Label",
@@ -1870,6 +1876,7 @@ class SolarBarCardEditor extends HTMLElement {
       show_bar_label: "Show 'Power Flow 0-XkW' label above the bar",
       show_bar_values: "Show kW values and labels on the bar segments",
       decimal_places: "Number of decimal places to display for all power values (kW) and battery percentage",
+      stats_border_radius: "Border radius for stats tiles in pixels (default 8px, increase to match rounded card themes like Bubble Cards)",
       // Individual label helpers
       label_solar: "Custom label for Solar (leave empty to use auto-detected language translation)",
       label_import: "Custom label for Import (leave empty to use auto-detected language translation)",
@@ -2048,7 +2055,8 @@ class SolarBarCardEditor extends HTMLElement {
                 mode: "dropdown"
               }
             }
-          }
+          },
+          { name: "stats_border_radius", default: 8, selector: { number: { min: 0, max: 28, step: 1, mode: "box", unit_of_measurement: "px" } } }
         ]
       },
       {
