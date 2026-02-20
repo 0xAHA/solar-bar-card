@@ -1,6 +1,6 @@
 // solar-bar-card-palettes.js
 // Color palette definitions for Solar Bar Card
-// Version 2.5.0 - Consumer tiles, compact stats, battery text fix
+// Version 2.6.0 - Inline stats detail, EV/consumer history, reduced tile spacing
 
 export const COLOR_PALETTES = {
   'classic-solar': {
