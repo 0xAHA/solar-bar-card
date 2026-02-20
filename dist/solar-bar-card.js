@@ -2271,7 +2271,7 @@ class SolarBarCardEditor extends HTMLElement {
 
       {
         type: "expandable",
-        title: "Other",
+        title: "EV Charger",
         expanded: false,
         flatten: true,
         schema: [
@@ -2288,7 +2288,15 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "show_ev_when_idle", default: false, selector: { boolean: {} } },
               { name: "ev_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }, { domain: "sensor", attributes: { unit_of_measurement: ["kWh", "Wh", "MWh"] } }] } } }
             ]
-          },
+          }
+        ]
+      },
+      {
+        type: "expandable",
+        title: "Forecast, Weather & History",
+        expanded: false,
+        flatten: true,
+        schema: [
           {
             type: "grid",
             schema: [
