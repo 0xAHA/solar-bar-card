@@ -2,6 +2,26 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.4.0
+
+### Changes
+- **Dynamic stats tile layout**: Stats tiles now adapt dynamically based on which entities are configured. No more fixed 4-tile maximum — the layout grows with your setup.
+- **Battery and EV coexistence**: Battery and EV tiles are no longer mutually exclusive. If you have both configured, both tiles display simultaneously.
+- **Smart row splitting**: The tile grid automatically splits into two rows when there are 5+ tiles (3 core tiles on row 1, extras on row 2). For 4 or fewer tiles, everything stays in a single row.
+- **Persistent battery tile**: Battery tile now always shows when configured, even when idle — useful for monitoring SOC at a glance.
+- **Extensible extras system**: New architecture supports future consumer tiles (heat pump, pool heater, etc.) that automatically flow into the dynamic second row.
+
+#### Layout Examples
+
+| Your Setup | Row 1 | Row 2 |
+|---|---|---|
+| No battery, no EV | Solar \| Export/Import \| Usage | — |
+| No battery, EV charging | Solar \| Export/Import \| Usage \| EV | — |
+| Battery, no EV | Solar \| Export/Import \| Usage \| Battery | — |
+| Battery + EV charging | Solar \| Export/Import \| Usage | Battery \| EV |
+
+---
+
 ## v2.3.0
 
 ### Changes

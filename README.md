@@ -3,7 +3,7 @@
 *Visualize your solar power distribution with an intuitive, real-time bar chart. Perfect for monitoring production, consumption, exports, and EV charging at a glance!*
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.2.2-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.4.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -25,7 +25,7 @@
 * **Visual SOC indicator** - Battery bar fills from left showing state of charge
 * **Flexible configuration** - Single sensor or dual charge/discharge sensors
 * **Animated flow lines** - Shows charging/discharging direction with particles
-* **Smart stats tiles** - Maximum 4 tiles with single-line headers
+* **Smart stats tiles** - Dynamic layout adapts to configured entities (battery, EV, consumers)
 * **Compact legend** - Short labels to prevent wrapping
 
 ### 📊 Net Import/Export History (NEW in v2.1.0!)
@@ -129,7 +129,7 @@
 Toggle any component on/off:
 
 * Header with title
-* Individual power statistics (4 tiles)
+* Individual power statistics (dynamic tiles)
 * Power distribution label
 * Color-coded legend with values
 * Weather/temperature display
@@ -1024,7 +1024,15 @@ MIT License - see LICENSE file for details
 
 ## 📊 Version History
 
-**v2.1.2** (Current)
+**v2.4.0** (Current)
+
+* 📊 **Dynamic Stats Tile Layout** - Stats tiles now adapt dynamically based on configured entities instead of a fixed 4-tile maximum
+* 🔋⚡ **Battery + EV Coexistence** - Battery and EV tiles are no longer mutually exclusive; both display simultaneously when configured
+* 📐 **Smart Row Splitting** - Single row for 3-4 tiles, automatic two-row layout (core + extras) for 5+ tiles
+* 🔋 **Persistent Battery Tile** - Battery tile always shows when configured, even during idle (displays SOC)
+* 🏗️ **Extensible Architecture** - New "extras" tile system ready for future consumer tiles (heat pump, pool, etc.)
+
+**v2.1.2**
 
 * 📊 **Daily Solar Production and Usage Statistics** (#36 by @jchaager) - Track daily solar production totals and consumption values with history tracking (fixes #35)
 * ⚙️ **Redesigned Configuration UI** - Reorganized settings into 4 logical expandable sections (General, Battery, Display, Other) with improved layout flow
@@ -1089,7 +1097,7 @@ MIT License - see LICENSE file for details
 * 📊 **Proportional Bar Sizing** - Battery and solar bars sized based on capacity ratios
 * 🔌 **Flexible Battery Configuration** - Single sensor with optional invert OR dual charge/discharge sensors
 * ⚡ **Animated Flow Lines** - Visual charging/discharging indicators between bars
-* 📉 **Optimized Stats Tiles** - Limited to 4 tiles with single-line headers (Solar, Import/Export, Usage, Battery/EV)
+* 📉 **Optimized Stats Tiles** - Dynamic tile layout with single-line headers (Solar, Import/Export, Usage, Battery, EV)
 * 🏷️ **Compact Labels** - Shortened legend labels to prevent wrapping (Solar, Import, Export, Usage, Batt, EV)
 * 🎨 **Battery Bar Color** - Added to all 7 color palettes
 * 📱 **Mobile-Friendly** - Battery label shows just percentage on small screens
