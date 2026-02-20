@@ -2271,28 +2271,6 @@ class SolarBarCardEditor extends HTMLElement {
 
       {
         type: "expandable",
-        title: "EV Charger",
-        expanded: false,
-        flatten: true,
-        schema: [
-          {
-            type: "grid",
-            schema: [
-              { name: "ev_charger_sensor", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
-              { name: "car_charger_load", label: "EV Charger Capacity", default: 0, selector: { number: { min: 0, max: 50, step: 0.5, mode: "box", unit_of_measurement: "kW" } } }
-            ]
-          },
-          {
-            type: "grid",
-            schema: [
-              { name: "show_ev_when_idle", default: false, selector: { boolean: {} } },
-              { name: "ev_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }, { domain: "sensor", attributes: { unit_of_measurement: ["kWh", "Wh", "MWh"] } }] } } }
-            ]
-          }
-        ]
-      },
-      {
-        type: "expandable",
         title: "Forecast, Weather & History",
         expanded: false,
         flatten: true,
@@ -2325,10 +2303,18 @@ class SolarBarCardEditor extends HTMLElement {
       },
       {
         type: "expandable",
-        title: "Additional Consumers",
+        title: "Consumers",
         expanded: false,
         flatten: true,
         schema: [
+          {
+            type: "grid",
+            schema: [
+              { name: "ev_charger_sensor", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "car_charger_load", label: "EV Charger Capacity", default: 0, selector: { number: { min: 0, max: 50, step: 0.5, mode: "box", unit_of_measurement: "kW" } } }
+            ]
+          },
+          { name: "ev_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }, { domain: "sensor", attributes: { unit_of_measurement: ["kWh", "Wh", "MWh"] } }] } } },
           {
             type: "grid",
             schema: [
@@ -2345,7 +2331,13 @@ class SolarBarCardEditor extends HTMLElement {
             ]
           },
           { name: "consumer_2_history_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "energy" }, { domain: "sensor", attributes: { unit_of_measurement: ["kWh", "Wh", "MWh"] } }] } } },
-          { name: "show_consumers_when_idle", default: false, selector: { boolean: {} } }
+          {
+            type: "grid",
+            schema: [
+              { name: "show_ev_when_idle", default: false, selector: { boolean: {} } },
+              { name: "show_consumers_when_idle", default: false, selector: { boolean: {} } }
+            ]
+          }
         ]
       }
     ];
