@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.6.0 - Inline stats detail, EV/consumer history, reduced tile spacing
+// Version 2.7.0 - Total house consumption, battery SOC formatting, auto-scaling stats, editor consolidation
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
