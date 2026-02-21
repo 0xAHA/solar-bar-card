@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.6.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.7.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -19,8 +19,8 @@ A real-time solar power distribution card for Home Assistant. Visualize how your
 
 - **Color-coded power bar** — solar (green), grid import (red), grid export (blue), EV charging (orange), with unused capacity and forecast overlay
 - **Battery integration** — adjacent battery bar with proportional sizing, animated charge/discharge flow lines, and SOC indicator
-- **Stats tiles** — dynamic tile layout that adapts to your setup (solar, import/export, usage, battery, EV, additional consumers)
-- **Additional consumers** — add up to 2 extra power consumers (heat pump, pool, hot water, etc.) as stats tiles
+- **Stats tiles** — dynamic tile layout that adapts to your setup (solar, import/export, usage, battery, EV, additional consumers) with auto-scaling fonts on narrow screens
+- **Consumers** — EV charger and up to 2 additional power consumers (heat pump, pool, hot water, etc.) in a single config section
 - **Daily energy tracking** — connect daily kWh sensors for net import/export position with green/red indicator
 - **EV charger support** — automatic solar vs grid split, EV-ready indicator, potential capacity display
 - **Solar forecast** — Solcast auto-detection or custom forecast sensor with visual indicator
@@ -97,25 +97,20 @@ show_legend: true
 | `show_battery_flow` | boolean | `true` | Show animated particle flow lines between battery and solar bars indicating charge/discharge direction. |
 | `battery_flow_animation_speed` | number | `2` | Flow animation speed in seconds (lower = faster, range 0.5-10). |
 
-### EV Charger
+### Consumers
 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `ev_charger_sensor` | string | `null` | Active EV charger power sensor. When set, the bar automatically splits EV charging into solar-powered (bright orange) vs grid-powered (darker orange) segments. |
 | `car_charger_load` | number | `0` | EV charger capacity in kW. When set, shows a grey dashed bar segment for potential/unused charging capacity. Also enables the EV-ready indicator icon when excess solar is available. |
-| `show_ev_when_idle` | boolean | `false` | Always show EV tile even when not charging. When off (default), tile only appears while actively charging. |
 | `ev_history_entity` | string | `null` | Daily EV energy sensor (kWh). Shows daily total on the EV stats tile when stats detail is enabled. |
-
-### Additional Consumers
-
-| Option | Type | Default | Description |
-|---|---|---|---|
 | `consumer_1_entity` | string | `null` | Power sensor for an additional consumer (e.g., heat pump, pool heater, hot water). Appears as a stats tile only — no bar segment. |
 | `consumer_1_name` | string | `null` | Display name for Consumer 1 (e.g., "Heat Pump", "Pool"). Defaults to "Consumer 1" if not set. |
 | `consumer_1_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 1. Shows daily total on tile when stats detail is enabled. |
 | `consumer_2_entity` | string | `null` | Power sensor for a second additional consumer. Same behavior as Consumer 1. |
 | `consumer_2_name` | string | `null` | Display name for Consumer 2 (e.g., "Hot Water", "AC"). |
 | `consumer_2_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 2. Shows daily total on tile when stats detail is enabled. |
+| `show_ev_when_idle` | boolean | `false` | Always show EV tile even when not charging. When off (default), tile only appears while actively charging. |
 | `show_consumers_when_idle` | boolean | `false` | When enabled, consumer tiles always show (even at 0 kW), like the battery tile. When disabled, consumer tiles only appear while the consumer is actively drawing power (> 0 kW). |
 
 ### Solar Forecast
@@ -152,7 +147,8 @@ show_legend: true
 | `show_bar_values` | boolean | `true` | Show kW values and labels directly on bar segments. Hidden automatically when a segment is too narrow. |
 | `show_legend` | boolean | `true` | Display a color-coded legend below the bar showing all active power sources. |
 | `show_legend_values` | boolean | `true` | Show current kW values next to each legend item. |
-| `decimal_places` | number | `1` | Decimal places for all power values and battery percentage (1, 2, or 3). |
+| `decimal_places` | number | `1` | Decimal places for all power values (1, 2, or 3). |
+| `battery_soc_decimal_places` | number | `1` | Decimal places for battery SOC percentage (0, 1, or 2). Use 0 for batteries that only report whole percentages. |
 | `stats_border_radius` | number | `8` | Border radius for stats tiles in pixels. Increase to match rounded themes like Bubble Cards. |
 | `color_palette` | string | `"classic-solar"` | Color scheme. Options: `classic-solar`, `soft-meadow`, `ocean-sunset`, `garden-fresh`, `peachy-keen`, `cloudy-day`, `custom`. |
 | `custom_colors` | object | `{}` | Override individual colors. Keys: `solar`, `export`, `import`, `self_usage`, `ev_charge`. Also supports tile backgrounds: `stats_solar_background`, `stats_battery_background`, `stats_consumer_1_background`, etc. |
@@ -181,6 +177,8 @@ Tap actions support `more-info` (default, shows entity history), `navigate` (go 
 | `tap_action_usage` | object | `{action: "more-info"}` | Tap action for Usage elements (stats tile, legend). |
 | `tap_action_battery` | object | `{action: "more-info"}` | Tap action for Battery elements (stats tile, battery bar, legend). |
 | `tap_action_ev` | object | `{action: "more-info"}` | Tap action for EV elements (stats tile, legend). |
+| `tap_action_consumer_1` | object | `{action: "more-info"}` | Tap action for Consumer 1 stats tile. |
+| `tap_action_consumer_2` | object | `{action: "more-info"}` | Tap action for Consumer 2 stats tile. |
 
 **Note:** Language is automatically detected from your Home Assistant setting. Supported: English, German, French, Spanish, Italian, Dutch, Portuguese, Polish, Swedish, Danish, Norwegian. Custom labels always take priority over translations.
 
