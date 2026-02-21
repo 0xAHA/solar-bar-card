@@ -177,6 +177,8 @@ Tap actions support `more-info` (default, shows entity history), `navigate` (go 
 | `tap_action_usage` | object | `{action: "more-info"}` | Tap action for Usage elements (stats tile, legend). |
 | `tap_action_battery` | object | `{action: "more-info"}` | Tap action for Battery elements (stats tile, battery bar, legend). |
 | `tap_action_ev` | object | `{action: "more-info"}` | Tap action for EV elements (stats tile, legend). |
+| `tap_action_consumer_1` | object | `{action: "more-info"}` | Tap action for Consumer 1 stats tile. |
+| `tap_action_consumer_2` | object | `{action: "more-info"}` | Tap action for Consumer 2 stats tile. |
 
 **Note:** Language is automatically detected from your Home Assistant setting. Supported: English, German, French, Spanish, Italian, Dutch, Portuguese, Polish, Swedish, Danish, Norwegian. Custom labels always take priority over translations.
 

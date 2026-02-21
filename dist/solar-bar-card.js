@@ -1993,7 +1993,9 @@ class SolarBarCardEditor extends HTMLElement {
       tap_action_export: "Export Tap Action",
       tap_action_usage: "Usage Tap Action",
       tap_action_battery: "Battery Tap Action",
-      tap_action_ev: "EV Tap Action"
+      tap_action_ev: "EV Tap Action",
+      tap_action_consumer_1: "Consumer 1 Tap Action",
+      tap_action_consumer_2: "Consumer 2 Tap Action"
     };
     return labels[schema.name] || schema.name;
   }
@@ -2065,7 +2067,9 @@ class SolarBarCardEditor extends HTMLElement {
       tap_action_export: "Action when tapping Export elements (stats tile, grid icon when exporting, legend). Defaults to showing entity history.",
       tap_action_usage: "Action when tapping Usage elements (stats tile, legend). Defaults to showing entity history.",
       tap_action_battery: "Action when tapping Battery elements (stats tile, battery bar, legend). Defaults to showing entity history.",
-      tap_action_ev: "Action when tapping EV elements (stats tile, legend). Defaults to showing entity history."
+      tap_action_ev: "Action when tapping EV elements (stats tile, legend). Defaults to showing entity history.",
+      tap_action_consumer_1: "Action when tapping Consumer 1 stats tile. Defaults to showing entity history.",
+      tap_action_consumer_2: "Action when tapping Consumer 2 stats tile. Defaults to showing entity history."
     };
     return helpers[schema.name];
   }
@@ -2313,7 +2317,9 @@ class SolarBarCardEditor extends HTMLElement {
           { name: "tap_action_export", selector: { "ui-action": {} } },
           { name: "tap_action_usage", selector: { "ui-action": {} } },
           { name: "tap_action_battery", selector: { "ui-action": {} } },
-          { name: "tap_action_ev", selector: { "ui-action": {} } }
+          { name: "tap_action_ev", selector: { "ui-action": {} } },
+          { name: "tap_action_consumer_1", selector: { "ui-action": {} } },
+          { name: "tap_action_consumer_2", selector: { "ui-action": {} } }
         ]
       },
       // NET PRODUCTION/CONSUMPTION HISTORY

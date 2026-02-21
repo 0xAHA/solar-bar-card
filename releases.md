@@ -9,6 +9,7 @@
 - **Battery SOC decimal places**: New `battery_soc_decimal_places` option (0, 1, or 2) separate from the main `decimal_places` setting. Useful for batteries that only report whole percentages — set to 0 to avoid showing ".0".
 - **Battery SOC formatting**: Added a space between the SOC value and the percent symbol (e.g., "85 %" instead of "85%") across all displays — stats tile, bar label, and battery bar overlay.
 - **Auto-scaling stats tiles**: Stats tiles now use CSS container queries to automatically scale down font sizes on narrow screens (panels, sidebar, mobile) before wrapping to a second row. Two breakpoints at 350px and 280px progressively reduce text size and padding.
+- **Consumer tap actions**: Added `tap_action_consumer_1` and `tap_action_consumer_2` config options in the Tap Actions editor section. Consumer stats tiles now have dedicated tap action pickers alongside the existing Solar, Import, Export, Usage, Battery, and EV actions.
 - **Editor consolidation**: Merged the separate "EV Charger" and "Additional Consumers" editor sections into a single "Consumers" section. EV config appears first, followed by Consumer 1 and Consumer 2, with both idle toggles paired at the bottom.
 
 ---
