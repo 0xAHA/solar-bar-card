@@ -144,6 +144,9 @@ show_legend: true
 | `stats_detail_position` | string | `"below"` | Where to show the detail: `"below"` as a 3rd row, or `"inline"` next to the kW value separated by a slash (e.g., "1.2 kW / 12.5 kWh"). |
 | `show_net_indicator` | boolean | `true` | Show a colored dot on import/export tiles: green = net exporter for the day, red = net importer. Requires history entities. |
 | `show_grid_icon_always` | boolean | `false` | Always show the grid icon next to the solar bar, even when there is no import or export. Icon turns grey when idle. |
+| `grid_icon_import_color` | color | *(palette import)* | Custom background color for the grid icon when importing from the grid. |
+| `grid_icon_export_color` | color | *(palette export)* | Custom background color for the grid icon when exporting to the grid. |
+| `grid_icon_idle_color` | color | *(grey)* | Custom background color for the grid icon when idle (no import/export). |
 | `show_bar_label` | boolean | `true` | Show "Power Flow 0-XkW" label above the power bar, including battery SOC if configured. |
 | `show_bar_values` | boolean | `true` | Show kW values and labels directly on bar segments. Hidden automatically when a segment is too narrow. |
 | `show_legend` | boolean | `true` | Display a color-coded legend below the bar showing all active power sources. |

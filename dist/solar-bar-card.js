@@ -1023,6 +1023,9 @@ class SolarBarCard extends HTMLElement {
         ${colors.stats_ev_background ? `.stat[data-action-key="ev"] { background: ${colors.stats_ev_background}; }` : ''}
         ${colors.stats_consumer_1_background ? `.stat[data-action-key="consumer_1"] { background: ${colors.stats_consumer_1_background}; }` : ''}
         ${colors.stats_consumer_2_background ? `.stat[data-action-key="consumer_2"] { background: ${colors.stats_consumer_2_background}; }` : ''}
+        ${colors.grid_icon_import ? `.grid-icon.import { background: ${colors.grid_icon_import}; }` : ''}
+        ${colors.grid_icon_export ? `.grid-icon.export { background: ${colors.grid_icon_export}; }` : ''}
+        ${colors.grid_icon_idle ? `.grid-icon.idle { background: ${colors.grid_icon_idle}; }` : ''}
 
         .battery-container {
           position: relative;
@@ -1261,7 +1264,7 @@ class SolarBarCard extends HTMLElement {
 
         .grid-icon ha-icon {
           --mdc-icon-size: 20px;
-          color: black;
+          color: var(--grid-icon-color, black);
         }
 
         .grid-icon.import {
@@ -1647,11 +1650,11 @@ class SolarBarCard extends HTMLElement {
               ` : ''}
               <div class="solar-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${powerBarWidth}%" data-entity="${production_entity}" data-action-key="solar" title="${this.getLabel('click_history')}">
                 <div class="solar-bar">
-                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 && shouldShowSegmentText(solarHomePercent, `${solarToHome.toFixed(decimal_places)}kW`, powerBarWidth) ? `${solarToHome.toFixed(decimal_places)}kW` : ''}</div>` : ''}
-                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 && shouldShowSegmentText(solarEvPercent, `${solarToEv.toFixed(decimal_places)}kW ${this.getLabel('ev')}`, powerBarWidth) ? `${solarToEv.toFixed(decimal_places)}kW ${this.getLabel('ev')}` : ''}</div>` : ''}
-                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 && shouldShowSegmentText(batteryChargePercent, `${solarToBattery.toFixed(decimal_places)}kW ${this.getLabel('battery')}`, powerBarWidth) ? `${solarToBattery.toFixed(decimal_places)}kW ${this.getLabel('battery')}` : ''}</div>` : ''}
-                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, `${exportPower.toFixed(decimal_places)}kW ${this.getLabel('export')}`, powerBarWidth) ? `${exportPower.toFixed(decimal_places)}kW ${this.getLabel('export')}` : ''}</div>` : ''}
-                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, `${car_charger_load}kW ${this.getLabel('ev')}`, powerBarWidth) ? `${car_charger_load}kW ${this.getLabel('ev')}` : ''}</div>` : ''}
+                  ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 && shouldShowSegmentText(solarHomePercent, `${solarToHome.toFixed(decimal_places)} kW`, powerBarWidth) ? `${solarToHome.toFixed(decimal_places)} kW` : ''}</div>` : ''}
+                  ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 && shouldShowSegmentText(solarEvPercent, `${solarToEv.toFixed(decimal_places)} kW ${this.getLabel('ev')}`, powerBarWidth) ? `${solarToEv.toFixed(decimal_places)} kW ${this.getLabel('ev')}` : ''}</div>` : ''}
+                  ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 && shouldShowSegmentText(batteryChargePercent, `${solarToBattery.toFixed(decimal_places)} kW ${this.getLabel('battery')}`, powerBarWidth) ? `${solarToBattery.toFixed(decimal_places)} kW ${this.getLabel('battery')}` : ''}</div>` : ''}
+                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, `${exportPower.toFixed(decimal_places)} kW ${this.getLabel('export')}`, powerBarWidth) ? `${exportPower.toFixed(decimal_places)} kW ${this.getLabel('export')}` : ''}</div>` : ''}
+                  ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, `${car_charger_load} kW ${this.getLabel('ev')}`, powerBarWidth) ? `${car_charger_load} kW ${this.getLabel('ev')}` : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
                 ${isIdle ? `<div class="standby-label">🌙 ${this.getLabel('standby_mode')}</div>` : ''}
@@ -1990,6 +1993,9 @@ class SolarBarCardEditor extends HTMLElement {
       consumption_history_entity: "Daily Home Consumption Sensor",
       show_net_indicator: "Show Net Import/Export Indicator",
       show_grid_icon_always: "Always Show Grid Icon",
+      grid_icon_import_color: "Grid Icon Import Color",
+      grid_icon_export_color: "Grid Icon Export Color",
+      grid_icon_idle_color: "Grid Icon Idle Color",
       show_stats: "Show Individual Stats",
       show_legend: "Show Legend",
       show_legend_values: "Show Legend Values",
@@ -2065,6 +2071,9 @@ class SolarBarCardEditor extends HTMLElement {
       consumption_history_entity: "Daily home consumption sensor (kWh) - shows total energy used today",
       show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
       show_grid_icon_always: "Always show grid icon next to the solar bar, even when there is no import or export. Icon turns grey when idle.",
+      grid_icon_import_color: "Custom background color for the grid icon when importing.",
+      grid_icon_export_color: "Custom background color for the grid icon when exporting.",
+      grid_icon_idle_color: "Custom background color for the grid icon when idle (no import/export).",
       show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
@@ -2261,6 +2270,14 @@ class SolarBarCardEditor extends HTMLElement {
           },
           { name: "show_net_indicator", default: true, selector: { boolean: {} } },
           { name: "show_grid_icon_always", default: false, selector: { boolean: {} } },
+          {
+            type: "grid",
+            schema: [
+              { name: "grid_icon_import_color", selector: { color_rgb: {} } },
+              { name: "grid_icon_export_color", selector: { color_rgb: {} } },
+              { name: "grid_icon_idle_color", selector: { color_rgb: {} } }
+            ]
+          },
           {
             type: "grid",
             schema: [
