@@ -2,13 +2,19 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.7.3
+
+### New Features
+- **Configurable grid icon colors**: New `grid_icon_import_color`, `grid_icon_export_color`, and `grid_icon_idle_color` options with color pickers in the editor. Also configurable via `custom_colors` in YAML (`grid_icon_import`, `grid_icon_export`, `grid_icon_idle`). The icon itself (transmission tower) can be styled via the `--grid-icon-color` CSS custom property or card-mod.
+- **Bar segment text spacing**: Added a space between the value and "kW" in bar segment labels (e.g., "1.2 kW" instead of "1.2kW").
+
+---
+
 ## v2.7.2
 
 ### New Features
 - **Always-visible grid icon**: New `show_grid_icon_always` option keeps the grid transmission tower icon permanently visible next to the solar bar. When there is no import or export, the icon turns grey to indicate an idle grid connection.
-- **Configurable grid icon colors**: New `grid_icon_import_color`, `grid_icon_export_color`, and `grid_icon_idle_color` options with color pickers in the editor. Also configurable via `custom_colors` in YAML (`grid_icon_import`, `grid_icon_export`, `grid_icon_idle`). The icon itself (transmission tower) can be styled via the `--grid-icon-color` CSS custom property or card-mod.
 - **Consumer tap actions**: Added `tap_action_consumer_1` and `tap_action_consumer_2` config options in the Tap Actions editor section.
-- **Bar segment text spacing**: Added a space between the value and "kW" in bar segment labels (e.g., "1.2 kW" instead of "1.2kW").
 
 ### Bug Fixes
 - **Usage tile mirrors production (#53)**: Fixed the Usage stats tile showing the same value as Solar when production dropped below actual house consumption. The calculation now uses an energy balance formula (solar - export + import + battery discharge - battery charge) which is always physically correct regardless of what the sensor reports.

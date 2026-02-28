@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.7.2 - Always-visible grid icon option, fix usage tile mirroring production (#53)
+// Version 2.7.3 - Configurable grid icon colors, bar segment text spacing
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
