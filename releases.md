@@ -2,13 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-## v2.7.1
+## v2.7.2
+
+### New Features
+- **Always-visible grid icon**: New `show_grid_icon_always` option keeps the grid transmission tower icon permanently visible next to the solar bar. When there is no import or export, the icon turns grey to indicate an idle grid connection. Useful for systems where users want a consistent layout regardless of grid activity.
+- **Consumer tap actions**: Added `tap_action_consumer_1` and `tap_action_consumer_2` config options in the Tap Actions editor section. Consumer stats tiles now have dedicated tap action pickers alongside the existing Solar, Import, Export, Usage, Battery, and EV actions.
 
 ### Bug Fixes
 - **Usage tile mirrors production (#53)**: Fixed the Usage stats tile showing the same value as Solar when production dropped below actual house consumption. The root cause was that `self_consumption_entity` on many inverter systems reports solar self-consumption (capped at production), not total house load. The calculation now uses an energy balance formula (solar - export + import + battery discharge - battery charge) which is always physically correct regardless of what the sensor reports. The fix also corrects the grid import attribution in the bar segments and legend.
-
-### Changes
-- **Consumer tap actions**: Added `tap_action_consumer_1` and `tap_action_consumer_2` config options in the Tap Actions editor section. Consumer stats tiles now have dedicated tap action pickers alongside the existing Solar, Import, Export, Usage, Battery, and EV actions.
 
 ---
 

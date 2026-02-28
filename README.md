@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.7.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.7.2-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -143,6 +143,7 @@ show_legend: true
 | `show_stats_detail` | boolean | `true` | Show the detail row (3rd line) on stats tiles — daily kWh totals, net import/export position, battery SOC%. Set to `false` for a more compact card. |
 | `stats_detail_position` | string | `"below"` | Where to show the detail: `"below"` as a 3rd row, or `"inline"` next to the kW value separated by a slash (e.g., "1.2 kW / 12.5 kWh"). |
 | `show_net_indicator` | boolean | `true` | Show a colored dot on import/export tiles: green = net exporter for the day, red = net importer. Requires history entities. |
+| `show_grid_icon_always` | boolean | `false` | Always show the grid icon next to the solar bar, even when there is no import or export. Icon turns grey when idle. |
 | `show_bar_label` | boolean | `true` | Show "Power Flow 0-XkW" label above the power bar, including battery SOC if configured. |
 | `show_bar_values` | boolean | `true` | Show kW values and labels directly on bar segments. Hidden automatically when a segment is too narrow. |
 | `show_legend` | boolean | `true` | Display a color-coded legend below the bar showing all active power sources. |
