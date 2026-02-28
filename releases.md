@@ -2,14 +2,23 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.7.1
+
+### Bug Fixes
+- **Usage tile mirrors production (#53)**: Fixed the Usage stats tile showing the same value as Solar when production dropped below actual house consumption. The root cause was that `self_consumption_entity` on many inverter systems reports solar self-consumption (capped at production), not total house load. The calculation now uses an energy balance formula (solar - export + import + battery discharge - battery charge) which is always physically correct regardless of what the sensor reports. The fix also corrects the grid import attribution in the bar segments and legend.
+
+### Changes
+- **Consumer tap actions**: Added `tap_action_consumer_1` and `tap_action_consumer_2` config options in the Tap Actions editor section. Consumer stats tiles now have dedicated tap action pickers alongside the existing Solar, Import, Export, Usage, Battery, and EV actions.
+
+---
+
 ## v2.7.0
 
 ### Changes
-- **Total house consumption**: The Usage stats tile now shows total house consumption calculated from the energy balance (solar - export + import + battery discharge - battery charge). This physics-based formula works correctly regardless of whether `self_consumption_entity` reports solar self-consumption or total house load — fixing issue #53 where the Usage tile mirrored production when solar was less than actual consumption.
+- **Total house consumption**: The Usage stats tile now shows total house consumption from all sources (solar + grid import + battery discharge) rather than just solar self-consumption. The legend and bar tooltip also reflect total house load.
 - **Battery SOC decimal places**: New `battery_soc_decimal_places` option (0, 1, or 2) separate from the main `decimal_places` setting. Useful for batteries that only report whole percentages — set to 0 to avoid showing ".0".
 - **Battery SOC formatting**: Added a space between the SOC value and the percent symbol (e.g., "85 %" instead of "85%") across all displays — stats tile, bar label, and battery bar overlay.
 - **Auto-scaling stats tiles**: Stats tiles now use CSS container queries to automatically scale down font sizes on narrow screens (panels, sidebar, mobile) before wrapping to a second row. Two breakpoints at 350px and 280px progressively reduce text size and padding.
-- **Consumer tap actions**: Added `tap_action_consumer_1` and `tap_action_consumer_2` config options in the Tap Actions editor section. Consumer stats tiles now have dedicated tap action pickers alongside the existing Solar, Import, Export, Usage, Battery, and EV actions.
 - **Editor consolidation**: Merged the separate "EV Charger" and "Additional Consumers" editor sections into a single "Consumers" section. EV config appears first, followed by Consumer 1 and Consumer 2, with both idle toggles paired at the bottom.
 
 ---
