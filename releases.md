@@ -5,7 +5,7 @@
 ## v2.7.0
 
 ### Changes
-- **Total house consumption**: The Usage stats tile now shows total house consumption from all sources (solar + grid import + battery discharge) rather than just solar self-consumption. The legend and bar tooltip also reflect total house load.
+- **Total house consumption**: The Usage stats tile now shows total house consumption calculated from the energy balance (solar - export + import + battery discharge - battery charge). This physics-based formula works correctly regardless of whether `self_consumption_entity` reports solar self-consumption or total house load — fixing issue #53 where the Usage tile mirrored production when solar was less than actual consumption.
 - **Battery SOC decimal places**: New `battery_soc_decimal_places` option (0, 1, or 2) separate from the main `decimal_places` setting. Useful for batteries that only report whole percentages — set to 0 to avoid showing ".0".
 - **Battery SOC formatting**: Added a space between the SOC value and the percent symbol (e.g., "85 %" instead of "85%") across all displays — stats tile, bar label, and battery bar overlay.
 - **Auto-scaling stats tiles**: Stats tiles now use CSS container queries to automatically scale down font sizes on narrow screens (panels, sidebar, mobile) before wrapping to a second row. Two breakpoints at 350px and 280px progressively reduce text size and padding.
