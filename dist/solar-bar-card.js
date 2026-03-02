@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.7.4 - Grid icon tower color config, fix idle circle transparency
+// Version 2.7.5 - Fix grid icon circle colors not applying from config
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
