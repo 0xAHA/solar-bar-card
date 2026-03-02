@@ -6,6 +6,7 @@
 
 ### Bug Fixes
 - **Grid icon circle colors not applying**: Fixed `grid_icon_import_color`, `grid_icon_export_color`, and `grid_icon_idle_color` config options being ignored. The colors were set as duplicate CSS rules that got overridden by later selectors. They are now applied directly in the grid icon class definitions so configured colors always take effect.
+- **Tower icon color flash on load**: Fixed the transmission tower icon briefly appearing white before the configured `grid_icon_color` took effect. The color is now set as an inline style so it applies immediately, before the `ha-icon` web component finishes rendering its shadow DOM.
 
 ---
 

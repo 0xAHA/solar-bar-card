@@ -1677,7 +1677,7 @@ class SolarBarCard extends HTMLElement {
                      data-entity="${grid_power_entity || (hasGridImport ? import_entity : export_entity) || import_entity || export_entity}"
                      data-action-key="${hasGridImport ? 'import' : 'export'}"
                      title="${hasGridImport ? `${this.getLabel('grid_import')}: ${gridImportPower.toFixed(decimal_places)}kW - ${this.getLabel('click_history')}` : hasGridExport ? `${this.getLabel('grid_export')}: ${exportPower.toFixed(decimal_places)}kW - ${this.getLabel('click_history')}` : this.getLabel('grid_idle')}">
-                  <ha-icon icon="mdi:transmission-tower"></ha-icon>
+                  <ha-icon icon="mdi:transmission-tower" style="color: ${colors.grid_icon_color || 'black'}"></ha-icon>
                 </div>
               ` : ''}
               ${showBatteryFlow ? `
