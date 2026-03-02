@@ -2,6 +2,13 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.7.5
+
+### Bug Fixes
+- **Grid icon circle colors not applying**: Fixed `grid_icon_import_color`, `grid_icon_export_color`, and `grid_icon_idle_color` config options being ignored. The colors were set as duplicate CSS rules that got overridden by later selectors. They are now applied directly in the grid icon class definitions so configured colors always take effect.
+
+---
+
 ## v2.7.4
 
 ### New Features

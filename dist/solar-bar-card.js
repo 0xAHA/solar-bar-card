@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.7.4 - Grid icon tower color config, fix idle circle transparency
+// Version 2.7.5 - Fix grid icon circle colors not applying from config
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -1023,9 +1023,6 @@ class SolarBarCard extends HTMLElement {
         ${colors.stats_ev_background ? `.stat[data-action-key="ev"] { background: ${colors.stats_ev_background}; }` : ''}
         ${colors.stats_consumer_1_background ? `.stat[data-action-key="consumer_1"] { background: ${colors.stats_consumer_1_background}; }` : ''}
         ${colors.stats_consumer_2_background ? `.stat[data-action-key="consumer_2"] { background: ${colors.stats_consumer_2_background}; }` : ''}
-        ${colors.grid_icon_import ? `.grid-icon.import { background: ${colors.grid_icon_import}; }` : ''}
-        ${colors.grid_icon_export ? `.grid-icon.export { background: ${colors.grid_icon_export}; }` : ''}
-        ${colors.grid_icon_idle ? `.grid-icon.idle { background: ${colors.grid_icon_idle}; }` : ''}
 
         .battery-container {
           position: relative;
@@ -1268,17 +1265,17 @@ class SolarBarCard extends HTMLElement {
         }
 
         .grid-icon.import {
-          background: linear-gradient(135deg, var(--grid-usage-color), var(--grid-usage-color));
+          background: ${colors.grid_icon_import || 'linear-gradient(135deg, var(--grid-usage-color), var(--grid-usage-color))'};
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .grid-icon.export {
-          background: linear-gradient(135deg, var(--solar-export-color), var(--solar-export-color));
+          background: ${colors.grid_icon_export || 'linear-gradient(135deg, var(--solar-export-color), var(--solar-export-color))'};
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .grid-icon.idle {
-          background: var(--disabled-text-color, #9e9e9e);
+          background: ${colors.grid_icon_idle || 'var(--disabled-text-color, #9e9e9e)'};
           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
