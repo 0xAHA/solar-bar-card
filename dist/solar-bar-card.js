@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.7.3 - Configurable grid icon colors, bar segment text spacing
+// Version 2.7.4 - Grid icon tower color config, fix idle circle transparency
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -1264,7 +1264,7 @@ class SolarBarCard extends HTMLElement {
 
         .grid-icon ha-icon {
           --mdc-icon-size: 20px;
-          color: var(--grid-icon-color, black);
+          color: ${colors.grid_icon_color || 'black'};
         }
 
         .grid-icon.import {
@@ -1280,7 +1280,6 @@ class SolarBarCard extends HTMLElement {
         .grid-icon.idle {
           background: var(--disabled-text-color, #9e9e9e);
           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          opacity: 0.6;
         }
 
         .bar-segment {
@@ -1996,6 +1995,7 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_import_color: "Grid Icon Import Color",
       grid_icon_export_color: "Grid Icon Export Color",
       grid_icon_idle_color: "Grid Icon Idle Color",
+      grid_icon_color: "Grid Icon Tower Color",
       show_stats: "Show Individual Stats",
       show_legend: "Show Legend",
       show_legend_values: "Show Legend Values",
@@ -2071,9 +2071,10 @@ class SolarBarCardEditor extends HTMLElement {
       consumption_history_entity: "Daily home consumption sensor (kWh) - shows total energy used today",
       show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
       show_grid_icon_always: "Always show grid icon next to the solar bar, even when there is no import or export. Icon turns grey when idle.",
-      grid_icon_import_color: "Custom background color for the grid icon when importing.",
-      grid_icon_export_color: "Custom background color for the grid icon when exporting.",
-      grid_icon_idle_color: "Custom background color for the grid icon when idle (no import/export).",
+      grid_icon_import_color: "Custom background color for the grid icon circle when importing.",
+      grid_icon_export_color: "Custom background color for the grid icon circle when exporting.",
+      grid_icon_idle_color: "Custom background color for the grid icon circle when idle (no import/export).",
+      grid_icon_color: "Color of the transmission tower icon inside the circle (default: black).",
       show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
@@ -2275,7 +2276,8 @@ class SolarBarCardEditor extends HTMLElement {
             schema: [
               { name: "grid_icon_import_color", selector: { color_rgb: {} } },
               { name: "grid_icon_export_color", selector: { color_rgb: {} } },
-              { name: "grid_icon_idle_color", selector: { color_rgb: {} } }
+              { name: "grid_icon_idle_color", selector: { color_rgb: {} } },
+              { name: "grid_icon_color", selector: { color_rgb: {} } }
             ]
           },
           {
