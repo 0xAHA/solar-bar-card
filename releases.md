@@ -2,6 +2,25 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.8.0
+
+### New Features
+- **House icon**: New `show_house_icon` option adds a 32px house icon to the left of the bar, representing home consumption. Colored by the self-usage palette color, switches to import color when only grid power is being consumed. Tappable with the usage tap action.
+- **Energy flow lines**: New `show_energy_flow` option renders animated flow lines below the bar visualising energy paths between solar, house, grid, and battery. Thin dashed lines with subtle glow animate from source to destination:
+  - Solar → House (self-usage color) when solar is powering the home
+  - Solar → Grid (export color) when exporting
+  - Solar → Battery (battery charge color) when charging
+  - Battery → House (battery discharge color) when discharging
+  - Grid → House (import color) when importing
+  - The solar drop-line is hidden when no solar is generated
+- **Energy flow speed**: New `energy_flow_speed` option to control animation speed (default 2 seconds).
+
+### Bug Fixes
+- **Grid icon circle colors not applying**: Fixed `grid_icon_import_color`, `grid_icon_export_color`, and `grid_icon_idle_color` config options being ignored.
+- **Tower icon color flash on load**: Fixed the transmission tower icon briefly appearing white before the configured `grid_icon_color` took effect.
+
+---
+
 ## v2.7.5
 
 ### Bug Fixes
