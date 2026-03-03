@@ -871,25 +871,57 @@ class SolarBarCard extends HTMLElement {
     // Static infrastructure: one neutral dashed line for the bus + stubs
     // Animated particles: colored per-flow, traveling along the shared bus
     //
-    // SVG viewBox 1000×56. x in virtual px (1000 = container width), y in real units.
+    // SVG viewBox 1000×40. x in virtual px (1000 = container width), y in real pixels.
     const energyFlowPaths = [];
     let energyBusPath = '';
+    let dotRx = 8;
+    let dotRy = 4;
     if (show_energy_flow) {
       const vw = 1000;
-      const ry = 6;           // corner radius y (pixels)
-      const rx = 12;          // corner radius x (virtual px, ~1.2% of width)
       const barBottom = 32;
-      const busY = 48;
+      const busY = 40;
       const flowSpeed = energy_flow_speed || 2;
 
-      // X positions (element centers in virtual px)
-      const pct = (p) => p * vw / 100;
-      const houseX = show_house_icon ? pct(1.5) : 0;
-      const battX = (hasBattery && show_battery_indicator)
-        ? (show_house_icon ? pct(houseIconSpace + batteryBarWidth / 2) : pct(batteryBarWidth / 2))
-        : null;
-      const solarX = pct(houseIconSpace + batteryBarWidth + (powerBarWidth / 2));
-      const gridX = showGridIcon ? pct(100 - gridIconSpace / 2) : null;
+      // Physical corner/dot radius (px), compensated for non-uniform SVG scaling
+      const cornerPx = 4;
+      const ry = cornerPx;
+      const rx = cornerPx * vw / actualContainerWidth;
+      const dotPx = 4;
+      dotRx = dotPx * vw / actualContainerWidth;
+      dotRy = dotPx;
+
+      // Calculate actual pixel positions of element centers (flex-layout-aware)
+      const iconPx = 32;
+      const gapPx = 8;
+
+      const layoutElements = [];
+      if (show_house_icon) layoutElements.push({ key: 'house', fixed: true, widthPx: iconPx });
+      if (hasBattery && show_battery_indicator) layoutElements.push({ key: 'battery', fixed: false, pct: batteryBarWidth });
+      layoutElements.push({ key: 'solar', fixed: false, pct: powerBarWidth });
+      if (showGridIcon) layoutElements.push({ key: 'grid', fixed: true, widthPx: iconPx });
+
+      const numGaps = Math.max(0, layoutElements.length - 1);
+      const totalGapPx = numGaps * gapPx;
+      const totalFixedPx = layoutElements.filter(e => e.fixed).reduce((s, e) => s + e.widthPx, 0);
+      const totalBarPct = layoutElements.filter(e => !e.fixed).reduce((s, e) => s + e.pct, 0);
+      const desiredBarPx = (totalBarPct / 100) * actualContainerWidth;
+      const availableForBars = actualContainerWidth - totalFixedPx - totalGapPx;
+      const barScale = availableForBars / Math.max(desiredBarPx, 1);
+
+      const positions = {};
+      let xOffset = 0;
+      for (let i = 0; i < layoutElements.length; i++) {
+        const el = layoutElements[i];
+        const widthPx = el.fixed ? el.widthPx : (el.pct / 100) * actualContainerWidth * barScale;
+        positions[el.key] = (xOffset + widthPx / 2) / actualContainerWidth * vw;
+        xOffset += widthPx;
+        if (i < layoutElements.length - 1) xOffset += gapPx;
+      }
+
+      const houseX = positions.house || 0;
+      const battX = positions.battery !== undefined ? positions.battery : null;
+      const solarX = positions.solar;
+      const gridX = positions.grid !== undefined ? positions.grid : null;
 
       // Flow state flags
       const hasSolar = solarProduction > 0;
@@ -905,19 +937,19 @@ class SolarBarCard extends HTMLElement {
       // ── Static bus infrastructure (single neutral dashed line) ──
       const busSegments = [];
 
-      // Solar drop: vertical from solar bar center to bus junction (only when solar active)
+      // Solar drop: vertical from solar bar center toward bus (stops short for corner curve)
       if (hasSolar && (leftBusActive || rightBusActive)) {
-        busSegments.push(`M ${solarX} ${barBottom} L ${solarX} ${busY}`);
+        busSegments.push(`M ${solarX} ${barBottom} L ${solarX} ${busY - ry}`);
       }
 
-      // Left bus: solar junction → leftward → curve up → house
+      // Left bus: curve from solar drop → horizontal → curve up → house
       if (leftBusActive && show_house_icon) {
-        busSegments.push(`M ${solarX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
+        busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
       }
 
-      // Right bus: solar junction → rightward → curve up → grid
+      // Right bus: curve from solar drop → horizontal → curve up → grid
       if (rightBusActive && gridX !== null) {
-        busSegments.push(`M ${solarX} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`);
+        busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`);
       }
 
       // Battery stub: vertical from bus up to battery bar
@@ -927,38 +959,38 @@ class SolarBarCard extends HTMLElement {
 
       // Grid stub when importing with no solar (right bus not drawn, need grid → bus connection)
       if (gridImportFlow && !hasSolar && gridX !== null) {
-        busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
+        busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
       }
 
       energyBusPath = busSegments.join(' ');
 
-      // ── Animated particle routes (follow the shared bus) ──
+      // ── Animated particle routes (follow the shared bus with rounded corners) ──
 
-      // Solar → House: drop → left bus → up to house
+      // Solar → House: drop → curve left → bus → curve up → house
       if (solarToHomeFlow) {
         energyFlowPaths.push({
-          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
           color: colors.self_usage, speed: flowSpeed, id: 'solarToHouse'
         });
       }
 
-      // Solar → Grid (export): drop → right bus → up to grid
+      // Solar → Grid (export): drop → curve right → bus → curve up → grid
       if (exportFlow) {
         energyFlowPaths.push({
-          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`,
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`,
           color: colors.export, speed: flowSpeed, id: 'solarToGrid'
         });
       }
 
-      // Solar → Battery (charge): drop → left on bus to battery → up stub
+      // Solar → Battery (charge): drop → curve left → bus to battery → up stub
       if (batteryChargeFlow) {
         energyFlowPaths.push({
-          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${battX} ${busY} L ${battX} ${barBottom}`,
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${battX} ${busY} L ${battX} ${barBottom}`,
           color: colors.battery_charge, speed: flowSpeed, id: 'solarToBatt'
         });
       }
 
-      // Battery → House (discharge): down stub → left on bus → up to house
+      // Battery → House (discharge): down stub → left on bus → curve up → house
       if (batteryDischargeFlow) {
         energyFlowPaths.push({
           path: `M ${battX} ${barBottom} L ${battX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
@@ -966,10 +998,10 @@ class SolarBarCard extends HTMLElement {
         });
       }
 
-      // Grid → House (import): down from grid → left across both buses → up to house
+      // Grid → House (import): down from grid → curve left → bus → curve up → house
       if (gridImportFlow) {
         energyFlowPaths.push({
-          path: `M ${gridX} ${barBottom} L ${gridX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          path: `M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
           color: colors.import, speed: flowSpeed, id: 'gridToHouse'
         });
       }
@@ -1273,7 +1305,7 @@ class SolarBarCard extends HTMLElement {
           display: flex;
           gap: 8px;
           align-items: center;
-          ${show_energy_flow ? 'padding-bottom: 24px;' : ''}
+          ${show_energy_flow ? 'padding-bottom: 12px;' : ''}
         }
 
         .battery-bar-wrapper {
@@ -1432,15 +1464,15 @@ class SolarBarCard extends HTMLElement {
           top: 0;
           left: 0;
           width: 100%;
-          height: 56px;
+          height: 40px;
           pointer-events: none;
           z-index: 1;
         }
 
         .energy-bus-line {
           stroke: var(--secondary-text-color, #999);
-          stroke-width: 1;
-          stroke-dasharray: 4,4;
+          stroke-width: 2;
+          stroke-dasharray: 6,4;
           opacity: 0.25;
         }
 
@@ -1895,7 +1927,7 @@ class SolarBarCard extends HTMLElement {
                 </svg>
               ` : ''}
               ${show_energy_flow && energyBusPath ? `
-                <svg class="energy-flow-container" width="100%" height="56" viewBox="0 0 1000 56" preserveAspectRatio="none">
+                <svg class="energy-flow-container" width="100%" height="40" viewBox="0 0 1000 40" preserveAspectRatio="none">
                   <!-- Static bus infrastructure -->
                   <path class="energy-bus-line" d="${energyBusPath}"
                         fill="none"
@@ -1903,18 +1935,18 @@ class SolarBarCard extends HTMLElement {
                   <!-- Animated particles per flow -->
                   ${energyFlowPaths.map(f => `
                     <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
-                    ${[0, 1].map(i => `
-                      <circle r="3" fill="${f.color}" opacity="0">
-                        <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 2}s">
+                    ${[0, 1, 2].map(i => `
+                      <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
+                        <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 3}s">
                           <mpath href="#path_${f.id}"/>
                         </animateMotion>
                         <animate attributeName="opacity"
-                                 values="0;0.8;0.8;0"
+                                 values="0;0.9;0.9;0"
                                  keyTimes="0;0.1;0.9;1"
                                  dur="${f.speed}s"
                                  repeatCount="indefinite"
-                                 begin="${i * f.speed / 2}s"/>
-                      </circle>
+                                 begin="${i * f.speed / 3}s"/>
+                      </ellipse>
                     `).join('')}
                   `).join('')}
                 </svg>
