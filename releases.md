@@ -2,6 +2,18 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.0
+
+### Improvements
+- **Shared bus architecture for energy flow**: Replaced independent overlapping flow lines with a shared bus topology. Two buses meet at the solar bar center:
+  - **Left bus**: solar junction → house. All consumption flows (solar self-use, battery discharge, grid import) travel left along this shared bus.
+  - **Right bus**: solar junction → grid. Export flows right; import flows left from grid across both buses to house.
+  - **Vertical stubs**: solar drops down to the junction; battery stub taps into the left bus (particles flow up for charge, down for discharge).
+  - One subtle neutral dashed line renders the bus infrastructure; colored particles animate per-flow on top.
+  - Eliminates the visual clutter of overlapping independent paths that shared the same route.
+
+---
+
 ## v2.8.0
 
 ### New Features
