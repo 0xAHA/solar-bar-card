@@ -1545,6 +1545,15 @@ class SolarBarCard extends HTMLElement {
           color: #81C784;
         }
 
+        .ev-ready-indicator.charging {
+          color: ${colors.ev_icon_charging || 'var(--ev-charging-color)'};
+        }
+
+        .ev-ready-indicator.idle {
+          color: ${colors.ev_icon_idle || 'var(--disabled-text-color, #9e9e9e)'};
+          opacity: 0.5;
+        }
+
         .standby-label {
           position: absolute;
           top: 50%;
@@ -1860,12 +1869,20 @@ class SolarBarCard extends HTMLElement {
                 </div>
                 ${isIdle ? `<div class="standby-label">🌙 ${this.getLabel('standby_mode')}</div>` : ''}
                 ${!isIdle && hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">${this.getLabel('solar')}</div>` : ''}
-                ${evReadyHalf ? `
-                  <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
-                       title="${evReadyFull ? this.getLabel('excess_solar_full') : this.getLabel('excess_solar_half')}">
+                ${(() => {
+                  const hasEvConfig = car_charger_load > 0 || ev_charger_sensor;
+                  const showEvIcon = evReadyHalf || isActuallyCharging || (show_ev_when_idle && hasEvConfig);
+                  if (!showEvIcon) return '';
+                  const evIconClass = isActuallyCharging ? 'charging' : evReadyFull ? 'full-charge' : evReadyHalf ? 'half-charge' : 'idle';
+                  const evIconTitle = isActuallyCharging ? `${this.getLabel('ev')}: ${actualEvCharging.toFixed(decimal_places)}kW` : evReadyFull ? this.getLabel('excess_solar_full') : evReadyHalf ? this.getLabel('excess_solar_half') : this.getLabel('ev');
+                  return `
+                  <div class="ev-ready-indicator ${evIconClass}"
+                       data-entity="${ev_charger_sensor || ''}"
+                       data-action-key="ev"
+                       title="${evIconTitle}">
                     <ha-icon icon="mdi:car-electric"></ha-icon>
-                  </div>
-                ` : ''}
+                  </div>`;
+                })()}
                 ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
                   <div class="forecast-indicator"
                        style="left: ${anticipatedPercent}%"
@@ -2226,6 +2243,8 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Grid Icon Export Color",
       grid_icon_idle_color: "Grid Icon Idle Color",
       grid_icon_color: "Grid Icon Tower Color",
+      ev_icon_idle_color: "EV Icon Idle Color",
+      ev_icon_charging_color: "EV Icon Charging Color",
       show_stats: "Show Individual Stats",
       show_legend: "Show Legend",
       show_legend_values: "Show Legend Values",
@@ -2308,6 +2327,8 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Custom background color for the grid icon circle when exporting.",
       grid_icon_idle_color: "Custom background color for the grid icon circle when idle (no import/export).",
       grid_icon_color: "Color of the transmission tower icon inside the circle (default: black).",
+      ev_icon_idle_color: "Custom color for the EV icon when idle (not charging, no excess solar).",
+      ev_icon_charging_color: "Custom color for the EV icon when actively charging.",
       show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
@@ -2518,7 +2539,9 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "grid_icon_import_color", selector: { color_rgb: {} } },
               { name: "grid_icon_export_color", selector: { color_rgb: {} } },
               { name: "grid_icon_idle_color", selector: { color_rgb: {} } },
-              { name: "grid_icon_color", selector: { color_rgb: {} } }
+              { name: "grid_icon_color", selector: { color_rgb: {} } },
+              { name: "ev_icon_idle_color", selector: { color_rgb: {} } },
+              { name: "ev_icon_charging_color", selector: { color_rgb: {} } }
             ]
           },
           {
