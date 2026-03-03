@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.7.5 - Fix grid icon circle colors not applying from config
+// Version 2.7.6 - House icon, energy flow lines with shared bus architecture
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -132,6 +132,10 @@ class SolarBarCard extends HTMLElement {
       show_net_indicator: true,
       // Grid icon always visible
       show_grid_icon_always: false,
+      // House icon and flow lines
+      show_house_icon: false,
+      show_energy_flow: false,
+      energy_flow_speed: 2,
       // Header sensors
       header_sensor_1: null,
       header_sensor_2: null,
@@ -805,11 +809,13 @@ class SolarBarCard extends HTMLElement {
     const rawBatteryBarWidth = hasBattery ? (battery_capacity / totalCapacity) * 100 : 0;
     // Only reserve space for battery bar if it's both configured AND the indicator is shown
     const batteryBarWidth = (hasBattery && show_battery_indicator) ? Math.min(rawBatteryBarWidth, 30) : 0;
-    // Reserve space for grid icon (32px ~= 3% of typical container width)
+    // Reserve space for icons (32px ~= 3% of typical container width)
     const showGridIcon = hasGridImport || hasGridExport || show_grid_icon_always;
     const gridIconSpace = showGridIcon ? 3 : 0;
+    const { show_house_icon, show_energy_flow, energy_flow_speed } = this.config;
+    const houseIconSpace = show_house_icon ? 3 : 0;
     // Power bar takes up remaining space
-    const powerBarWidth = 100 - batteryBarWidth - gridIconSpace;
+    const powerBarWidth = 100 - batteryBarWidth - gridIconSpace - houseIconSpace;
 
     // Get actual container width for accurate text sizing calculations
     // Query the bars container or use the card's width
@@ -833,26 +839,139 @@ class SolarBarCard extends HTMLElement {
       return segmentPixelWidth >= estimatedTextWidth;
     };
 
-    // Battery flow line (between battery and solar bar)
+    // Battery flow line (between battery and solar bar) — legacy inline flow
     let batteryFlowColor = '#4CAF50';
     let batteryFlowPath = '';
-    let showBatteryFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator;
+    // Only show legacy battery flow if energy flow is NOT enabled (energy flow replaces it)
+    let showBatteryFlow = show_battery_flow && hasBattery && !batteryIdle && show_battery_indicator && !show_energy_flow;
 
     if (showBatteryFlow) {
-      // Use percentage-based positioning to properly align with the gap between bars
-      const batteryEndPercent = batteryBarWidth;
-      const gapPercent = 0.8; // ~8px gap represented as percentage (8px / ~1000px container)
-      const solarStartPercent = batteryBarWidth + gapPercent;
+      const batteryEndPercent = houseIconSpace + batteryBarWidth;
+      const gapPercent = 0.8;
+      const solarStartPercent = houseIconSpace + batteryBarWidth + gapPercent;
       const barCenterY = 16;
-      const batteryOverlap = 4.5; // Overlap into battery bar more
-      const solarOverlap = 2.0; // Overlap into solar bar less
+      const batteryOverlap = 4.5;
+      const solarOverlap = 2.0;
 
       if (batteryCharging) {
-        batteryFlowColor = '#4CAF50'; // Green: solar → battery
+        batteryFlowColor = '#4CAF50';
         batteryFlowPath = `M ${solarStartPercent + solarOverlap} ${barCenterY} L ${batteryEndPercent - batteryOverlap} ${barCenterY}`;
       } else if (batteryDischarging) {
-        batteryFlowColor = '#2196F3'; // Blue: battery → home
+        batteryFlowColor = '#2196F3';
         batteryFlowPath = `M ${batteryEndPercent - batteryOverlap} ${barCenterY} L ${solarStartPercent + solarOverlap} ${barCenterY}`;
+      }
+    }
+
+    // Energy flow system — shared bus architecture
+    //
+    // Two buses meet at the solar bar center (T-junction):
+    //   Left bus:  solar junction ← house  (consumption, battery, grid import all flow left)
+    //   Right bus: solar junction → grid   (export flows right; import flows left from grid)
+    //
+    // Static infrastructure: one neutral dashed line for the bus + stubs
+    // Animated particles: colored per-flow, traveling along the shared bus
+    //
+    // SVG viewBox 1000×56. x in virtual px (1000 = container width), y in real units.
+    const energyFlowPaths = [];
+    let energyBusPath = '';
+    if (show_energy_flow) {
+      const vw = 1000;
+      const ry = 6;           // corner radius y (pixels)
+      const rx = 12;          // corner radius x (virtual px, ~1.2% of width)
+      const barBottom = 32;
+      const busY = 48;
+      const flowSpeed = energy_flow_speed || 2;
+
+      // X positions (element centers in virtual px)
+      const pct = (p) => p * vw / 100;
+      const houseX = show_house_icon ? pct(1.5) : 0;
+      const battX = (hasBattery && show_battery_indicator)
+        ? (show_house_icon ? pct(houseIconSpace + batteryBarWidth / 2) : pct(batteryBarWidth / 2))
+        : null;
+      const solarX = pct(houseIconSpace + batteryBarWidth + (powerBarWidth / 2));
+      const gridX = showGridIcon ? pct(100 - gridIconSpace / 2) : null;
+
+      // Flow state flags
+      const hasSolar = solarProduction > 0;
+      const solarToHomeFlow = hasSolar && totalHouseConsumption > 0 && show_house_icon;
+      const exportFlow = hasSolar && exportPower > 0 && gridX !== null;
+      const batteryChargeFlow = hasSolar && batteryCharging && battX !== null;
+      const batteryDischargeFlow = batteryDischarging && battX !== null && show_house_icon;
+      const gridImportFlow = hasGridImport && gridX !== null && show_house_icon;
+
+      const leftBusActive = solarToHomeFlow || batteryDischargeFlow || gridImportFlow || batteryChargeFlow;
+      const rightBusActive = exportFlow || gridImportFlow;
+
+      // ── Static bus infrastructure (single neutral dashed line) ──
+      const busSegments = [];
+
+      // Solar drop: vertical from solar bar center to bus junction (only when solar active)
+      if (hasSolar && (leftBusActive || rightBusActive)) {
+        busSegments.push(`M ${solarX} ${barBottom} L ${solarX} ${busY}`);
+      }
+
+      // Left bus: solar junction → leftward → curve up → house
+      if (leftBusActive && show_house_icon) {
+        busSegments.push(`M ${solarX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
+      }
+
+      // Right bus: solar junction → rightward → curve up → grid
+      if (rightBusActive && gridX !== null) {
+        busSegments.push(`M ${solarX} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`);
+      }
+
+      // Battery stub: vertical from bus up to battery bar
+      if (battX !== null && (batteryChargeFlow || batteryDischargeFlow)) {
+        busSegments.push(`M ${battX} ${busY} L ${battX} ${barBottom}`);
+      }
+
+      // Grid stub when importing with no solar (right bus not drawn, need grid → bus connection)
+      if (gridImportFlow && !hasSolar && gridX !== null) {
+        busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
+      }
+
+      energyBusPath = busSegments.join(' ');
+
+      // ── Animated particle routes (follow the shared bus) ──
+
+      // Solar → House: drop → left bus → up to house
+      if (solarToHomeFlow) {
+        energyFlowPaths.push({
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          color: colors.self_usage, speed: flowSpeed, id: 'solarToHouse'
+        });
+      }
+
+      // Solar → Grid (export): drop → right bus → up to grid
+      if (exportFlow) {
+        energyFlowPaths.push({
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`,
+          color: colors.export, speed: flowSpeed, id: 'solarToGrid'
+        });
+      }
+
+      // Solar → Battery (charge): drop → left on bus to battery → up stub
+      if (batteryChargeFlow) {
+        energyFlowPaths.push({
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${battX} ${busY} L ${battX} ${barBottom}`,
+          color: colors.battery_charge, speed: flowSpeed, id: 'solarToBatt'
+        });
+      }
+
+      // Battery → House (discharge): down stub → left on bus → up to house
+      if (batteryDischargeFlow) {
+        energyFlowPaths.push({
+          path: `M ${battX} ${barBottom} L ${battX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          color: colors.battery_discharge, speed: flowSpeed, id: 'battToHouse'
+        });
+      }
+
+      // Grid → House (import): down from grid → left across both buses → up to house
+      if (gridImportFlow) {
+        energyFlowPaths.push({
+          path: `M ${gridX} ${barBottom} L ${gridX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          color: colors.import, speed: flowSpeed, id: 'gridToHouse'
+        });
       }
     }
 
@@ -1154,6 +1273,7 @@ class SolarBarCard extends HTMLElement {
           display: flex;
           gap: 8px;
           align-items: center;
+          ${show_energy_flow ? 'padding-bottom: 24px;' : ''}
         }
 
         .battery-bar-wrapper {
@@ -1277,6 +1397,51 @@ class SolarBarCard extends HTMLElement {
         .grid-icon.idle {
           background: ${colors.grid_icon_idle || 'var(--disabled-text-color, #9e9e9e)'};
           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .house-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          transition: all 0.3s ease;
+          flex-shrink: 0;
+          cursor: pointer;
+          background: var(--solar-usage-color);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .house-icon:hover {
+          transform: scale(1.1);
+        }
+
+        .house-icon ha-icon {
+          --mdc-icon-size: 20px;
+          color: white;
+        }
+
+        .house-icon.importing {
+          background: var(--grid-usage-color);
+        }
+
+        .energy-flow-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 56px;
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        .energy-bus-line {
+          stroke: var(--secondary-text-color, #999);
+          stroke-width: 1;
+          stroke-dasharray: 4,4;
+          opacity: 0.25;
         }
 
         .bar-segment {
@@ -1638,6 +1803,14 @@ class SolarBarCard extends HTMLElement {
               </div>
             ` : ''}
             <div class="bars-container">
+              ${show_house_icon ? `
+                <div class="house-icon ${hasGridImport && solarProduction <= 0 ? 'importing' : ''}"
+                     data-entity="${self_consumption_entity}"
+                     data-action-key="usage"
+                     title="${this.getLabel('usage')}: ${totalHouseConsumption.toFixed(decimal_places)}kW - ${this.getLabel('click_history')}">
+                  <ha-icon icon="mdi:home" style="color: white"></ha-icon>
+                </div>
+              ` : ''}
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
@@ -1718,6 +1891,31 @@ class SolarBarCard extends HTMLElement {
                                repeatCount="indefinite"
                                begin="${i * battery_flow_animation_speed / 3}s"/>
                     </circle>
+                  `).join('')}
+                </svg>
+              ` : ''}
+              ${show_energy_flow && energyBusPath ? `
+                <svg class="energy-flow-container" width="100%" height="56" viewBox="0 0 1000 56" preserveAspectRatio="none">
+                  <!-- Static bus infrastructure -->
+                  <path class="energy-bus-line" d="${energyBusPath}"
+                        fill="none"
+                        vector-effect="non-scaling-stroke"/>
+                  <!-- Animated particles per flow -->
+                  ${energyFlowPaths.map(f => `
+                    <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
+                    ${[0, 1].map(i => `
+                      <circle r="3" fill="${f.color}" opacity="0">
+                        <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 2}s">
+                          <mpath href="#path_${f.id}"/>
+                        </animateMotion>
+                        <animate attributeName="opacity"
+                                 values="0;0.8;0.8;0"
+                                 keyTimes="0;0.1;0.9;1"
+                                 dur="${f.speed}s"
+                                 repeatCount="indefinite"
+                                 begin="${i * f.speed / 2}s"/>
+                      </circle>
+                    `).join('')}
                   `).join('')}
                 </svg>
               ` : ''}
@@ -1988,6 +2186,9 @@ class SolarBarCardEditor extends HTMLElement {
       production_history_entity: "Daily Solar Production Sensor",
       consumption_history_entity: "Daily Home Consumption Sensor",
       show_net_indicator: "Show Net Import/Export Indicator",
+      show_house_icon: "Show House Icon",
+      show_energy_flow: "Show Energy Flow Lines",
+      energy_flow_speed: "Energy Flow Speed",
       show_grid_icon_always: "Always Show Grid Icon",
       grid_icon_import_color: "Grid Icon Import Color",
       grid_icon_export_color: "Grid Icon Export Color",
@@ -2067,6 +2268,9 @@ class SolarBarCardEditor extends HTMLElement {
       production_history_entity: "Daily solar power production sensor (kWh) - shows total energy produced today",
       consumption_history_entity: "Daily home consumption sensor (kWh) - shows total energy used today",
       show_net_indicator: "Show colored indicator on import/export tile (green=net exporter, red=net importer)",
+      show_house_icon: "Show a house icon to the left of the bar representing home consumption.",
+      show_energy_flow: "Show animated flow lines below the bar visualising energy paths between solar, house, grid, and battery.",
+      energy_flow_speed: "Speed of energy flow animation in seconds (lower is faster).",
       show_grid_icon_always: "Always show grid icon next to the solar bar, even when there is no import or export. Icon turns grey when idle.",
       grid_icon_import_color: "Custom background color for the grid icon circle when importing.",
       grid_icon_export_color: "Custom background color for the grid icon circle when exporting.",
@@ -2267,6 +2471,14 @@ class SolarBarCardEditor extends HTMLElement {
             ]
           },
           { name: "show_net_indicator", default: true, selector: { boolean: {} } },
+          {
+            type: "grid",
+            schema: [
+              { name: "show_house_icon", default: false, selector: { boolean: {} } },
+              { name: "show_energy_flow", default: false, selector: { boolean: {} } }
+            ]
+          },
+          { name: "energy_flow_speed", default: 2, selector: { number: { min: 0.5, max: 10, step: 0.5, mode: "box", unit_of_measurement: "s" } } },
           { name: "show_grid_icon_always", default: false, selector: { boolean: {} } },
           {
             type: "grid",
@@ -2475,4 +2687,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.6.0 loaded!', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.7.6 loaded!', 'color: #4CAF50; font-weight: bold;');
