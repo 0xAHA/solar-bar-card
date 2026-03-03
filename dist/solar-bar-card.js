@@ -862,64 +862,116 @@ class SolarBarCard extends HTMLElement {
       }
     }
 
-    // Energy flow system — flow lines below the bar with curved corners
-    // SVG coordinate system: x = 0-100 (% of container width), y in fixed units
-    // Bar occupies y 0-32. Flow lines run below at y ~44-48 with r=4 corner radius.
+    // Energy flow system — shared bus architecture
+    //
+    // Two buses meet at the solar bar center (T-junction):
+    //   Left bus:  solar junction ← house  (consumption, battery, grid import all flow left)
+    //   Right bus: solar junction → grid   (export flows right; import flows left from grid)
+    //
+    // Static infrastructure: one neutral dashed line for the bus + stubs
+    // Animated particles: colored per-flow, traveling along the shared bus
+    //
+    // SVG viewBox 1000×56. x in virtual px (1000 = container width), y in real units.
     const energyFlowPaths = [];
+    let energyBusPath = '';
     if (show_energy_flow) {
-      // SVG viewBox is 1000 x 56. x in virtual pixels (1000 = container width), y in real units.
-      // This avoids the non-uniform scaling issue of using percentages for x.
-      const vw = 1000;        // virtual width units
-      const ry = 6;           // corner radius in y-units (pixels)
-      const rx = 12;          // corner radius in x-units (virtual px, ~1.2% of container)
-      const barBottom = 32;   // bottom of bar elements
-      const busY = 48;        // horizontal bus line y position
+      const vw = 1000;
+      const ry = 6;           // corner radius y (pixels)
+      const rx = 12;          // corner radius x (virtual px, ~1.2% of width)
+      const barBottom = 32;
+      const busY = 48;
       const flowSpeed = energy_flow_speed || 2;
 
-      // X positions (centers of each element, in virtual px out of 1000)
-      const pct = (p) => p * vw / 100; // convert % to virtual px
+      // X positions (element centers in virtual px)
+      const pct = (p) => p * vw / 100;
       const houseX = show_house_icon ? pct(1.5) : 0;
-      const battX = show_house_icon
-        ? pct(houseIconSpace + batteryBarWidth / 2)
-        : pct(batteryBarWidth / 2);
+      const battX = (hasBattery && show_battery_indicator)
+        ? (show_house_icon ? pct(houseIconSpace + batteryBarWidth / 2) : pct(batteryBarWidth / 2))
+        : null;
       const solarX = pct(houseIconSpace + batteryBarWidth + (powerBarWidth / 2));
-      const gridX = showGridIcon ? pct(100 - gridIconSpace / 2) : vw;
+      const gridX = showGridIcon ? pct(100 - gridIconSpace / 2) : null;
 
-      // Helper: build a path from (x1, barBottom) down to bus, across to (x2, barBottom) up
-      const buildFlowPath = (x1, x2) => {
-        if (x1 < x2) {
-          return `M ${x1} ${barBottom} L ${x1} ${busY - ry} Q ${x1} ${busY} ${x1 + rx} ${busY} L ${x2 - rx} ${busY} Q ${x2} ${busY} ${x2} ${busY - ry} L ${x2} ${barBottom}`;
-        } else {
-          return `M ${x1} ${barBottom} L ${x1} ${busY - ry} Q ${x1} ${busY} ${x1 - rx} ${busY} L ${x2 + rx} ${busY} Q ${x2} ${busY} ${x2} ${busY - ry} L ${x2} ${barBottom}`;
-        }
-      };
-
+      // Flow state flags
       const hasSolar = solarProduction > 0;
       const solarToHomeFlow = hasSolar && totalHouseConsumption > 0 && show_house_icon;
-      const exportFlow = hasSolar && exportPower > 0 && showGridIcon;
-      const batteryChargeFlow = hasSolar && batteryCharging && hasBattery && show_battery_indicator;
-      const batteryDischargeFlow = batteryDischarging && hasBattery && show_battery_indicator && show_house_icon;
-      const gridImportFlow = hasGridImport && showGridIcon && show_house_icon;
+      const exportFlow = hasSolar && exportPower > 0 && gridX !== null;
+      const batteryChargeFlow = hasSolar && batteryCharging && battX !== null;
+      const batteryDischargeFlow = batteryDischarging && battX !== null && show_house_icon;
+      const gridImportFlow = hasGridImport && gridX !== null && show_house_icon;
 
-      // Solar → House (consumption from solar)
+      const leftBusActive = solarToHomeFlow || batteryDischargeFlow || gridImportFlow || batteryChargeFlow;
+      const rightBusActive = exportFlow || gridImportFlow;
+
+      // ── Static bus infrastructure (single neutral dashed line) ──
+      const busSegments = [];
+
+      // Solar drop: vertical from solar bar center to bus junction (only when solar active)
+      if (hasSolar && (leftBusActive || rightBusActive)) {
+        busSegments.push(`M ${solarX} ${barBottom} L ${solarX} ${busY}`);
+      }
+
+      // Left bus: solar junction → leftward → curve up → house
+      if (leftBusActive && show_house_icon) {
+        busSegments.push(`M ${solarX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
+      }
+
+      // Right bus: solar junction → rightward → curve up → grid
+      if (rightBusActive && gridX !== null) {
+        busSegments.push(`M ${solarX} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`);
+      }
+
+      // Battery stub: vertical from bus up to battery bar
+      if (battX !== null && (batteryChargeFlow || batteryDischargeFlow)) {
+        busSegments.push(`M ${battX} ${busY} L ${battX} ${barBottom}`);
+      }
+
+      // Grid stub when importing with no solar (right bus not drawn, need grid → bus connection)
+      if (gridImportFlow && !hasSolar && gridX !== null) {
+        busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
+      }
+
+      energyBusPath = busSegments.join(' ');
+
+      // ── Animated particle routes (follow the shared bus) ──
+
+      // Solar → House: drop → left bus → up to house
       if (solarToHomeFlow) {
-        energyFlowPaths.push({ path: buildFlowPath(solarX, houseX), color: colors.self_usage, speed: flowSpeed, id: 'solarToHouse' });
+        energyFlowPaths.push({
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          color: colors.self_usage, speed: flowSpeed, id: 'solarToHouse'
+        });
       }
-      // Solar → Grid (export)
+
+      // Solar → Grid (export): drop → right bus → up to grid
       if (exportFlow) {
-        energyFlowPaths.push({ path: buildFlowPath(solarX, gridX), color: colors.export, speed: flowSpeed, id: 'solarToGrid' });
+        energyFlowPaths.push({
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`,
+          color: colors.export, speed: flowSpeed, id: 'solarToGrid'
+        });
       }
-      // Solar → Battery (charging)
+
+      // Solar → Battery (charge): drop → left on bus to battery → up stub
       if (batteryChargeFlow) {
-        energyFlowPaths.push({ path: buildFlowPath(solarX, battX), color: colors.battery_charge, speed: flowSpeed, id: 'solarToBatt' });
+        energyFlowPaths.push({
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY} L ${battX} ${busY} L ${battX} ${barBottom}`,
+          color: colors.battery_charge, speed: flowSpeed, id: 'solarToBatt'
+        });
       }
-      // Battery → House (discharging)
+
+      // Battery → House (discharge): down stub → left on bus → up to house
       if (batteryDischargeFlow) {
-        energyFlowPaths.push({ path: buildFlowPath(battX, houseX), color: colors.battery_discharge, speed: flowSpeed, id: 'battToHouse' });
+        energyFlowPaths.push({
+          path: `M ${battX} ${barBottom} L ${battX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          color: colors.battery_discharge, speed: flowSpeed, id: 'battToHouse'
+        });
       }
-      // Grid → House (importing)
+
+      // Grid → House (import): down from grid → left across both buses → up to house
       if (gridImportFlow) {
-        energyFlowPaths.push({ path: buildFlowPath(gridX, houseX), color: colors.import, speed: flowSpeed, id: 'gridToHouse' });
+        energyFlowPaths.push({
+          path: `M ${gridX} ${barBottom} L ${gridX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
+          color: colors.import, speed: flowSpeed, id: 'gridToHouse'
+        });
       }
     }
 
@@ -1385,6 +1437,13 @@ class SolarBarCard extends HTMLElement {
           z-index: 1;
         }
 
+        .energy-bus-line {
+          stroke: var(--secondary-text-color, #999);
+          stroke-width: 1;
+          stroke-dasharray: 4,4;
+          opacity: 0.25;
+        }
+
         .bar-segment {
           display: flex;
           align-items: center;
@@ -1835,41 +1894,22 @@ class SolarBarCard extends HTMLElement {
                   `).join('')}
                 </svg>
               ` : ''}
-              ${show_energy_flow && energyFlowPaths.length > 0 ? `
+              ${show_energy_flow && energyBusPath ? `
                 <svg class="energy-flow-container" width="100%" height="56" viewBox="0 0 1000 56" preserveAspectRatio="none">
-                  <defs>
-                    ${energyFlowPaths.map(f => `
-                      <filter id="glow_${f.id}">
-                        <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
-                        <feMerge>
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    `).join('')}
-                  </defs>
+                  <!-- Static bus infrastructure -->
+                  <path class="energy-bus-line" d="${energyBusPath}"
+                        fill="none"
+                        vector-effect="non-scaling-stroke"/>
+                  <!-- Animated particles per flow -->
                   ${energyFlowPaths.map(f => `
-                    <path id="path_${f.id}"
-                          d="${f.path}"
-                          stroke="${f.color}"
-                          stroke-width="1.5"
-                          fill="none"
-                          opacity="0.4"
-                          filter="url(#glow_${f.id})"
-                          stroke-dasharray="4,4"
-                          vector-effect="non-scaling-stroke">
-                      <animate attributeName="stroke-dashoffset"
-                               from="0" to="8"
-                               dur="0.8s"
-                               repeatCount="indefinite"/>
-                    </path>
+                    <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
                     ${[0, 1].map(i => `
                       <circle r="3" fill="${f.color}" opacity="0">
                         <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 2}s">
                           <mpath href="#path_${f.id}"/>
                         </animateMotion>
                         <animate attributeName="opacity"
-                                 values="0;0.7;0.7;0"
+                                 values="0;0.8;0.8;0"
                                  keyTimes="0;0.1;0.9;1"
                                  dur="${f.speed}s"
                                  repeatCount="indefinite"
