@@ -2,29 +2,16 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-## v2.9.0
+## v2.7.6
 
-### Improvements
-- **Shared bus architecture for energy flow**: Replaced independent overlapping flow lines with a shared bus topology. Two buses meet at the solar bar center:
+### New Features
+- **House icon**: New `show_house_icon` option adds a 32px house icon to the left of the bar, representing home consumption. Colored by the self-usage palette color, switches to import color when only grid power is being consumed. Tappable with the usage tap action.
+- **Energy flow lines**: New `show_energy_flow` option renders animated flow lines below the bar visualising energy paths between solar, house, grid, and battery using a shared bus architecture:
   - **Left bus**: solar junction → house. All consumption flows (solar self-use, battery discharge, grid import) travel left along this shared bus.
   - **Right bus**: solar junction → grid. Export flows right; import flows left from grid across both buses to house.
   - **Vertical stubs**: solar drops down to the junction; battery stub taps into the left bus (particles flow up for charge, down for discharge).
   - One subtle neutral dashed line renders the bus infrastructure; colored particles animate per-flow on top.
-  - Eliminates the visual clutter of overlapping independent paths that shared the same route.
-
----
-
-## v2.8.0
-
-### New Features
-- **House icon**: New `show_house_icon` option adds a 32px house icon to the left of the bar, representing home consumption. Colored by the self-usage palette color, switches to import color when only grid power is being consumed. Tappable with the usage tap action.
-- **Energy flow lines**: New `show_energy_flow` option renders animated flow lines below the bar visualising energy paths between solar, house, grid, and battery. Thin dashed lines with subtle glow animate from source to destination:
-  - Solar → House (self-usage color) when solar is powering the home
-  - Solar → Grid (export color) when exporting
-  - Solar → Battery (battery charge color) when charging
-  - Battery → House (battery discharge color) when discharging
-  - Grid → House (import color) when importing
-  - The solar drop-line is hidden when no solar is generated
+  - Solar drop-line is hidden when no solar is generated.
 - **Energy flow speed**: New `energy_flow_speed` option to control animation speed (default 2 seconds).
 
 ### Bug Fixes
