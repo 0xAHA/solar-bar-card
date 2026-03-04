@@ -1028,6 +1028,8 @@ class SolarBarCard extends HTMLElement {
         const rawSpeed = baseFlowSpeed * lengthFactor / powerRatio;
         // Clamp to 0.8–5s, round to 0.25s to reduce unnecessary SVG rebuilds
         f.speed = Math.round(Math.max(0.8, Math.min(5, rawSpeed)) * 4) / 4;
+        // Uniform dot spacing: vary count by path length (~1 dot per 150 SVG units)
+        f.numDots = Math.max(2, Math.min(5, Math.round(pathLen / 150)));
       }
     }
 
@@ -1035,7 +1037,7 @@ class SolarBarCard extends HTMLElement {
     // when only power values change (not flow topology). This prevents SMIL
     // animation restarts on every HA entity update.
     const energyFlowKey = show_energy_flow && energyBusPath
-      ? `${energyBusPath}|${energyFlowPaths.map(f => `${f.id}:${f.color}:${f.speed}`).join(',')}|${dotRx.toFixed(1)}:${dotRy}`
+      ? `${energyBusPath}|${energyFlowPaths.map(f => `${f.id}:${f.color}:${f.speed}:${f.numDots}`).join(',')}|${dotRx.toFixed(1)}:${dotRy}`
       : '';
 
     // Detach existing energy flow SVG before innerHTML wipes the DOM tree.
@@ -2063,9 +2065,9 @@ class SolarBarCard extends HTMLElement {
               vector-effect="non-scaling-stroke"/>
         ${energyFlowPaths.map(f => `
           <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
-          ${[0, 1, 2].map(i => `
+          ${Array.from({length: f.numDots}, (_, i) => `
             <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
-              <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 3}s">
+              <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / f.numDots}s">
                 <mpath href="#path_${f.id}"/>
               </animateMotion>
               <animate attributeName="opacity"
@@ -2073,7 +2075,7 @@ class SolarBarCard extends HTMLElement {
                        keyTimes="0;0.03;0.97;1"
                        dur="${f.speed}s"
                        repeatCount="indefinite"
-                       begin="${i * f.speed / 3}s"/>
+                       begin="${i * f.speed / f.numDots}s"/>
             </ellipse>
           `).join('')}
         `).join('')}
