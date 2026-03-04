@@ -2,6 +2,16 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.7.6b3
+
+### Improvements
+- **Power-scaled animation speed**: Energy flow dot speed now reflects actual power levels — higher power flows move faster, lower power flows move slower. Uses compressed exponent scaling (`power^0.35`) so even small flows remain visible. Speed is also normalized by path length so dots travel at consistent visual speed regardless of distance, fixing the issue where short-path dots appeared sluggish while long-path dots raced.
+- **Dot visibility on vertical segments**: Changed opacity fade-in/fade-out keyTimes from 10%/90% to 3%/97% of the animation cycle. Dots are now visible as they travel down the vertical drop lines and up the destination stubs, instead of being invisible during those segments.
+- **Crossfade on flow topology change**: When energy flow paths change (e.g., export starts/stops, battery switches between charge/discharge), the old SVG fades out over 400ms while the new one appears, replacing the abrupt mid-path dot disappearance.
+- **Grid icon export threshold**: Aligned the grid icon color threshold with the flow dot threshold (`> 0` instead of `> 0.05`). The grid icon now shows its export color whenever export flow dots are visible, even at minimal export levels.
+
+---
+
 ## v2.7.6
 
 ### New Features
