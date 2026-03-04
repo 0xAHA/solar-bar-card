@@ -936,29 +936,33 @@ class SolarBarCard extends HTMLElement {
       const rightBusActive = exportFlow || gridImportFlow;
 
       // ── Static bus infrastructure (single neutral dashed line) ──
+      // Bus lines are drawn based on element *presence*, not active flow —
+      // the dashed line always connects elements; only animated dots appear/disappear.
       const busSegments = [];
 
       // Solar drop: vertical from solar bar center toward bus (stops short for corner curve)
-      if (hasSolar && (leftBusActive || rightBusActive)) {
+      const hasLeftElement = show_house_icon || battX !== null;
+      const hasRightElement = gridX !== null;
+      if (hasSolar && (hasLeftElement || hasRightElement)) {
         busSegments.push(`M ${solarX} ${barBottom} L ${solarX} ${busY - ry}`);
       }
 
       // Left bus: curve from solar drop → horizontal → curve up → house
-      if (leftBusActive && show_house_icon) {
+      if (hasSolar && show_house_icon) {
         busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
       }
 
       // Right bus: curve from solar drop → horizontal → curve up → grid
-      if (rightBusActive && gridX !== null) {
+      if (hasSolar && gridX !== null) {
         busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`);
       }
 
       // Battery stub: vertical from bus up to battery bar
-      if (battX !== null && (batteryChargeFlow || batteryDischargeFlow)) {
+      if (battX !== null) {
         busSegments.push(`M ${battX} ${busY} L ${battX} ${barBottom}`);
       }
 
-      // Grid stub when importing with no solar (right bus not drawn, need grid → bus connection)
+      // Grid stub when importing with no solar (right bus not drawn above, need grid → bus → house)
       if (gridImportFlow && !hasSolar && gridX !== null) {
         busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
       }
