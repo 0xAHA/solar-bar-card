@@ -2019,14 +2019,14 @@ class SolarBarCard extends HTMLElement {
     `;
 
     // ── Energy flow SVG: preserve across re-renders to avoid animation flicker ──
-    const barsContainer = this.shadowRoot.querySelector('.bars-container');
-    if (barsContainer && show_energy_flow && energyBusPath) {
+    const flowContainer = this.shadowRoot.querySelector('.bars-container');
+    if (flowContainer && show_energy_flow && energyBusPath) {
       if (preservedFlowSvg) {
         // Re-attach the existing SVG — SMIL animations continue uninterrupted
-        barsContainer.appendChild(preservedFlowSvg);
+        flowContainer.appendChild(preservedFlowSvg);
       } else {
         // Flow state changed (or first render) — build a fresh SVG
-        barsContainer.insertAdjacentHTML('beforeend', `
+        flowContainer.insertAdjacentHTML('beforeend', `
           <svg class="energy-flow-container" width="100%" height="${svgH}" viewBox="0 0 1000 ${svgH}" preserveAspectRatio="none">
             <path class="energy-bus-line" d="${energyBusPath}"
                   fill="none"
