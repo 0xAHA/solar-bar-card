@@ -690,7 +690,7 @@ class SolarBarCard extends HTMLElement {
     // Grid state for icon (not shown in bar anymore)
     //const hasGridImport = totalGridImport > 0.05;
     const hasGridImport = gridImportPower > 0.05;
-    const hasGridExport = exportPower > 0.05;
+    const hasGridExport = exportPower > 0;
 
     // Net import/export history calculation
     let dailyImport = null;
@@ -881,7 +881,7 @@ class SolarBarCard extends HTMLElement {
       const vw = 1000;
       const barBottom = 32;
       const busY = 40;
-      const flowSpeed = energy_flow_speed || 2;
+      const baseFlowSpeed = energy_flow_speed || 2;
 
       // Physical corner/dot radius (px), compensated for non-uniform SVG scaling
       const cornerPx = 4;
@@ -971,7 +971,8 @@ class SolarBarCard extends HTMLElement {
       if (solarToHomeFlow) {
         energyFlowPaths.push({
           path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
-          color: colors.self_usage, speed: flowSpeed, id: 'solarToHouse'
+          color: colors.self_usage, id: 'solarToHouse',
+          power: solarToHome, hDist: Math.abs(solarX - houseX)
         });
       }
 
@@ -979,7 +980,8 @@ class SolarBarCard extends HTMLElement {
       if (exportFlow) {
         energyFlowPaths.push({
           path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`,
-          color: colors.export, speed: flowSpeed, id: 'solarToGrid'
+          color: colors.export, id: 'solarToGrid',
+          power: exportPower, hDist: Math.abs(solarX - gridX)
         });
       }
 
@@ -987,7 +989,8 @@ class SolarBarCard extends HTMLElement {
       if (batteryChargeFlow) {
         energyFlowPaths.push({
           path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${battX} ${busY} L ${battX} ${barBottom}`,
-          color: colors.battery_charge, speed: flowSpeed, id: 'solarToBatt'
+          color: colors.battery_charge, id: 'solarToBatt',
+          power: solarToBattery, hDist: Math.abs(solarX - battX)
         });
       }
 
@@ -995,7 +998,8 @@ class SolarBarCard extends HTMLElement {
       if (batteryDischargeFlow) {
         energyFlowPaths.push({
           path: `M ${battX} ${barBottom} L ${battX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
-          color: colors.battery_discharge, speed: flowSpeed, id: 'battToHouse'
+          color: colors.battery_discharge, id: 'battToHouse',
+          power: batteryToLoad, hDist: Math.abs(battX - houseX)
         });
       }
 
@@ -1003,8 +1007,23 @@ class SolarBarCard extends HTMLElement {
       if (gridImportFlow) {
         energyFlowPaths.push({
           path: `M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
-          color: colors.import, speed: flowSpeed, id: 'gridToHouse'
+          color: colors.import, id: 'gridToHouse',
+          power: gridImportPower, hDist: Math.abs(gridX - houseX)
         });
+      }
+
+      // ── Per-flow speed: normalize by path length so dots move at the same
+      //    visual speed, then scale by power (more power → faster dots) ──
+      const refDist = 400; // reference horizontal distance in SVG units
+      const maxFlowPower = Math.max(...energyFlowPaths.map(f => f.power), 0.01);
+      for (const f of energyFlowPaths) {
+        const pathLen = f.hDist + 24; // verticals (~16) + curve overhead (~8)
+        const lengthFactor = pathLen / refDist;
+        // Compress power ratio with exponent so small flows aren't painfully slow
+        const powerRatio = Math.max(0.25, Math.pow(f.power / maxFlowPower, 0.35));
+        const rawSpeed = baseFlowSpeed * lengthFactor / powerRatio;
+        // Clamp to 0.8–5s, round to 0.25s to reduce unnecessary SVG rebuilds
+        f.speed = Math.round(Math.max(0.8, Math.min(5, rawSpeed)) * 4) / 4;
       }
     }
 
@@ -1019,9 +1038,17 @@ class SolarBarCard extends HTMLElement {
     // Holding a reference keeps the element (and its running SMIL animations)
     // alive; we re-attach it after innerHTML if the flow state is unchanged.
     let preservedFlowSvg = null;
-    if (energyFlowKey && energyFlowKey === this._energyFlowKey) {
-      preservedFlowSvg = this.shadowRoot?.querySelector('.energy-flow-container');
-      if (preservedFlowSvg) preservedFlowSvg.remove();
+    let preservedOldFlowSvg = null;
+    const existingFlowSvg = this.shadowRoot?.querySelector('.energy-flow-container');
+    if (existingFlowSvg) {
+      if (energyFlowKey && energyFlowKey === this._energyFlowKey) {
+        // Key matches — preserve for seamless re-attach
+        preservedFlowSvg = existingFlowSvg;
+      } else {
+        // Key changed — keep old SVG for crossfade transition
+        preservedOldFlowSvg = existingFlowSvg;
+      }
+      existingFlowSvg.remove();
     }
 
     this.shadowRoot.innerHTML = `
@@ -1484,6 +1511,11 @@ class SolarBarCard extends HTMLElement {
           height: 48px;
           pointer-events: none;
           z-index: 1;
+          transition: opacity 0.4s ease-out;
+        }
+
+        .energy-flow-container.fading-out {
+          opacity: 0;
         }
 
         .energy-bus-line {
@@ -2020,35 +2052,44 @@ class SolarBarCard extends HTMLElement {
 
     // ── Energy flow SVG: preserve across re-renders to avoid animation flicker ──
     const flowContainer = this.shadowRoot.querySelector('.bars-container');
+    const newFlowSvg = `
+      <svg class="energy-flow-container" width="100%" height="${svgH}" viewBox="0 0 1000 ${svgH}" preserveAspectRatio="none">
+        <path class="energy-bus-line" d="${energyBusPath}"
+              fill="none"
+              vector-effect="non-scaling-stroke"/>
+        ${energyFlowPaths.map(f => `
+          <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
+          ${[0, 1, 2].map(i => `
+            <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
+              <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 3}s">
+                <mpath href="#path_${f.id}"/>
+              </animateMotion>
+              <animate attributeName="opacity"
+                       values="0;0.9;0.9;0"
+                       keyTimes="0;0.03;0.97;1"
+                       dur="${f.speed}s"
+                       repeatCount="indefinite"
+                       begin="${i * f.speed / 3}s"/>
+            </ellipse>
+          `).join('')}
+        `).join('')}
+      </svg>
+    `;
+
     if (flowContainer && show_energy_flow && energyBusPath) {
       if (preservedFlowSvg) {
-        // Re-attach the existing SVG — SMIL animations continue uninterrupted
+        // Key unchanged — re-attach the existing SVG, SMIL animations continue
         flowContainer.appendChild(preservedFlowSvg);
       } else {
-        // Flow state changed (or first render) — build a fresh SVG
-        flowContainer.insertAdjacentHTML('beforeend', `
-          <svg class="energy-flow-container" width="100%" height="${svgH}" viewBox="0 0 1000 ${svgH}" preserveAspectRatio="none">
-            <path class="energy-bus-line" d="${energyBusPath}"
-                  fill="none"
-                  vector-effect="non-scaling-stroke"/>
-            ${energyFlowPaths.map(f => `
-              <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
-              ${[0, 1, 2].map(i => `
-                <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
-                  <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 3}s">
-                    <mpath href="#path_${f.id}"/>
-                  </animateMotion>
-                  <animate attributeName="opacity"
-                           values="0;0.9;0.9;0"
-                           keyTimes="0;0.1;0.9;1"
-                           dur="${f.speed}s"
-                           repeatCount="indefinite"
-                           begin="${i * f.speed / 3}s"/>
-                </ellipse>
-              `).join('')}
-            `).join('')}
-          </svg>
-        `);
+        // Topology/speed changed — crossfade: fade out old, insert new
+        if (preservedOldFlowSvg) {
+          // Re-attach old SVG briefly so it can fade out visually
+          flowContainer.appendChild(preservedOldFlowSvg);
+          preservedOldFlowSvg.classList.add('fading-out');
+          const oldSvg = preservedOldFlowSvg;
+          setTimeout(() => oldSvg.remove(), 400);
+        }
+        flowContainer.insertAdjacentHTML('beforeend', newFlowSvg);
         this._energyFlowKey = energyFlowKey;
       }
     } else {
