@@ -876,6 +876,7 @@ class SolarBarCard extends HTMLElement {
     let energyBusPath = '';
     let dotRx = 8;
     let dotRy = 4;
+    let svgH = 48;
     if (show_energy_flow) {
       const vw = 1000;
       const barBottom = 32;
@@ -1005,6 +1006,22 @@ class SolarBarCard extends HTMLElement {
           color: colors.import, speed: flowSpeed, id: 'gridToHouse'
         });
       }
+    }
+
+    // Build a state key for the energy flow SVG so we can skip re-rendering
+    // when only power values change (not flow topology). This prevents SMIL
+    // animation restarts on every HA entity update.
+    const energyFlowKey = show_energy_flow && energyBusPath
+      ? `${energyBusPath}|${energyFlowPaths.map(f => `${f.id}:${f.color}:${f.speed}`).join(',')}|${dotRx.toFixed(1)}:${dotRy}`
+      : '';
+
+    // Detach existing energy flow SVG before innerHTML wipes the DOM tree.
+    // Holding a reference keeps the element (and its running SMIL animations)
+    // alive; we re-attach it after innerHTML if the flow state is unchanged.
+    let preservedFlowSvg = null;
+    if (energyFlowKey && energyFlowKey === this._energyFlowKey) {
+      preservedFlowSvg = this.shadowRoot?.querySelector('.energy-flow-container');
+      if (preservedFlowSvg) preservedFlowSvg.remove();
     }
 
     this.shadowRoot.innerHTML = `
@@ -1305,7 +1322,7 @@ class SolarBarCard extends HTMLElement {
           display: flex;
           gap: 8px;
           align-items: center;
-          ${show_energy_flow ? 'padding-bottom: 12px;' : ''}
+          ${show_energy_flow ? 'padding-bottom: 20px;' : ''}
         }
 
         .battery-bar-wrapper {
@@ -1464,7 +1481,7 @@ class SolarBarCard extends HTMLElement {
           top: 0;
           left: 0;
           width: 100%;
-          height: 40px;
+          height: 48px;
           pointer-events: none;
           z-index: 1;
         }
@@ -1543,6 +1560,15 @@ class SolarBarCard extends HTMLElement {
 
         .ev-ready-indicator.full-charge {
           color: #81C784;
+        }
+
+        .ev-ready-indicator.charging {
+          color: ${colors.ev_icon_charging || 'var(--ev-charging-color)'};
+        }
+
+        .ev-ready-indicator.idle {
+          color: ${colors.ev_icon_idle || 'var(--disabled-text-color, #9e9e9e)'};
+          opacity: 0.5;
         }
 
         .standby-label {
@@ -1860,12 +1886,20 @@ class SolarBarCard extends HTMLElement {
                 </div>
                 ${isIdle ? `<div class="standby-label">🌙 ${this.getLabel('standby_mode')}</div>` : ''}
                 ${!isIdle && hasBattery && show_battery_indicator && !show_bar_values ? `<div class="bar-overlay-label">${this.getLabel('solar')}</div>` : ''}
-                ${evReadyHalf ? `
-                  <div class="ev-ready-indicator ${evReadyFull ? 'full-charge' : 'half-charge'}"
-                       title="${evReadyFull ? this.getLabel('excess_solar_full') : this.getLabel('excess_solar_half')}">
+                ${(() => {
+                  const hasEvConfig = car_charger_load > 0 || ev_charger_sensor;
+                  const showEvIcon = evReadyHalf || isActuallyCharging || (show_ev_when_idle && hasEvConfig);
+                  if (!showEvIcon) return '';
+                  const evIconClass = isActuallyCharging ? 'charging' : evReadyFull ? 'full-charge' : evReadyHalf ? 'half-charge' : 'idle';
+                  const evIconTitle = isActuallyCharging ? `${this.getLabel('ev')}: ${actualEvCharging.toFixed(decimal_places)}kW` : evReadyFull ? this.getLabel('excess_solar_full') : evReadyHalf ? this.getLabel('excess_solar_half') : this.getLabel('ev');
+                  return `
+                  <div class="ev-ready-indicator ${evIconClass}"
+                       data-entity="${ev_charger_sensor || ''}"
+                       data-action-key="ev"
+                       title="${evIconTitle}">
                     <ha-icon icon="mdi:car-electric"></ha-icon>
-                  </div>
-                ` : ''}
+                  </div>`;
+                })()}
                 ${anticipatedPotential > solarProduction && (forecast_entity || use_solcast) ? `
                   <div class="forecast-indicator"
                        style="left: ${anticipatedPercent}%"
@@ -1926,31 +1960,7 @@ class SolarBarCard extends HTMLElement {
                   `).join('')}
                 </svg>
               ` : ''}
-              ${show_energy_flow && energyBusPath ? `
-                <svg class="energy-flow-container" width="100%" height="40" viewBox="0 0 1000 40" preserveAspectRatio="none">
-                  <!-- Static bus infrastructure -->
-                  <path class="energy-bus-line" d="${energyBusPath}"
-                        fill="none"
-                        vector-effect="non-scaling-stroke"/>
-                  <!-- Animated particles per flow -->
-                  ${energyFlowPaths.map(f => `
-                    <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
-                    ${[0, 1, 2].map(i => `
-                      <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
-                        <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 3}s">
-                          <mpath href="#path_${f.id}"/>
-                        </animateMotion>
-                        <animate attributeName="opacity"
-                                 values="0;0.9;0.9;0"
-                                 keyTimes="0;0.1;0.9;1"
-                                 dur="${f.speed}s"
-                                 repeatCount="indefinite"
-                                 begin="${i * f.speed / 3}s"/>
-                      </ellipse>
-                    `).join('')}
-                  `).join('')}
-                </svg>
-              ` : ''}
+              <!-- energy flow SVG is managed separately to preserve animations -->
             </div>
           </div>
 
@@ -2007,6 +2017,43 @@ class SolarBarCard extends HTMLElement {
         `}
       </ha-card>
     `;
+
+    // ── Energy flow SVG: preserve across re-renders to avoid animation flicker ──
+    const barsContainer = this.shadowRoot.querySelector('.bars-container');
+    if (barsContainer && show_energy_flow && energyBusPath) {
+      if (preservedFlowSvg) {
+        // Re-attach the existing SVG — SMIL animations continue uninterrupted
+        barsContainer.appendChild(preservedFlowSvg);
+      } else {
+        // Flow state changed (or first render) — build a fresh SVG
+        barsContainer.insertAdjacentHTML('beforeend', `
+          <svg class="energy-flow-container" width="100%" height="${svgH}" viewBox="0 0 1000 ${svgH}" preserveAspectRatio="none">
+            <path class="energy-bus-line" d="${energyBusPath}"
+                  fill="none"
+                  vector-effect="non-scaling-stroke"/>
+            ${energyFlowPaths.map(f => `
+              <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
+              ${[0, 1, 2].map(i => `
+                <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
+                  <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / 3}s">
+                    <mpath href="#path_${f.id}"/>
+                  </animateMotion>
+                  <animate attributeName="opacity"
+                           values="0;0.9;0.9;0"
+                           keyTimes="0;0.1;0.9;1"
+                           dur="${f.speed}s"
+                           repeatCount="indefinite"
+                           begin="${i * f.speed / 3}s"/>
+                </ellipse>
+              `).join('')}
+            `).join('')}
+          </svg>
+        `);
+        this._energyFlowKey = energyFlowKey;
+      }
+    } else {
+      this._energyFlowKey = '';
+    }
 
     // Set up event delegation for clickable elements (only once)
     if (!this._clickListenerAdded) {
@@ -2226,6 +2273,8 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Grid Icon Export Color",
       grid_icon_idle_color: "Grid Icon Idle Color",
       grid_icon_color: "Grid Icon Tower Color",
+      ev_icon_idle_color: "EV Icon Idle Color",
+      ev_icon_charging_color: "EV Icon Charging Color",
       show_stats: "Show Individual Stats",
       show_legend: "Show Legend",
       show_legend_values: "Show Legend Values",
@@ -2308,6 +2357,8 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Custom background color for the grid icon circle when exporting.",
       grid_icon_idle_color: "Custom background color for the grid icon circle when idle (no import/export).",
       grid_icon_color: "Color of the transmission tower icon inside the circle (default: black).",
+      ev_icon_idle_color: "Custom color for the EV icon when idle (not charging, no excess solar).",
+      ev_icon_charging_color: "Custom color for the EV icon when actively charging.",
       show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
@@ -2518,7 +2569,9 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "grid_icon_import_color", selector: { color_rgb: {} } },
               { name: "grid_icon_export_color", selector: { color_rgb: {} } },
               { name: "grid_icon_idle_color", selector: { color_rgb: {} } },
-              { name: "grid_icon_color", selector: { color_rgb: {} } }
+              { name: "grid_icon_color", selector: { color_rgb: {} } },
+              { name: "ev_icon_idle_color", selector: { color_rgb: {} } },
+              { name: "ev_icon_charging_color", selector: { color_rgb: {} } }
             ]
           },
           {
