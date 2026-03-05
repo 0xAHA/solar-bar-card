@@ -817,7 +817,7 @@ class SolarBarCard extends HTMLElement {
     // Reserve space for icons (32px ~= 3% of typical container width)
     const showGridIcon = hasGridImport || hasGridExport || show_grid_icon_always;
     const gridIconSpace = showGridIcon ? 3 : 0;
-    const { show_house_icon, show_energy_flow, energy_flow_speed, energy_flow_threshold = 0.1, energy_flow_origin = "bar_center" } = this.config;
+    const { show_house_icon, show_energy_flow, energy_flow_speed, energy_flow_origin = "bar_center" } = this.config;
     const houseIconSpace = show_house_icon ? 3 : 0;
     // Power bar takes up remaining space
     const powerBarWidth = 100 - batteryBarWidth - gridIconSpace - houseIconSpace;
