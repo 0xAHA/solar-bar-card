@@ -492,7 +492,9 @@ class SolarBarCard extends HTMLElement {
       // History entities for EV and consumers
       ev_history_entity = null,
       consumer_1_history_entity = null,
-      consumer_2_history_entity = null
+      consumer_2_history_entity = null,
+      // Energy flow threshold
+      energy_flow_threshold = 0.1
     } = this.config;
 
     // Get colors from palette
