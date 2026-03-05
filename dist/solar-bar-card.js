@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.7.6 - House icon, energy flow lines with shared bus architecture
+// Version 2.7.6b5 - Flow threshold, split bus rendering, solar drop origin config
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -2916,4 +2916,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.7.6b4 loaded!', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.7.6b5 loaded!', 'color: #4CAF50; font-weight: bold;');
