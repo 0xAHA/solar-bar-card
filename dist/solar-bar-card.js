@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.7.6 - House icon, energy flow lines with shared bus architecture
+// Version 2.7.6b5 - Flow threshold, split bus rendering, solar drop origin config
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -136,6 +136,8 @@ class SolarBarCard extends HTMLElement {
       show_house_icon: false,
       show_energy_flow: false,
       energy_flow_speed: 2,
+      energy_flow_threshold: 0.1,
+      energy_flow_origin: "bar_center",
       // Header sensors
       header_sensor_1: null,
       header_sensor_2: null,
@@ -689,8 +691,9 @@ class SolarBarCard extends HTMLElement {
 
     // Grid state for icon (not shown in bar anymore)
     //const hasGridImport = totalGridImport > 0.05;
-    const hasGridImport = gridImportPower > 0.05;
-    const hasGridExport = exportPower > 0;
+    const flowThreshold = Math.max(0, energy_flow_threshold || 0.1);
+    const hasGridImport = gridImportPower > flowThreshold;
+    const hasGridExport = exportPower > flowThreshold;
 
     // Net import/export history calculation
     let dailyImport = null;
@@ -812,7 +815,7 @@ class SolarBarCard extends HTMLElement {
     // Reserve space for icons (32px ~= 3% of typical container width)
     const showGridIcon = hasGridImport || hasGridExport || show_grid_icon_always;
     const gridIconSpace = showGridIcon ? 3 : 0;
-    const { show_house_icon, show_energy_flow, energy_flow_speed } = this.config;
+    const { show_house_icon, show_energy_flow, energy_flow_speed, energy_flow_threshold = 0.1, energy_flow_origin = "bar_center" } = this.config;
     const houseIconSpace = show_house_icon ? 3 : 0;
     // Power bar takes up remaining space
     const powerBarWidth = 100 - batteryBarWidth - gridIconSpace - houseIconSpace;
@@ -921,13 +924,34 @@ class SolarBarCard extends HTMLElement {
 
       const houseX = positions.house || 0;
       const battX = positions.battery !== undefined ? positions.battery : null;
-      const solarX = positions.solar;
+      const solarBarCenter = positions.solar;
       const gridX = positions.grid !== undefined ? positions.grid : null;
+
+      // Calculate solar drop origin: bar center or middle of filled production
+      let solarX = solarBarCenter;
+      if (energy_flow_origin === 'production_center' && hasSolar) {
+        const productionPct = solarHomePercent + solarEvPercent + exportPercent + batteryChargePercent;
+        if (productionPct > 0) {
+          // Find the solar bar's left edge and width in SVG units
+          const solarEl = layoutElements.find(e => e.key === 'solar');
+          const solarIdx = layoutElements.indexOf(solarEl);
+          let solarLeftPx = 0;
+          for (let i = 0; i < solarIdx; i++) {
+            const el = layoutElements[i];
+            solarLeftPx += el.fixed ? el.widthPx : (el.pct / 100) * actualContainerWidth * barScale;
+            solarLeftPx += gapPx;
+          }
+          const solarWidthPx = (solarEl.pct / 100) * actualContainerWidth * barScale;
+          const filledWidthPx = solarWidthPx * (productionPct / 100);
+          // Round to nearest 5 SVG units to reduce unnecessary path rebuilds
+          solarX = Math.round((solarLeftPx + filledWidthPx / 2) / actualContainerWidth * vw / 5) * 5;
+        }
+      }
 
       // Flow state flags
       const hasSolar = solarProduction > 0;
       const solarToHomeFlow = hasSolar && totalHouseConsumption > 0 && show_house_icon;
-      const exportFlow = hasSolar && exportPower > 0 && gridX !== null;
+      const exportFlow = hasSolar && exportPower > flowThreshold && gridX !== null;
       const batteryChargeFlow = hasSolar && batteryCharging && battX !== null;
       const batteryDischargeFlow = batteryDischarging && battX !== null && show_house_icon;
       const gridImportFlow = hasGridImport && gridX !== null && show_house_icon;
@@ -962,8 +986,8 @@ class SolarBarCard extends HTMLElement {
         busSegments.push(`M ${battX} ${busY} L ${battX} ${barBottom}`);
       }
 
-      // Grid stub when importing with no solar (right bus not drawn above, need grid → bus → house)
-      if (gridImportFlow && !hasSolar && gridX !== null) {
+      // Grid-to-house stub when no solar (grid → bus → house), drawn if elements present
+      if (!hasSolar && gridX !== null && show_house_icon) {
         busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
       }
 
@@ -1033,27 +1057,26 @@ class SolarBarCard extends HTMLElement {
       }
     }
 
-    // Build a state key for the energy flow SVG so we can skip re-rendering
-    // when only power values change (not flow topology). This prevents SMIL
-    // animation restarts on every HA entity update.
-    const energyFlowKey = show_energy_flow && energyBusPath
-      ? `${energyBusPath}|${energyFlowPaths.map(f => `${f.id}:${f.color}:${f.speed}:${f.numDots}`).join(',')}|${dotRx.toFixed(1)}:${dotRy}`
-      : '';
+    // ── Split flows into "stable" (left-side) and "grid" (right-side) groups ──
+    // so that import↔export changes only rebuild the grid half's dots,
+    // leaving solar→house / battery flows animating uninterrupted.
+    const stableFlows = energyFlowPaths.filter(f => ['solarToHouse', 'solarToBatt', 'battToHouse'].includes(f.id));
+    const gridFlows = energyFlowPaths.filter(f => ['solarToGrid', 'gridToHouse'].includes(f.id));
+
+    const dotDims = `${dotRx.toFixed(1)}:${dotRy}`;
+    const flowGroupKey = flows => flows.map(f => `${f.id}:${f.color}:${f.speed}:${f.numDots}`).join(',');
+    const energyBusKey = show_energy_flow && energyBusPath ? `bus|${energyBusPath}` : '';
+    const stableFlowKey = show_energy_flow && stableFlows.length ? `stable|${flowGroupKey(stableFlows)}|${dotDims}` : '';
+    const gridFlowKey = show_energy_flow && gridFlows.length ? `grid|${flowGroupKey(gridFlows)}|${dotDims}` : '';
 
     // Detach existing energy flow SVG before innerHTML wipes the DOM tree.
-    // Holding a reference keeps the element (and its running SMIL animations)
-    // alive; we re-attach it after innerHTML if the flow state is unchanged.
+    // The SVG shell and bus lines are always preserved; only flow <g> groups
+    // are selectively replaced when their key changes.
     let preservedFlowSvg = null;
-    let preservedOldFlowSvg = null;
+    this.shadowRoot?.querySelectorAll('.energy-flow-container.fading-out').forEach(el => el.remove());
     const existingFlowSvg = this.shadowRoot?.querySelector('.energy-flow-container');
     if (existingFlowSvg) {
-      if (energyFlowKey && energyFlowKey === this._energyFlowKey) {
-        // Key matches — preserve for seamless re-attach
-        preservedFlowSvg = existingFlowSvg;
-      } else {
-        // Key changed — keep old SVG for crossfade transition
-        preservedOldFlowSvg = existingFlowSvg;
-      }
+      preservedFlowSvg = existingFlowSvg;
       existingFlowSvg.remove();
     }
 
@@ -1521,6 +1544,16 @@ class SolarBarCard extends HTMLElement {
         }
 
         .energy-flow-container.fading-out {
+          opacity: 0;
+        }
+
+        .energy-flow-stable,
+        .energy-flow-grid {
+          transition: opacity 0.4s ease-out;
+        }
+
+        .energy-flow-stable.fading-out,
+        .energy-flow-grid.fading-out {
           opacity: 0;
         }
 
@@ -2056,50 +2089,108 @@ class SolarBarCard extends HTMLElement {
       </ha-card>
     `;
 
-    // ── Energy flow SVG: preserve across re-renders to avoid animation flicker ──
+    // ── Energy flow SVG: split into static bus + two independent flow groups ──
+    // Bus lines are always preserved. Stable flows (solar→house, battery) and
+    // grid flows (export, import) each have their own key so import↔export
+    // changes only rebuild the grid half, leaving other animations running.
     const flowContainer = this.shadowRoot.querySelector('.bars-container');
-    const newFlowSvg = `
-      <svg class="energy-flow-container" width="100%" height="${svgH}" viewBox="0 0 1000 ${svgH}" preserveAspectRatio="none">
-        <path class="energy-bus-line" d="${energyBusPath}"
-              fill="none"
-              vector-effect="non-scaling-stroke"/>
-        ${energyFlowPaths.map(f => `
-          <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
-          ${Array.from({length: f.numDots}, (_, i) => `
-            <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
-              <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / f.numDots}s">
-                <mpath href="#path_${f.id}"/>
-              </animateMotion>
-              <animate attributeName="opacity"
-                       values="0;0.9;0.9;0"
-                       keyTimes="0;0.03;0.97;1"
-                       dur="${f.speed}s"
-                       repeatCount="indefinite"
-                       begin="${i * f.speed / f.numDots}s"/>
-            </ellipse>
-          `).join('')}
-        `).join('')}
-      </svg>
-    `;
+
+    // Helper: build a <g> group's inner HTML for a set of flows
+    const flowGroupHtml = (flows) => flows.map(f => `
+      <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
+      ${Array.from({length: f.numDots}, (_, i) => `
+        <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0.9">
+          <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / f.numDots}s">
+            <mpath href="#path_${f.id}"/>
+          </animateMotion>
+        </ellipse>
+      `).join('')}
+    `).join('');
 
     if (flowContainer && show_energy_flow && energyBusPath) {
       if (preservedFlowSvg) {
-        // Key unchanged — re-attach the existing SVG, SMIL animations continue
+        // Re-attach the preserved SVG shell (bus lines stay intact)
         flowContainer.appendChild(preservedFlowSvg);
-      } else {
-        // Topology/speed changed — crossfade: fade out old, insert new
-        if (preservedOldFlowSvg) {
-          // Re-attach old SVG briefly so it can fade out visually
-          flowContainer.appendChild(preservedOldFlowSvg);
-          preservedOldFlowSvg.classList.add('fading-out');
-          const oldSvg = preservedOldFlowSvg;
-          setTimeout(() => oldSvg.remove(), 400);
+        const svg = preservedFlowSvg;
+
+        // Update bus lines if element layout changed (rare)
+        if (energyBusKey !== this._energyBusKey) {
+          const busGroup = svg.querySelector('.energy-bus-lines');
+          if (busGroup) {
+            busGroup.innerHTML = `<path class="energy-bus-line" d="${energyBusPath}" fill="none" vector-effect="non-scaling-stroke"/>`;
+          }
+          this._energyBusKey = energyBusKey;
         }
+
+        // Selectively update each flow group
+        const updateFlowGroup = (className, newKey, keyProp, flows) => {
+          const oldKey = this[keyProp] || '';
+          if (newKey === oldKey) return; // unchanged — keep animating
+          const existing = svg.querySelector(`.${className}`);
+          if (existing) {
+            if (newKey && flows.length) {
+              // Crossfade: fade out old group, insert new
+              existing.classList.add('fading-out');
+              const oldGroup = existing;
+              setTimeout(() => oldGroup.remove(), 400);
+              const ns = 'http://www.w3.org/2000/svg';
+              const newG = document.createElementNS(ns, 'g');
+              newG.setAttribute('class', className);
+              newG.innerHTML = flowGroupHtml(flows);
+              svg.appendChild(newG);
+            } else {
+              // No flows in this group anymore — remove
+              existing.remove();
+            }
+          } else if (newKey && flows.length) {
+            // Group didn't exist before — create it
+            const ns = 'http://www.w3.org/2000/svg';
+            const newG = document.createElementNS(ns, 'g');
+            newG.setAttribute('class', className);
+            newG.innerHTML = flowGroupHtml(flows);
+            svg.appendChild(newG);
+          }
+          this[keyProp] = newKey;
+        };
+
+        updateFlowGroup('energy-flow-stable', stableFlowKey, '_stableFlowKey', stableFlows);
+        updateFlowGroup('energy-flow-grid', gridFlowKey, '_gridFlowKey', gridFlows);
+      } else {
+        // First render — create the full SVG
+        const newFlowSvg = `
+          <svg class="energy-flow-container" width="100%" height="${svgH}" viewBox="0 0 1000 ${svgH}" preserveAspectRatio="none">
+            <g class="energy-bus-lines">
+              <path class="energy-bus-line" d="${energyBusPath}" fill="none" vector-effect="non-scaling-stroke"/>
+            </g>
+            ${stableFlows.length ? `<g class="energy-flow-stable">${flowGroupHtml(stableFlows)}</g>` : ''}
+            ${gridFlows.length ? `<g class="energy-flow-grid">${flowGroupHtml(gridFlows)}</g>` : ''}
+          </svg>
+        `;
         flowContainer.insertAdjacentHTML('beforeend', newFlowSvg);
-        this._energyFlowKey = energyFlowKey;
+        this._energyBusKey = energyBusKey;
+        this._stableFlowKey = stableFlowKey;
+        this._gridFlowKey = gridFlowKey;
       }
     } else {
-      this._energyFlowKey = '';
+      this._energyBusKey = '';
+      this._stableFlowKey = '';
+      this._gridFlowKey = '';
+    }
+
+    // On first render the container width is a fallback guess (element not yet
+    // laid out), which makes dotRx wrong → elliptical dots. Schedule a single
+    // corrective re-render after the browser has painted and we can measure.
+    if (show_energy_flow && !this._flowLayoutChecked) {
+      this._flowLayoutChecked = true;
+      requestAnimationFrame(() => {
+        const realWidth = this.shadowRoot?.querySelector('.bars-container')?.offsetWidth;
+        if (realWidth && Math.abs(realWidth - actualContainerWidth) > 20) {
+          this._stableFlowKey = ''; // force SVG rebuild with correct dimensions
+          this._gridFlowKey = '';
+          this._energyBusKey = '';
+          if (this._hass) this.hass = this._hass;
+        }
+      });
     }
 
     // Set up event delegation for clickable elements (only once)
@@ -2315,6 +2406,8 @@ class SolarBarCardEditor extends HTMLElement {
       show_house_icon: "Show House Icon",
       show_energy_flow: "Show Energy Flow Lines",
       energy_flow_speed: "Energy Flow Speed",
+      energy_flow_threshold: "Energy Flow Threshold",
+      energy_flow_origin: "Flow Drop Origin",
       show_grid_icon_always: "Always Show Grid Icon",
       grid_icon_import_color: "Grid Icon Import Color",
       grid_icon_export_color: "Grid Icon Export Color",
@@ -2399,6 +2492,8 @@ class SolarBarCardEditor extends HTMLElement {
       show_house_icon: "Show a house icon to the left of the bar representing home consumption.",
       show_energy_flow: "Show animated flow lines below the bar visualising energy paths between solar, house, grid, and battery.",
       energy_flow_speed: "Speed of energy flow animation in seconds (lower is faster).",
+      energy_flow_threshold: "Power threshold in kW below which import/export flow is ignored. Prevents flickering when the system is near idle. Default: 0.1 kW.",
+      energy_flow_origin: "Where the solar drop line originates: 'bar_center' (middle of the full bar) or 'production_center' (middle of the filled solar output). Default: bar_center.",
       show_grid_icon_always: "Always show grid icon next to the solar bar, even when there is no import or export. Icon turns grey when idle.",
       grid_icon_import_color: "Custom background color for the grid icon circle when importing.",
       grid_icon_export_color: "Custom background color for the grid icon circle when exporting.",
@@ -2609,6 +2704,8 @@ class SolarBarCardEditor extends HTMLElement {
             ]
           },
           { name: "energy_flow_speed", default: 2, selector: { number: { min: 0.5, max: 10, step: 0.5, mode: "box", unit_of_measurement: "s" } } },
+          { name: "energy_flow_threshold", default: 0.1, selector: { number: { min: 0, max: 1, step: 0.05, mode: "box", unit_of_measurement: "kW" } } },
+          { name: "energy_flow_origin", default: "bar_center", selector: { select: { options: [ { value: "bar_center", label: "Bar Center" }, { value: "production_center", label: "Production Center" } ] } } },
           { name: "show_grid_icon_always", default: false, selector: { boolean: {} } },
           {
             type: "grid",
@@ -2819,4 +2916,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.7.6b4 loaded!', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.7.6b5 loaded!', 'color: #4CAF50; font-weight: bold;');

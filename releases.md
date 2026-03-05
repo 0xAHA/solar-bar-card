@@ -2,6 +2,18 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.7.6b5
+
+### New Features
+- **Energy flow threshold** (`energy_flow_threshold`): Configurable deadband (default ±0.1 kW) for import/export flow detection. Power levels below this threshold are treated as idle, preventing rapid dot flickering when the system sits near zero.
+- **Solar drop origin** (`energy_flow_origin`): Choose where the solar drop line originates — `bar_center` (default, middle of the full solar bar) or `production_center` (middle of the filled production segments, moves with solar output). Production center is rounded to 5 SVG units to reduce unnecessary path rebuilds.
+
+### Improvements
+- **Split bus rendering**: Energy flow dots are now split into two independent groups — stable flows (solar→house, solar→battery, battery→house) and grid flows (solar→grid, grid→house). When import/export state changes, only the grid group rebuilds with crossfade; left-side animations continue uninterrupted.
+- **Fully static bus lines**: All bus line segments (including the no-solar grid-to-house stub) are now drawn based on element presence only, never on active flow state. This eliminates bus line redraws when flow direction changes.
+
+---
+
 ## v2.7.6b4
 
 ### Improvements
