@@ -930,6 +930,7 @@ class SolarBarCard extends HTMLElement {
       const gridX = positions.grid !== undefined ? positions.grid : null;
 
       // Calculate solar drop origin: bar center or middle of filled production
+      const hasSolar = solarProduction > 0;
       let solarX = solarBarCenter;
       if (energy_flow_origin === 'production_center' && hasSolar) {
         const productionPct = solarHomePercent + solarEvPercent + exportPercent + batteryChargePercent;
@@ -951,7 +952,6 @@ class SolarBarCard extends HTMLElement {
       }
 
       // Flow state flags
-      const hasSolar = solarProduction > 0;
       const solarToHomeFlow = hasSolar && totalHouseConsumption > 0 && show_house_icon;
       const exportFlow = hasSolar && exportPower > flowThreshold && gridX !== null;
       const batteryChargeFlow = hasSolar && batteryCharging && battX !== null;
