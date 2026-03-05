@@ -1045,6 +1045,8 @@ class SolarBarCard extends HTMLElement {
     // alive; we re-attach it after innerHTML if the flow state is unchanged.
     let preservedFlowSvg = null;
     let preservedOldFlowSvg = null;
+    // Clean up any fading-out SVGs from previous crossfades
+    this.shadowRoot?.querySelectorAll('.energy-flow-container.fading-out').forEach(el => el.remove());
     const existingFlowSvg = this.shadowRoot?.querySelector('.energy-flow-container');
     if (existingFlowSvg) {
       if (energyFlowKey && energyFlowKey === this._energyFlowKey) {
@@ -2066,16 +2068,10 @@ class SolarBarCard extends HTMLElement {
         ${energyFlowPaths.map(f => `
           <path id="path_${f.id}" d="${f.path}" fill="none" stroke="none"/>
           ${Array.from({length: f.numDots}, (_, i) => `
-            <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0">
+            <ellipse rx="${dotRx}" ry="${dotRy}" fill="${f.color}" opacity="0.9">
               <animateMotion dur="${f.speed}s" repeatCount="indefinite" begin="${i * f.speed / f.numDots}s">
                 <mpath href="#path_${f.id}"/>
               </animateMotion>
-              <animate attributeName="opacity"
-                       values="0;0.9;0.9;0"
-                       keyTimes="0;0.03;0.97;1"
-                       dur="${f.speed}s"
-                       repeatCount="indefinite"
-                       begin="${i * f.speed / f.numDots}s"/>
             </ellipse>
           `).join('')}
         `).join('')}
@@ -2100,6 +2096,20 @@ class SolarBarCard extends HTMLElement {
       }
     } else {
       this._energyFlowKey = '';
+    }
+
+    // On first render the container width is a fallback guess (element not yet
+    // laid out), which makes dotRx wrong → elliptical dots. Schedule a single
+    // corrective re-render after the browser has painted and we can measure.
+    if (show_energy_flow && !this._flowLayoutChecked) {
+      this._flowLayoutChecked = true;
+      requestAnimationFrame(() => {
+        const realWidth = this.shadowRoot?.querySelector('.bars-container')?.offsetWidth;
+        if (realWidth && Math.abs(realWidth - actualContainerWidth) > 20) {
+          this._energyFlowKey = ''; // force SVG rebuild with correct dimensions
+          if (this._hass) this.hass = this._hass;
+        }
+      });
     }
 
     // Set up event delegation for clickable elements (only once)
