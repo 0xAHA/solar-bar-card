@@ -9,10 +9,11 @@ A real-time solar power distribution card for Home Assistant. Visualize how your
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-![1759611909382.png](https://github.com/0xAHA/solar-bar-card/raw/main/1759611909382.png)
+![solar-bar-card-1.gif](https://github.com/0xAHA/solar-bar-card/raw/main/solar-bar-card-1.gif)
 
-![1761360830828.png](https://github.com/0xAHA/solar-bar-card/raw/main/1761360830828.png)
+![solar-bar-card-2.gif](https://github.com/0xAHA/solar-bar-card/raw/main/solar-bar-card-2.gif)
 
+![solar-bar-card-3.gif](https://github.com/0xAHA/solar-bar-card/raw/main/solar-bar-card-3.gif)
 ---
 
 ## Key Features
