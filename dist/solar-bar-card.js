@@ -2988,4 +2988,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.7.6b6 loaded!', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.7.6 loaded!', 'color: #4CAF50; font-weight: bold;');
