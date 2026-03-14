@@ -2,6 +2,13 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.7.6b6
+
+### New Features
+- **Forecast peak solar indicator** (`peak_forecast_entity`): Shows today's forecast peak solar power as a solid line on the bar, using the same color as the existing dashed forecast indicator. When `use_solcast` is enabled, auto-detects `sensor.solcast_pv_forecast_peak_forecast_today` (with a fallback search for any Solcast entity containing `peak` and `today`). A manual entity can also be configured independently. The indicator is shown whenever the peak forecast value is greater than zero and a source is configured.
+
+---
+
 ## v2.7.6b5
 
 ### New Features
