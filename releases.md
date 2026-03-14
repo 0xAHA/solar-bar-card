@@ -6,36 +6,8 @@
 
 ### New Features
 - **Forecast peak solar indicator** (`peak_forecast_entity`): Shows today's forecast peak solar power as a solid line on the bar, using the same color as the existing dashed forecast indicator. When `use_solcast` is enabled, auto-detects `sensor.solcast_pv_forecast_peak_forecast_today` (with a fallback search for any Solcast entity containing `peak` and `today`). A manual entity can also be configured independently. The indicator is shown whenever the peak forecast value is greater than zero and a source is configured.
-
----
-
-## v2.7.6b5
-
-### New Features
 - **Energy flow threshold** (`energy_flow_threshold`): Configurable deadband (default ±0.1 kW) for import/export flow detection. Power levels below this threshold are treated as idle, preventing rapid dot flickering when the system sits near zero.
 - **Solar drop origin** (`energy_flow_origin`): Choose where the solar drop line originates — `bar_center` (default, middle of the full solar bar) or `production_center` (middle of the filled production segments, moves with solar output). Production center is rounded to 5 SVG units to reduce unnecessary path rebuilds.
-
-### Improvements
-- **Split bus rendering**: Energy flow dots are now split into two independent groups — stable flows (solar→house, solar→battery, battery→house) and grid flows (solar→grid, grid→house). When import/export state changes, only the grid group rebuilds with crossfade; left-side animations continue uninterrupted.
-- **Fully static bus lines**: All bus line segments (including the no-solar grid-to-house stub) are now drawn based on element presence only, never on active flow state. This eliminates bus line redraws when flow direction changes.
-
----
-
-## v2.7.6b4
-
-### Improvements
-- **Power-scaled animation speed**: Energy flow dot speed now reflects actual power levels — higher power flows move faster, lower power flows move slower. Uses compressed exponent scaling (`power^0.35`) so even small flows remain visible. Speed is also normalized by path length so dots travel at consistent visual speed regardless of distance, fixing the issue where short-path dots appeared sluggish while long-path dots raced.
-- **Dot visibility on vertical segments**: Changed opacity fade-in/fade-out keyTimes from 10%/90% to 3%/97% of the animation cycle. Dots are now visible as they travel down the vertical drop lines and up the destination stubs, instead of being invisible during those segments.
-- **Crossfade on flow topology change**: When energy flow paths change (e.g., export starts/stops, battery switches between charge/discharge), the old SVG fades out over 400ms while the new one appears, replacing the abrupt mid-path dot disappearance.
-- **Grid icon export threshold**: Aligned the grid icon color threshold with the flow dot threshold (`> 0` instead of `> 0.05`). The grid icon now shows its export color whenever export flow dots are visible, even at minimal export levels.
-- **Persistent bus infrastructure**: Bus lines (dashed) now always render between connected elements regardless of active flow. Only animated dots appear/disappear with actual power.
-- **Uniform dot spacing**: Dot count per flow scales with path length (~1 dot per 150 SVG units, clamped 2–5) instead of a fixed 3 per flow, keeping consistent visual spacing across short and long buses.
-
----
-
-## v2.7.6
-
-### New Features
 - **House icon**: New `show_house_icon` option adds a 32px house icon to the left of the bar, representing home consumption. Colored by the self-usage palette color, switches to import color when only grid power is being consumed. Tappable with the usage tap action.
 - **Energy flow lines**: New `show_energy_flow` option renders animated flow lines below the bar visualising energy paths between solar, house, grid, and battery using a shared bus architecture:
   - **Left bus**: solar junction → house. All consumption flows (solar self-use, battery discharge, grid import) travel left along this shared bus.
@@ -44,6 +16,16 @@
   - One subtle neutral dashed line renders the bus infrastructure; colored particles animate per-flow on top.
   - Solar drop-line is hidden when no solar is generated.
 - **Energy flow speed**: New `energy_flow_speed` option to control animation speed (default 2 seconds).
+
+### Improvements
+- **Split bus rendering**: Energy flow dots are now split into two independent groups — stable flows (solar→house, solar→battery, battery→house) and grid flows (solar→grid, grid→house). When import/export state changes, only the grid group rebuilds with crossfade; left-side animations continue uninterrupted.
+- **Fully static bus lines**: All bus line segments (including the no-solar grid-to-house stub) are now drawn based on element presence only, never on active flow state. This eliminates bus line redraws when flow direction changes.
+- **Power-scaled animation speed**: Energy flow dot speed now reflects actual power levels — higher power flows move faster, lower power flows move slower. Uses compressed exponent scaling (`power^0.35`) so even small flows remain visible. Speed is also normalized by path length so dots travel at consistent visual speed regardless of distance, fixing the issue where short-path dots appeared sluggish while long-path dots raced.
+- **Dot visibility on vertical segments**: Changed opacity fade-in/fade-out keyTimes from 10%/90% to 3%/97% of the animation cycle. Dots are now visible as they travel down the vertical drop lines and up the destination stubs, instead of being invisible during those segments.
+- **Crossfade on flow topology change**: When energy flow paths change (e.g., export starts/stops, battery switches between charge/discharge), the old SVG fades out over 400ms while the new one appears, replacing the abrupt mid-path dot disappearance.
+- **Grid icon export threshold**: Aligned the grid icon color threshold with the flow dot threshold (`> 0` instead of `> 0.05`). The grid icon now shows its export color whenever export flow dots are visible, even at minimal export levels.
+- **Persistent bus infrastructure**: Bus lines (dashed) now always render between connected elements regardless of active flow. Only animated dots appear/disappear with actual power.
+- **Uniform dot spacing**: Dot count per flow scales with path length (~1 dot per 150 SVG units, clamped 2–5) instead of a fixed 3 per flow, keeping consistent visual spacing across short and long buses.
 
 ### Bug Fixes
 - **Grid icon circle colors not applying**: Fixed `grid_icon_import_color`, `grid_icon_export_color`, and `grid_icon_idle_color` config options being ignored.
