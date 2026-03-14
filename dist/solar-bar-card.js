@@ -28,6 +28,7 @@ class SolarBarCard extends HTMLElement {
       this.config.import_entity,
       this.config.grid_power_entity,
       this.config.forecast_entity,
+      this.config.peak_forecast_entity,
       this.config.weather_entity,
       this.config.ev_charger_sensor,
       this.config.battery_power_entity,
@@ -189,6 +190,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Grid Export',
         grid_idle: 'Grid Idle',
         forecast_potential: 'Forecast solar potential',
+        forecast_peak: 'Forecast peak solar',
         total_usage: 'Total usage',
         excess_solar_half: 'Excess solar can cover 50%+ of EV charging',
         excess_solar_full: 'Excess solar can fully power EV charging'
@@ -208,6 +210,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Netzeinspeisung',
         grid_idle: 'Netz Inaktiv',
         forecast_potential: 'Prognose Solarpotenzial',
+        forecast_peak: 'Prognose Solarspitze',
         total_usage: 'Gesamtverbrauch',
         excess_solar_half: 'Überschüssiger Solarstrom kann 50%+ des EV-Ladens abdecken',
         excess_solar_full: 'Überschüssiger Solarstrom kann EV-Laden vollständig versorgen'
@@ -227,6 +230,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Export réseau',
         grid_idle: 'Réseau Inactif',
         forecast_potential: 'Potentiel solaire prévu',
+        forecast_peak: 'Pic solaire prévu',
         total_usage: 'Consommation totale',
         excess_solar_half: 'L\'excédent solaire peut couvrir 50%+ de la charge VE',
         excess_solar_full: 'L\'excédent solaire peut alimenter complètement la charge VE'
@@ -246,6 +250,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Exportación de red',
         grid_idle: 'Red Inactiva',
         forecast_potential: 'Potencial solar previsto',
+        forecast_peak: 'Pico solar previsto',
         total_usage: 'Consumo total',
         excess_solar_half: 'El exceso solar puede cubrir el 50%+ de la carga VE',
         excess_solar_full: 'El exceso solar puede alimentar completamente la carga VE'
@@ -265,6 +270,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Esportazione rete',
         grid_idle: 'Rete Inattiva',
         forecast_potential: 'Potenziale solare previsto',
+        forecast_peak: 'Picco solare previsto',
         total_usage: 'Consumo totale',
         excess_solar_half: 'L\'eccesso solare può coprire il 50%+ della ricarica VE',
         excess_solar_full: 'L\'eccesso solare può alimentare completamente la ricarica VE'
@@ -284,6 +290,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Netexport',
         grid_idle: 'Net Inactief',
         forecast_potential: 'Voorspeld zonnepotentieel',
+        forecast_peak: 'Voorspelde zonnepiek',
         total_usage: 'Totaal verbruik',
         excess_solar_half: 'Overschot zonne-energie kan 50%+ van EV-opladen dekken',
         excess_solar_full: 'Overschot zonne-energie kan EV-opladen volledig voorzien'
@@ -303,6 +310,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Exportação da rede',
         grid_idle: 'Rede Inativa',
         forecast_potential: 'Potencial solar previsto',
+        forecast_peak: 'Pico solar previsto',
         total_usage: 'Consumo total',
         excess_solar_half: 'O excesso solar pode cobrir 50%+ do carregamento VE',
         excess_solar_full: 'O excesso solar pode alimentar completamente o carregamento VE'
@@ -322,6 +330,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Eksport do sieci',
         grid_idle: 'Sieć Nieaktywna',
         forecast_potential: 'Prognozowany potencjał słoneczny',
+        forecast_peak: 'Prognozowany szczyt solarny',
         total_usage: 'Całkowite zużycie',
         excess_solar_half: 'Nadmiar energii słonecznej może pokryć 50%+ ładowania EV',
         excess_solar_full: 'Nadmiar energii słonecznej może w pełni zasilić ładowanie EV'
@@ -341,6 +350,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Nätexport',
         grid_idle: 'Nät Inaktivt',
         forecast_potential: 'Prognostiserad solpotential',
+        forecast_peak: 'Prognostiserat solarmaxeffekt',
         total_usage: 'Total förbrukning',
         excess_solar_half: 'Överskott av solenergi kan täcka 50%+ av EV-laddning',
         excess_solar_full: 'Överskott av solenergi kan helt driva EV-laddning'
@@ -360,6 +370,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Neteksport',
         grid_idle: 'Net Inaktiv',
         forecast_potential: 'Forventet solpotentiale',
+        forecast_peak: 'Forventet solarmaksimum',
         total_usage: 'Samlet forbrug',
         excess_solar_half: 'Overskydende solenergi kan dække 50%+ af EV-opladning',
         excess_solar_full: 'Overskydende solenergi kan fuldt ud forsyne EV-opladning'
@@ -379,6 +390,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Netteksport',
         grid_idle: 'Nett Inaktiv',
         forecast_potential: 'Forventet solpotensial',
+        forecast_peak: 'Forventet solarmaks',
         total_usage: 'Totalt forbruk',
         excess_solar_half: 'Overskudd av solenergi kan dekke 50%+ av EV-lading',
         excess_solar_full: 'Overskudd av solenergi kan fullt ut forsyne EV-lading'
@@ -398,6 +410,7 @@ class SolarBarCard extends HTMLElement {
         grid_export: 'Експорт до мережі',
         grid_idle: 'Мережа Неактивна',
         forecast_potential: 'Прогноз потенціалу сонячної енергії',
+        forecast_peak: 'Прогнозований пік сонячної енергії',
         total_usage: 'Загальне споживання',
         excess_solar_half: 'Надлишок сонячної енергії може покрити 50%+ навантаження електромобіля',
         excess_solar_full: 'Надлишок сонячної енергії може повністю покрити навантаження електромобіля'
@@ -441,6 +454,7 @@ class SolarBarCard extends HTMLElement {
       grid_power_entity = null,
       invert_grid_power = false,
       forecast_entity,
+      peak_forecast_entity,
       show_header = false,
       show_weather = false,
       show_stats = false,
@@ -615,6 +629,14 @@ class SolarBarCard extends HTMLElement {
       forecastSolar = this.getSensorValue(forecast_entity) || 0;
     }
 
+    let peakForecastPower = 0;
+    if (use_solcast && !peak_forecast_entity) {
+      peakForecastPower = this.getSolcastPeakForecast();
+    } else if (peak_forecast_entity) {
+      peakForecastPower = this.getSensorValue(peak_forecast_entity) || 0;
+    }
+    const peakForecastPotential = Math.min(peakForecastPower, inverter_size);
+
     const currentOutput = solarProduction;
     const anticipatedPotential = Math.min(forecastSolar, inverter_size);
 
@@ -689,6 +711,7 @@ class SolarBarCard extends HTMLElement {
     const evPotentialPercent = (evDisplayPower / inverter_size) * 100;
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
+    const peakForecastPercent = (peakForecastPotential / inverter_size) * 100;
     const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / inverter_size) * 100 : 0;
 
     // Grid state for icon (not shown in bar anymore)
@@ -1692,6 +1715,28 @@ class SolarBarCard extends HTMLElement {
           text-shadow: 0 0 4px rgba(255,193,7,0.8);
         }
 
+        .peak-forecast-indicator {
+          position: absolute;
+          top: 0;
+          width: 2px;
+          height: 100%;
+          background: var(--solar-anticipated-color);
+          box-shadow: 0 0 6px var(--solar-anticipated-color);
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .peak-forecast-indicator::before {
+          content: '▲';
+          position: absolute;
+          top: -18px;
+          left: 50%;
+          transform: translateX(-50%);
+          color: var(--solar-anticipated-color);
+          font-size: 12px;
+          text-shadow: 0 0 4px rgba(255,193,7,0.8);
+        }
+
         .usage-indicator {
           position: absolute;
           top: 0;
@@ -1977,6 +2022,11 @@ class SolarBarCard extends HTMLElement {
                   <div class="forecast-indicator"
                        style="left: ${anticipatedPercent}%"
                        title="${this.getLabel('forecast_potential')}: ${anticipatedPotential.toFixed(decimal_places)}kW"></div>
+                ` : ''}
+                ${peakForecastPotential > 0 && (peak_forecast_entity || use_solcast) ? `
+                  <div class="peak-forecast-indicator"
+                       style="left: ${peakForecastPercent}%"
+                       title="${this.getLabel('forecast_peak')}: ${peakForecastPotential.toFixed(decimal_places)}kW"></div>
                 ` : ''}
                 ${showUsageIndicator ? `
                   <div class="usage-indicator"
@@ -2289,6 +2339,23 @@ class SolarBarCard extends HTMLElement {
     return 0;
   }
 
+  getSolcastPeakForecast() {
+    const peakEntity = 'sensor.solcast_pv_forecast_peak_forecast_today';
+    if (this._hass.states[peakEntity]) {
+      return this.getSensorValue(peakEntity);
+    }
+
+    const solcastPeakSensors = Object.keys(this._hass.states).filter(entityId =>
+      entityId.includes('solcast') && entityId.includes('peak') && entityId.includes('today')
+    );
+
+    if (solcastPeakSensors.length > 0) {
+      return this.getSensorValue(solcastPeakSensors[0]);
+    }
+
+    return 0;
+  }
+
   getCardSize() {
     if (!this.config) return 1;
 
@@ -2393,6 +2460,7 @@ class SolarBarCardEditor extends HTMLElement {
       car_charger_load: "EV Charger Capacity",
       use_solcast: "Auto-detect Solcast",
       forecast_entity: "Forecast Solar Sensor",
+      peak_forecast_entity: "Forecast Peak Solar Sensor",
       color_palette: "Color Palette",
       show_header: "Show Header",
       header_title: "Header Title",
@@ -2479,6 +2547,7 @@ class SolarBarCardEditor extends HTMLElement {
       car_charger_load: "EV charger capacity in kW to show potential usage (grey dashed bar when not charging)",
       use_solcast: "Automatically detect Solcast forecast sensors",
       forecast_entity: "Sensor showing solar forecast data (ignored if Solcast auto-detect is enabled)",
+      peak_forecast_entity: "Sensor showing today's forecast peak solar power — shown as a solid line. Auto-detects sensor.solcast_pv_forecast_peak_forecast_today when Solcast is enabled",
       color_palette: "Choose a preset color scheme",
       show_header: "Display a title at the top of the card",
       header_title: "Custom title for the card header",
@@ -2825,7 +2894,8 @@ class SolarBarCardEditor extends HTMLElement {
             type: "grid",
             schema: [
               { name: "use_solcast", default: false, selector: { boolean: {} } },
-              { name: "forecast_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
+              { name: "forecast_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
+              { name: "peak_forecast_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } }
             ]
           },
           { name: "weather_entity", selector: { entity: { filter: [{ domain: "weather" }, { domain: "sensor", device_class: "temperature" }] } } },
@@ -2918,4 +2988,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.7.6b5 loaded!', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.7.6b6 loaded!', 'color: #4CAF50; font-weight: bold;');
