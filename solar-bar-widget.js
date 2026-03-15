@@ -18,12 +18,12 @@ const CONFIG = {
   HA_URL: "http://your-ha-instance:8123",
   HA_TOKEN: "YOUR_LONG_LIVED_ACCESS_TOKEN",
 
-  // Entity IDs (set to null if not available)
+  // Entity IDs — set to null to disable (battery bar auto-hides if battery entities are null)
   entities: {
     solar_production: "sensor.solar_power",
     grid_power: "sensor.grid_power",          // positive = export, negative = import (set invert_grid below if reversed)
-    battery_power: "sensor.battery_power",     // positive = charging, negative = discharging
-    battery_soc: "sensor.battery_soc",
+    battery_power: null,                       // positive = charging, negative = discharging (set to null if no battery)
+    battery_soc: null,                         // 0-100% (set to null if no battery)
     home_consumption: "sensor.home_consumption",
   },
 
@@ -36,8 +36,8 @@ const CONFIG = {
   // Battery capacity in kW (determines battery bar width relative to inverter)
   battery_capacity: 5,
 
-  // Show battery bar
-  show_battery: true,
+  // Show battery bar (auto-detected from entities — override to false to force hide)
+  show_battery: null,  // null = auto (shown if battery_soc entity is set)
 
   // Animation speed (seconds per cycle) — used in live preview only
   flow_speed: 2,
@@ -161,6 +161,92 @@ function drawCircle(ctx, cx, cy, r) {
   ctx.fillPath();
 }
 
+// ─── DRAWN ICONS (replace emojis for pixel-perfect centering) ──
+function drawHouseIcon(ctx, cx, cy, size, color) {
+  const s = size;
+  ctx.setFillColor(new Color(color));
+  // Roof (triangle)
+  const roof = new Path();
+  roof.move(new Point(cx, cy - s * 0.45));           // peak
+  roof.addLine(new Point(cx - s * 0.5, cy - s * 0.05));  // left eave
+  roof.addLine(new Point(cx + s * 0.5, cy - s * 0.05));  // right eave
+  roof.closeSubpath();
+  ctx.addPath(roof);
+  ctx.fillPath();
+  // Body (rectangle)
+  const body = new Path();
+  body.addRect(new Rect(cx - s * 0.35, cy - s * 0.05, s * 0.7, s * 0.5));
+  ctx.addPath(body);
+  ctx.fillPath();
+  // Door cutout (dark)
+  ctx.setFillColor(new Color("#00000033"));
+  const door = new Path();
+  door.addRect(new Rect(cx - s * 0.1, cy + s * 0.1, s * 0.2, s * 0.35));
+  ctx.addPath(door);
+  ctx.fillPath();
+}
+
+function drawGridTowerIcon(ctx, cx, cy, size, color) {
+  const s = size;
+  ctx.setStrokeColor(new Color(color));
+  ctx.setLineWidth(1.5);
+  // Tower legs (two lines converging upward)
+  const tower = new Path();
+  tower.move(new Point(cx - s * 0.3, cy + s * 0.45));
+  tower.addLine(new Point(cx - s * 0.1, cy - s * 0.3));
+  tower.addLine(new Point(cx, cy - s * 0.5));
+  tower.addLine(new Point(cx + s * 0.1, cy - s * 0.3));
+  tower.addLine(new Point(cx + s * 0.3, cy + s * 0.45));
+  ctx.addPath(tower);
+  ctx.strokePath();
+  // Cross bars
+  const bar1 = new Path();
+  bar1.move(new Point(cx - s * 0.22, cy + s * 0.15));
+  bar1.addLine(new Point(cx + s * 0.22, cy + s * 0.15));
+  ctx.addPath(bar1);
+  ctx.strokePath();
+  const bar2 = new Path();
+  bar2.move(new Point(cx - s * 0.15, cy - s * 0.12));
+  bar2.addLine(new Point(cx + s * 0.15, cy - s * 0.12));
+  ctx.addPath(bar2);
+  ctx.strokePath();
+  // Power lines extending outward
+  const wires = new Path();
+  wires.move(new Point(cx - s * 0.5, cy - s * 0.22));
+  wires.addLine(new Point(cx - s * 0.15, cy - s * 0.12));
+  wires.move(new Point(cx + s * 0.15, cy - s * 0.12));
+  wires.addLine(new Point(cx + s * 0.5, cy - s * 0.22));
+  ctx.addPath(wires);
+  ctx.strokePath();
+}
+
+function drawSunIcon(ctx, cx, cy, size, color) {
+  const s = size * 0.4;
+  ctx.setFillColor(new Color(color));
+  // Center circle
+  drawCircle(ctx, cx, cy, s * 0.4);
+  // Rays
+  ctx.setStrokeColor(new Color(color));
+  ctx.setLineWidth(1.5);
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI) / 4;
+    const ray = new Path();
+    ray.move(new Point(cx + Math.cos(angle) * s * 0.6, cy + Math.sin(angle) * s * 0.6));
+    ray.addLine(new Point(cx + Math.cos(angle) * s * 0.95, cy + Math.sin(angle) * s * 0.95));
+    ctx.addPath(ray);
+    ctx.strokePath();
+  }
+}
+
+function drawMoonIcon(ctx, cx, cy, size, color) {
+  const s = size * 0.4;
+  ctx.setFillColor(new Color(color));
+  // Crescent: draw full circle then overlay offset circle in background color
+  drawCircle(ctx, cx, cy, s * 0.5);
+  ctx.setFillColor(new Color(CONFIG.colors.card_background));
+  drawCircle(ctx, cx + s * 0.25, cy - s * 0.15, s * 0.45);
+}
+
 function estimateTextWidth(text, fontSize) {
   // Approximate character widths for system semibold font
   let width = 0;
@@ -170,7 +256,7 @@ function estimateTextWidth(text, fontSize) {
     else if (ch === '.') width += fontSize * 0.3;
     else if (ch === '%') width += fontSize * 0.7;
     else if (ch === '/') width += fontSize * 0.35;
-    else if (ch === '⌂' || ch === '⚡' || ch === '☀' || ch === '🌙' || ch === '🏠') width += fontSize * 1.0;
+    else if (ch === 'k' || ch === 'W') width += fontSize * 0.58;
     else if (ch >= 'A' && ch <= 'Z') width += fontSize * 0.65;
     else if (ch >= 'a' && ch <= 'z') width += fontSize * 0.52;
     else width += fontSize * 0.55;
@@ -268,13 +354,17 @@ function renderWidget(ctx, width, height, energy, animPhase) {
 
   // ── Header
   const headerY = pad.top;
-  const solarLabel = energy.solar > 0
-    ? `☀️ ${energy.solar.toFixed(1)} kW`
-    : "🌙 Standby";
-  drawText(ctx, solarLabel, pad.left, headerY + 8, 14, c.text_primary, "left");
+  const headerCY = headerY + 8;
+  if (energy.solar > 0) {
+    drawSunIcon(ctx, pad.left + 8, headerCY, 18, c.solar);
+    drawText(ctx, `${energy.solar.toFixed(1)} kW`, pad.left + 20, headerCY, 14, c.text_primary, "left");
+  } else {
+    drawMoonIcon(ctx, pad.left + 8, headerCY, 18, c.text_secondary);
+    drawText(ctx, "Standby", pad.left + 20, headerCY, 14, c.text_secondary, "left");
+  }
 
-  const homeLabel = `🏠 ${energy.homeConsumption.toFixed(1)} kW`;
-  drawText(ctx, homeLabel, width - pad.right, headerY + 8, 12, c.text_secondary, "right");
+  drawText(ctx, `${energy.homeConsumption.toFixed(1)} kW`, width - pad.right, headerCY, 12, c.text_secondary, "right");
+  drawHouseIcon(ctx, width - pad.right - estimateTextWidth(`${energy.homeConsumption.toFixed(1)} kW`, 12) - 10, headerCY, 12, c.text_secondary);
 
   // ── Bars area
   const barAreaTop = headerY + 26;
@@ -288,9 +378,10 @@ function renderWidget(ctx, width, height, energy, animPhase) {
   positions.house = { cx: x + iconR, cy: barY + barH / 2 };
   x += iconR * 2 + gap;
 
-  // Battery bar (if enabled)
+  // Battery bar (auto-detect from config, or manual override)
+  const showBattery = CONFIG.show_battery !== null ? CONFIG.show_battery : !!CONFIG.entities.battery_soc;
   let battBarW = 0;
-  if (CONFIG.show_battery && CONFIG.entities.battery_soc) {
+  if (showBattery && CONFIG.entities.battery_soc) {
     battBarW = Math.max(30, (CONFIG.battery_capacity / CONFIG.inverter_size) * contentW * 0.3);
     positions.battery = { x: x, y: barY, w: battBarW, cx: x + battBarW / 2, cy: barY + barH / 2 };
     x += battBarW + gap;
@@ -309,7 +400,7 @@ function renderWidget(ctx, width, height, energy, animPhase) {
   const houseColor = energy.importPower > 0 && energy.solar <= 0 ? c.import : c.self_usage;
   ctx.setFillColor(new Color(houseColor));
   drawCircle(ctx, positions.house.cx, positions.house.cy, iconR);
-  drawText(ctx, "⌂", positions.house.cx, positions.house.cy, 14, "#FFFFFF", "center");
+  drawHouseIcon(ctx, positions.house.cx, positions.house.cy, iconR * 0.85, "#FFFFFF");
 
   // ── Draw Battery Bar
   if (positions.battery) {
@@ -378,7 +469,7 @@ function renderWidget(ctx, width, height, energy, animPhase) {
   if (energy.exportPower > 0) gridColor = c.export;
   ctx.setFillColor(new Color(gridColor));
   drawCircle(ctx, positions.grid.cx, positions.grid.cy, iconR);
-  drawText(ctx, "⚡", positions.grid.cx, positions.grid.cy, 12, "#FFFFFF", "center");
+  drawGridTowerIcon(ctx, positions.grid.cx, positions.grid.cy, iconR * 1.1, "#FFFFFF");
 
   // ── Energy Flow Curves (below bars)
   const busY = barY + barH + flowAreaH / 2 + 4;
