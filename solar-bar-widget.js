@@ -161,14 +161,32 @@ function drawCircle(ctx, cx, cy, r) {
   ctx.fillPath();
 }
 
+function estimateTextWidth(text, fontSize) {
+  // Approximate character widths for system semibold font
+  let width = 0;
+  for (const ch of text) {
+    if (ch === ' ') width += fontSize * 0.3;
+    else if (ch >= '0' && ch <= '9') width += fontSize * 0.58;
+    else if (ch === '.') width += fontSize * 0.3;
+    else if (ch === '%') width += fontSize * 0.7;
+    else if (ch === '/') width += fontSize * 0.35;
+    else if (ch === '⌂' || ch === '⚡' || ch === '☀' || ch === '🌙' || ch === '🏠') width += fontSize * 1.0;
+    else if (ch >= 'A' && ch <= 'Z') width += fontSize * 0.65;
+    else if (ch >= 'a' && ch <= 'z') width += fontSize * 0.52;
+    else width += fontSize * 0.55;
+  }
+  return width;
+}
+
 function drawText(ctx, text, x, y, fontSize, color, align) {
   ctx.setFont(Font.semiboldSystemFont(fontSize));
   ctx.setTextColor(new Color(color));
-  const size = ctx.getTextSize(text);
+  const estW = estimateTextWidth(text, fontSize);
+  const estH = fontSize * 1.2;
   let drawX = x;
-  if (align === "center") drawX = x - size.width / 2;
-  else if (align === "right") drawX = x - size.width;
-  ctx.drawText(text, new Point(drawX, y - size.height / 2));
+  if (align === "center") drawX = x - estW / 2;
+  else if (align === "right") drawX = x - estW;
+  ctx.drawTextInRect(text, new Rect(drawX, y - estH / 2, estW + 10, estH + 4));
 }
 
 // ─── DRAW ENERGY FLOW CURVES ─────────────────────────────
