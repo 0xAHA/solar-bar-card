@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.8.0 - Live Wires & New Wheels: EV circle, power unit config, tile reorder
+// Version 2.8.1 - The Meter Maid: import legend value bug fix
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -2198,10 +2198,10 @@ class SolarBarCard extends HTMLElement {
                   <span>${this.getLabel('export')}${show_legend_values ? ` ${exportPower.toFixed(decimal_places)}kW` : ''}</span>
                 </div>
               ` : ''}
-              ${gridToHome > 0 ? `
+              ${totalGridImport > 0 ? `
                 <div class="legend-item" data-entity="${grid_power_entity || import_entity}" data-action-key="import" title="${this.getLabel('click_history')}">
                   <div class="legend-color grid-home-color"></div>
-                  <span>${this.getLabel('import')}${show_legend_values ? ` ${gridToHome.toFixed(decimal_places)}kW` : ''}</span>
+                  <span>${this.getLabel('import')}${show_legend_values ? ` ${fmtPow(totalGridImport)}` : ''}</span>
                 </div>
               ` : ''}
               ${(solarToEv > 0 || gridToEv > 0) ? `
@@ -2891,6 +2891,7 @@ class SolarBarCardEditor extends HTMLElement {
             schema: [
               {
                 name: "power_unit",
+                label: "Power Display Unit",
                 default: "kW",
                 selector: {
                   select: {
@@ -2902,7 +2903,7 @@ class SolarBarCardEditor extends HTMLElement {
                   }
                 }
               },
-              { name: "show_power_unit", default: true, selector: { boolean: {} } }
+              { name: "show_power_unit", label: "Show Unit Suffix", default: true, selector: { boolean: {} } }
             ]
           },
           {
