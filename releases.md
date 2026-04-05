@@ -2,6 +2,22 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.8.0 — Live Wires & New Wheels
+
+### New Features
+
+- **EV circle icon** (`ev_charger_sensor`): The EV car icon has been moved out of the solar bar and replaced with a dedicated circular icon element — consistent with the house and grid icons. The circle sits to the right of the grid icon in the bars row and only appears when an EV is configured. It shows grey when idle and a colored ring border (from the EV palette color) when charging. When `show_energy_flow` is enabled, animated flow dots connect the solar bar (and grid) to the EV circle via the right bus, with solar→EV and grid→EV paths tracked in an independent group so EV state changes don't interfere with other animations.
+- **Power unit selection** (`power_unit`): Choose between `kW` (default) and `W` to display all live power values in Watts. All value locations update consistently — tiles, bar segment labels, legend, bar capacity label, and tooltips.
+- **Show/hide unit suffix** (`show_power_unit`): Toggle the `kW` / `W` unit label after every power value. Defaults to `true`. Useful for very compact displays where the unit can be inferred.
+
+### Improvements
+
+- **Tile order: Solar → Usage → Export/Import**: Stats tiles are now ordered Solar | Usage | Export (or Import) — matching the natural left-to-right flow of the energy bar and aligning with the legend order.
+- **Legend order aligned with tiles**: Legend items now follow the same order as tiles — Solar, Usage, Export, Import, then EV and Battery. Previously EV and Battery appeared between Usage and Export.
+- **Export tile net indicator centering**: The net position dot (green/red) after the "Export"/"Import" label no longer shifts the label text off-centre. A hidden spacer of equal width is added to the left so the label text stays visually centred while the dot trails it on the right.
+
+---
+
 ## v2.7.6
 
 ### New Features
