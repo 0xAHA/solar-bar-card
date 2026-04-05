@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.8.1 — The Meter Maid
+
+### Bug Fixes
+
+- **Import legend value mismatch**: The Import legend item was displaying `gridToHome` (grid power allocated to the house only), while the Import stats tile correctly displayed `totalGridImport` (the full raw sensor value). When an EV was charging from the grid, the legend showed a lower number — the difference being `gridToEv`. Both now show `totalGridImport`. As a bonus fix, the legend item will now also appear correctly when all grid import is going to the EV (previously it could vanish if `gridToHome` was 0).
+
+---
+
 ## v2.8.0 — Live Wires & New Wheels
 
 ### New Features
