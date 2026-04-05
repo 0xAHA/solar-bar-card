@@ -167,6 +167,8 @@ class SolarBarCard extends HTMLElement {
       // Power unit display
       power_unit: 'kW',
       show_power_unit: true,
+      // EV icon symbol color (mdi:car-electric color inside the circle)
+      ev_icon_color: null,
       ...config
     };
     this.updateCard();
@@ -514,7 +516,9 @@ class SolarBarCard extends HTMLElement {
       energy_flow_threshold = 0.1,
       // Power unit display
       power_unit = 'kW',
-      show_power_unit = true
+      show_power_unit = true,
+      // EV icon symbol color
+      ev_icon_color = null
     } = this.config;
 
     // Get colors from palette
@@ -945,10 +949,10 @@ class SolarBarCard extends HTMLElement {
 
       const layoutElements = [];
       if (show_house_icon) layoutElements.push({ key: 'house', fixed: true, widthPx: iconPx });
+      if (showEvCircle) layoutElements.push({ key: 'ev', fixed: true, widthPx: iconPx });
       if (hasBattery && show_battery_indicator) layoutElements.push({ key: 'battery', fixed: false, pct: batteryBarWidth });
       layoutElements.push({ key: 'solar', fixed: false, pct: powerBarWidth });
       if (showGridIcon) layoutElements.push({ key: 'grid', fixed: true, widthPx: iconPx });
-      if (showEvCircle) layoutElements.push({ key: 'ev', fixed: true, widthPx: iconPx });
 
       const numGaps = Math.max(0, layoutElements.length - 1);
       const totalGapPx = numGaps * gapPx;
@@ -1005,8 +1009,8 @@ class SolarBarCard extends HTMLElement {
       const solarToEvFlow = hasSolar && solarToEv > flowThreshold && evX !== null;
       const gridToEvFlow = gridToEv > flowThreshold && evX !== null && gridX !== null;
 
-      const leftBusActive = solarToHomeFlow || batteryDischargeFlow || gridImportFlow || batteryChargeFlow;
-      const rightBusActive = exportFlow || gridImportFlow || solarToEvFlow || gridToEvFlow;
+      const leftBusActive = solarToHomeFlow || batteryDischargeFlow || gridImportFlow || batteryChargeFlow || solarToEvFlow || gridToEvFlow;
+      const rightBusActive = exportFlow || gridImportFlow;
 
       // ── Static bus infrastructure (single neutral dashed line) ──
       // Bus lines are drawn based on element *presence*, not active flow —
@@ -1014,40 +1018,42 @@ class SolarBarCard extends HTMLElement {
       const busSegments = [];
 
       // Solar drop: vertical from solar bar center toward bus (stops short for corner curve)
-      const hasLeftElement = show_house_icon || battX !== null;
-      const hasRightElement = gridX !== null || evX !== null;
+      // EV is left of solar, so treat it as a left element
+      const hasLeftElement = show_house_icon || battX !== null || evX !== null;
+      const hasRightElement = gridX !== null;
       if (hasSolar && (hasLeftElement || hasRightElement)) {
         busSegments.push(`M ${solarX} ${barBottom} L ${solarX} ${busY - ry}`);
       }
 
-      // Left bus: curve from solar drop → horizontal → curve up → house
-      if (hasSolar && show_house_icon) {
-        busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
+      // Left bus: curve from solar drop → horizontal → curve up → leftmost left element (house or ev)
+      const leftmostX = show_house_icon ? houseX : (evX !== null ? evX : (battX !== null ? battX : null));
+      if (hasSolar && leftmostX !== null) {
+        busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${leftmostX + rx} ${busY} Q ${leftmostX} ${busY} ${leftmostX} ${busY - ry} L ${leftmostX} ${barBottom}`);
       }
 
-      // Right bus: curve from solar drop → extends to rightmost right element
-      if (hasSolar && hasRightElement) {
-        const rightmostX = evX !== null ? evX : gridX;
-        busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${rightmostX - rx} ${busY} Q ${rightmostX} ${busY} ${rightmostX} ${busY - ry} L ${rightmostX} ${barBottom}`);
-        // If grid is not the rightmost, add a stub down from the bus at gridX
-        if (evX !== null && gridX !== null) {
-          busSegments.push(`M ${gridX} ${busY} L ${gridX} ${barBottom}`);
-        }
+      // Right bus: curve from solar drop → horizontal → curve up → grid
+      if (hasSolar && gridX !== null) {
+        busSegments.push(`M ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`);
       }
 
-      // Battery stub: vertical from bus up to battery bar
+      // Battery stub: vertical from bus to battery bar
       if (battX !== null) {
         busSegments.push(`M ${battX} ${busY} L ${battX} ${barBottom}`);
       }
 
-      // Grid-to-house stub when no solar (grid → bus → house), drawn if elements present
+      // EV stub: vertical from bus to EV circle (EV is left of battery/solar)
+      if (evX !== null) {
+        busSegments.push(`M ${evX} ${busY} L ${evX} ${barBottom}`);
+      }
+
+      // Grid-to-house stub when no solar (grid → bus → house/ev), drawn if elements present
       if (!hasSolar && gridX !== null && show_house_icon) {
         busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`);
       }
 
-      // Grid-to-EV bus stub when no solar (grid → right → EV)
-      if (!hasSolar && gridX !== null && evX !== null) {
-        busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY} L ${evX - rx} ${busY} Q ${evX} ${busY} ${evX} ${busY - ry} L ${evX} ${barBottom}`);
+      // Grid-to-EV no-solar stub (only when no house icon — otherwise covered by grid-to-house bus)
+      if (!hasSolar && gridX !== null && evX !== null && !show_house_icon) {
+        busSegments.push(`M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${evX + rx} ${busY} Q ${evX} ${busY} ${evX} ${busY - ry} L ${evX} ${barBottom}`);
       }
 
       energyBusPath = busSegments.join(' ');
@@ -1099,19 +1105,19 @@ class SolarBarCard extends HTMLElement {
         });
       }
 
-      // Solar → EV: drop → curve right → bus → past grid → curve up → EV
+      // Solar → EV: drop → curve left → bus → curve up → EV (EV is left of solar)
       if (solarToEvFlow) {
         energyFlowPaths.push({
-          path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${evX - rx} ${busY} Q ${evX} ${busY} ${evX} ${busY - ry} L ${evX} ${barBottom}`,
+          path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX - rx} ${busY} L ${evX + rx} ${busY} Q ${evX} ${busY} ${evX} ${busY - ry} L ${evX} ${barBottom}`,
           color: colors.ev_charge, id: 'solarToEv',
           power: solarToEv, hDist: Math.abs(solarX - evX)
         });
       }
 
-      // Grid → EV: down from grid → right on bus → curve up → EV
+      // Grid → EV: down from grid → curve left → bus → curve up → EV
       if (gridToEvFlow) {
         energyFlowPaths.push({
-          path: `M ${gridX} ${barBottom} L ${gridX} ${busY} L ${evX - rx} ${busY} Q ${evX} ${busY} ${evX} ${busY - ry} L ${evX} ${barBottom}`,
+          path: `M ${gridX} ${barBottom} L ${gridX} ${busY - ry} Q ${gridX} ${busY} ${gridX - rx} ${busY} L ${evX + rx} ${busY} Q ${evX} ${busY} ${evX} ${busY - ry} L ${evX} ${barBottom}`,
           color: colors.ev_charge, id: 'gridToEv',
           power: gridToEv, hDist: Math.abs(gridX - evX)
         });
@@ -1726,7 +1732,7 @@ class SolarBarCard extends HTMLElement {
 
         .ev-icon ha-icon {
           --mdc-icon-size: 18px;
-          color: var(--primary-text-color, white);
+          color: ${ev_icon_color || 'var(--primary-text-color)'};
         }
 
         .ev-icon.idle {
@@ -1734,9 +1740,26 @@ class SolarBarCard extends HTMLElement {
           opacity: 0.6;
         }
 
-        .ev-icon.charging {
+        .ev-icon.ready-half {
+          border-color: ${colors.ev_icon_charging || 'var(--ev-charging-color)'};
+          opacity: 1;
+        }
+
+        .ev-icon.ready-full {
           border-color: ${colors.ev_icon_charging || 'var(--ev-charging-color)'};
           box-shadow: 0 0 6px ${colors.ev_icon_charging || 'var(--ev-charging-color)'};
+          opacity: 1;
+        }
+
+        .ev-icon.charging {
+          background: ${colors.ev_icon_charging || 'var(--ev-charging-color)'};
+          border-color: ${colors.ev_icon_charging || 'var(--ev-charging-color)'};
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          opacity: 1;
+        }
+
+        .ev-icon.charging ha-icon {
+          color: ${ev_icon_color || 'white'};
         }
 
         .standby-label {
@@ -2061,6 +2084,14 @@ class SolarBarCard extends HTMLElement {
                   <ha-icon icon="mdi:home" style="color: white"></ha-icon>
                 </div>
               ` : ''}
+              ${showEvCircle ? `
+                <div class="ev-icon ${isActuallyCharging ? 'charging' : evReadyFull ? 'ready-full' : evReadyHalf ? 'ready-half' : 'idle'}"
+                     data-entity="${ev_charger_sensor}"
+                     data-action-key="ev"
+                     title="${isActuallyCharging ? `${this.getLabel('ev')}: ${fmtPow(actualEvCharging)} - ${this.getLabel('click_history')}` : evReadyFull ? this.getLabel('excess_solar_full') : evReadyHalf ? this.getLabel('excess_solar_half') : this.getLabel('ev')}">
+                  <ha-icon icon="mdi:car-electric"></ha-icon>
+                </div>
+              ` : ''}
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="width: ${batterySOC}%"></div>
@@ -2100,14 +2131,6 @@ class SolarBarCard extends HTMLElement {
                      data-action-key="${hasGridImport ? 'import' : 'export'}"
                      title="${hasGridImport ? `${this.getLabel('grid_import')}: ${fmtPow(gridImportPower)} - ${this.getLabel('click_history')}` : hasGridExport ? `${this.getLabel('grid_export')}: ${fmtPow(exportPower)} - ${this.getLabel('click_history')}` : this.getLabel('grid_idle')}">
                   <ha-icon icon="mdi:transmission-tower" style="color: ${colors.grid_icon_color || 'black'}"></ha-icon>
-                </div>
-              ` : ''}
-              ${showEvCircle ? `
-                <div class="ev-icon ${isActuallyCharging ? 'charging' : 'idle'}"
-                     data-entity="${ev_charger_sensor}"
-                     data-action-key="ev"
-                     title="${isActuallyCharging ? `${this.getLabel('ev')}: ${fmtPow(actualEvCharging)} - ${this.getLabel('click_history')}` : this.getLabel('ev')}">
-                  <ha-icon icon="mdi:car-electric"></ha-icon>
                 </div>
               ` : ''}
               ${showBatteryFlow ? `
