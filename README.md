@@ -102,7 +102,8 @@ show_legend: true
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `ev_charger_sensor` | string | `null` | Active EV charger power sensor. When set, shows a dedicated EV circle icon to the right of the grid icon. The circle has a colored ring border when charging and grey when idle. The bar splits EV charging into solar-powered vs grid-powered segments, and animated flow dots connect the bar to the EV circle when `show_energy_flow` is enabled. |
+| `ev_charger_sensor` | string | `null` | Active EV charger power sensor. When set, shows a dedicated EV circle icon to the left of the solar bar (between house and battery). Grey when idle; colored ring border when excess solar is available; solid fill when actively charging. Animated flow dots connect when `show_energy_flow` is enabled. |
+| `ev_icon_color` | color | `null` | Color of the car icon symbol inside the EV circle. Defaults to the theme's primary text color for idle/ready states, and white when charging (solid fill). Set this when the default doesn't contrast well against your circle color — e.g., `"black"` for light-colored EV palette themes. |
 | `car_charger_load` | number | `0` | EV charger capacity in kW. When set, shows a grey dashed bar segment for potential/unused charging capacity. |
 | `ev_history_entity` | string | `null` | Daily EV energy sensor (kWh). Shows daily total on the EV stats tile when stats detail is enabled. |
 | `consumer_1_entity` | string | `null` | Power sensor for an additional consumer (e.g., heat pump, pool heater, hot water). Appears as a stats tile only — no bar segment. |
