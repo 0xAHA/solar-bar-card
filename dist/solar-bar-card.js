@@ -2882,7 +2882,27 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "grid_icon_idle_color", selector: { color_rgb: {} } },
               { name: "grid_icon_color", selector: { color_rgb: {} } },
               { name: "ev_icon_idle_color", selector: { color_rgb: {} } },
-              { name: "ev_icon_charging_color", selector: { color_rgb: {} } }
+              { name: "ev_icon_charging_color", selector: { color_rgb: {} } },
+              { name: "ev_icon_color", selector: { color_rgb: {} } }
+            ]
+          },
+          {
+            type: "grid",
+            schema: [
+              {
+                name: "power_unit",
+                default: "kW",
+                selector: {
+                  select: {
+                    options: [
+                      { value: "kW", label: "kW (kilowatts)" },
+                      { value: "W", label: "W (watts)" }
+                    ],
+                    mode: "dropdown"
+                  }
+                }
+              },
+              { name: "show_power_unit", default: true, selector: { boolean: {} } }
             ]
           },
           {
