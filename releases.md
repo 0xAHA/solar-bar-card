@@ -2,6 +2,45 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.0 — Template Whisperer
+
+### New Features
+
+- **HA Jinja2 label templates**: Any label configurable via `custom_labels` or `label_*` YAML keys now accepts full Home Assistant Jinja2 template syntax. When a value contains `{{`, it is evaluated server-side via the HA websocket `render_template` API and updated reactively. Static label strings continue to work as before — no migration needed. The Custom Labels section has been removed from the visual editor (labels are YAML-only with template support); all previously configured labels remain fully compatible.
+
+  ```yaml
+  custom_labels:
+    solar: "{{ states('sensor.inverter_model') }}"
+    export: "{{ 'Selling' if states('sensor.export_power')|float > 0 else 'Export' }}"
+  ```
+
+- **Bar segment text templates** (`segment_text_*`): Each of the five bar segments now accepts a freeform text template with token substitution. Configure via YAML; leave unset to use the default `value label` format. Available tokens:
+
+  | Token | Description |
+  | --- | --- |
+  | `{value}` | Formatted power value (respects `power_unit` and `show_power_unit`) |
+  | `{label}` | Translated or custom label for this segment |
+  | `{percent}` | Segment width as a rounded percentage of the bar |
+  | `{raw}` | Raw numeric value (integer W or decimal kW, no unit suffix) |
+
+  Config keys and their segments:
+
+  | Key | Segment |
+  | --- | --- |
+  | `segment_text_solar_home` | Solar → Home (self-consumption) |
+  | `segment_text_solar_ev` | Solar → EV |
+  | `segment_text_battery_charge` | Solar → Battery |
+  | `segment_text_export` | Export |
+  | `segment_text_ev_potential` | EV potential (pre-charge overlay) |
+
+  ```yaml
+  segment_text_solar_home: "{value}"
+  segment_text_export: "{percent} → grid"
+  segment_text_battery_charge: "⚡ {raw}W"
+  ```
+
+---
+
 ## v2.8.1 — The Meter Maid
 
 ### Bug Fixes

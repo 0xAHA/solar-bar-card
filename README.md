@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.8.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.9.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -163,15 +163,45 @@ show_legend: true
 
 ### Custom Labels
 
+Labels can be plain text or full Home Assistant Jinja2 templates. When a value contains `{{`, it is evaluated server-side and updated reactively. Configure via YAML only (the visual editor does not expose label fields).
+
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `label_solar` | string | `null` | Custom label for Solar. Appears on stats tiles, legend, bar segments, and tooltips. Leave empty to use auto-detected language (11 languages supported). |
+| `label_solar` | string | `null` | Custom label for Solar. Accepts HA Jinja2 templates. Leave empty for auto-detected language translation. |
 | `label_import` | string | `null` | Custom label for Import. |
 | `label_export` | string | `null` | Custom label for Export. |
 | `label_usage` | string | `null` | Custom label for Usage. |
 | `label_battery` | string | `null` | Custom label for Battery. |
 | `label_ev` | string | `null` | Custom label for EV. |
 | `label_power_flow` | string | `null` | Custom label for the "Power Flow" bar heading. |
+
+**Template example:**
+
+```yaml
+custom_labels:
+  solar: "{{ states('sensor.inverter_model') }}"
+  export: "{{ 'Selling' if states('sensor.export_power')|float > 0 else 'Export' }}"
+```
+
+### Bar Segment Text
+
+Override the text shown inside each bar segment. Leave unset to use the default `value label` format. Tokens: `{value}` (formatted power), `{label}` (translated label), `{percent}` (% of bar), `{raw}` (numeric value only).
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `segment_text_solar_home` | string | `null` | Text for the Solar → Home segment. |
+| `segment_text_solar_ev` | string | `null` | Text for the Solar → EV segment. |
+| `segment_text_battery_charge` | string | `null` | Text for the Solar → Battery segment. |
+| `segment_text_export` | string | `null` | Text for the Export segment. |
+| `segment_text_ev_potential` | string | `null` | Text for the EV potential (pre-charge overlay) segment. |
+
+**Example:**
+
+```yaml
+segment_text_solar_home: "{value}"
+segment_text_export: "{percent} → grid"
+segment_text_battery_charge: "⚡ {raw}W"
+```
 
 ### Tap Actions
 
