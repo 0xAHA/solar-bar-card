@@ -2866,7 +2866,7 @@ class SolarBarCardEditor extends HTMLElement {
         expanded: false,
         flatten: true,
         schema: [
-          { name: "battery_soc_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "battery" }] } } },
+          { name: "battery_soc_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "battery" }, { domain: "sensor" }] } } },
           { name: "battery_power_entity", selector: { entity: { filter: [{ domain: "sensor", device_class: "power" }] } } },
           { name: "invert_battery_power", default: false, selector: { boolean: {} } },
           {
