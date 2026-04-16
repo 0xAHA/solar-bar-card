@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.9.0 - Template Whisperer: HA Jinja2 label templates + bar segment text tokens
+// Version 2.9.1 - EV icon solid circle restyle + battery SOC entity selector fix
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -3141,4 +3141,4 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.9.0 loaded!', 'color: #4CAF50; font-weight: bold;');
+console.info('%c🌞 Solar Bar Card v2.9.1 loaded!', 'color: #4CAF50; font-weight: bold;');

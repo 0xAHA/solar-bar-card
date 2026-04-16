@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-2.9.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-2.9.1-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -23,7 +23,7 @@ A real-time solar power distribution card for Home Assistant. Visualize how your
 - **Stats tiles** — dynamic tile layout that adapts to your setup (solar, import/export, usage, battery, EV, additional consumers) with auto-scaling fonts on narrow screens
 - **Consumers** — EV charger and up to 2 additional power consumers (heat pump, pool, hot water, etc.) in a single config section
 - **Daily energy tracking** — connect daily kWh sensors for net import/export position with green/red indicator
-- **EV charger support** — automatic solar vs grid split, dedicated EV circle icon with colored ring border, animated flow dots, potential capacity display
+- **EV charger support** — automatic solar vs grid split, dedicated EV circle icon (solid fill: orange at >50% solar, green at >100%, charging glow when active), animated flow dots, potential capacity display
 - **Solar forecast** — Solcast auto-detection or custom forecast sensor with visual indicator
 - **6 color palettes** — plus full custom color support and per-tile background colors
 - **Custom labels and tap actions** — rename any element, configure per-element tap actions
