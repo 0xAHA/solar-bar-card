@@ -2,6 +2,18 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.1 — Polish & Fixes
+
+### Improvements
+
+- **EV icon: solid circle design**: The EV circle has been restyled to match the grid icon's solid filled-circle approach — the ring border is gone. States are now communicated via fill color: idle is a dimmed grey circle; when excess solar covers ≥50% of the EV charger capacity the circle turns orange; at ≥100% it turns green. When the EV is actively charging the circle stays grey with a yellow/orange outer glow to indicate live charging without conflicting with the solar-availability colors.
+
+### Bug Fixes
+
+- **Battery SOC entity not appearing in config UI**: The `battery_soc_entity` selector was filtering strictly by `device_class: "battery"`, which excluded valid sensors (e.g. from ESPHome, MQTT, or custom integrations) that report a percentage without a device class set. The selector now also includes any sensor with `unit_of_measurement: "%"`, so these entities show up in the dropdown without any changes to the sensor itself.
+
+---
+
 ## v2.9.0 — Template Whisperer
 
 ### New Features
