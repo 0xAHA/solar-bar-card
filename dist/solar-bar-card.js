@@ -1812,13 +1812,13 @@ class SolarBarCard extends HTMLElement {
         }
 
         .ev-icon.ready-half {
-          background: #f59e0b;
+          background: ${colors.grid_icon_import || 'linear-gradient(135deg, var(--grid-usage-color), var(--grid-usage-color))'};
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           opacity: 1;
         }
 
         .ev-icon.ready-full {
-          background: #22c55e;
+          background: ${colors.grid_icon_export || 'linear-gradient(135deg, var(--solar-export-color), var(--solar-export-color))'};
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           opacity: 1;
         }
