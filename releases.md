@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.2 — Watt's the Legend?
+
+### Bug Fixes
+
+- **Legend values now respect `power_unit` setting**: When `power_unit: W` was configured, legend values for Solar, Usage, Export, and Battery were still displayed in kW — only Import and EV happened to use the correct formatter. All six legend items now consistently use the `fmtPow()` helper, so the unit shown in the legend always matches the unit chosen in your card configuration.
+
+---
+
 ## v2.9.1 — Polish & Fixes
 
 ### Improvements
