@@ -2,6 +2,16 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.3 — Green Light, Orange Light
+
+### Improvements
+
+- **EV charging icon now shows grid state colour**: While the EV is actively charging, the circle was always grey. It now mirrors the grid icon — orange when the grid is importing (you're drawing power from the grid to charge), green when net-zero or exporting (the car is running on solar/battery). The yellow glow remains in both states to indicate active charging.
+
+- **Config editor label polish**: The power unit dropdown now reads "Unit of measure" with options "kW — kilowatts" and "W — watts". The unit toggle reads "Show unit label (kW / W)" for clarity. The decimal places dropdown now has a proper "Power decimal places" label instead of displaying the raw field name.
+
+---
+
 ## v2.9.2 — Watt's the Legend?
 
 ### Bug Fixes
