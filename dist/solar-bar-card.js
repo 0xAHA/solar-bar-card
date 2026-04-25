@@ -2662,6 +2662,8 @@ class SolarBarCardEditor extends HTMLElement {
       show_bar_values: "Show Bar Values",
       decimal_places: "Decimal Places",
       battery_soc_decimal_places: "Battery SOC Decimals",
+      power_unit: "Power Unit",
+      show_power_unit: "Show Power Unit",
       stats_border_radius: "Stats Tile Border Radius",
       show_stats_detail: "Show Stats Detail Row",
       stats_detail_position: "Stats Detail Position",
