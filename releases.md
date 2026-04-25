@@ -2,6 +2,20 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.4 — Dressed to Console
+
+### Improvements
+
+- **Console badge restyled**: The browser console load message now uses a two-tone pill badge — orange filled label on the left, light orange version number on the right — matching the style used by other popular HA custom cards.
+
+### Bug Fixes
+
+- **EV icon car colour now configurable in the editor**: `ev_icon_color` controls the colour of the car symbol inside the EV circle and was already functional, but was missing from the editor label map so it appeared as the raw key name `ev_icon_color`. It now shows as **EV Car Icon Color** with a helper tooltip.
+
+- **Removed ghost EV colour options**: `ev_icon_idle_color` and `ev_icon_charging_color` appeared in the config UI but were never wired up — they did nothing. Both have been removed. The circle background is handled automatically (grey when idle, orange when importing, green when net-zero/exporting) and the car symbol colour is controlled by **EV Car Icon Color**.
+
+---
+
 ## v2.9.3 — Green Light, Orange Light
 
 ### Improvements
