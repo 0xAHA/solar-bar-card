@@ -2159,7 +2159,7 @@ class SolarBarCard extends HTMLElement {
                      data-entity="${ev_charger_sensor}"
                      data-action-key="ev"
                      title="${isActuallyCharging ? `${this.getLabel('ev')}: ${fmtPow(actualEvCharging)} - ${this.getLabel('click_history')}` : evReadyFull ? this.getLabel('excess_solar_full') : evReadyHalf ? this.getLabel('excess_solar_half') : this.getLabel('ev')}">
-                  <ha-icon icon="mdi:car-electric"></ha-icon>
+                  <ha-icon icon="mdi:car"></ha-icon>
                 </div>
               ` : ''}
               ${hasBattery && show_battery_indicator ? `
