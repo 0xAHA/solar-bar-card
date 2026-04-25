@@ -8,11 +8,13 @@
 
 - **Console badge restyled**: The browser console load message now uses a two-tone pill badge — orange filled label on the left, light orange version number on the right — matching the style used by other popular HA custom cards.
 
+- **EV icon changed to `mdi:car`**: Simpler, bolder silhouette that reads more clearly in white against the coloured circle backgrounds.
+
 ### Bug Fixes
 
-- **EV car icon colour now works correctly**: `ev_icon_color` was broken — the `color_rgb` selector returns an array but it was interpolated directly into CSS without conversion, producing invalid output. It now goes through the same `toColor()` path as `grid_icon_color`, so setting it via the editor works as expected. Defaults to white. The ghost options `ev_icon_idle_color` and `ev_icon_charging_color` (which appeared in the UI but were never applied) remain removed.
+- **`Power Unit` and `Show Power Unit` now display correctly in the config editor**: Both fields were missing from the editor's label map and rendered as raw field names (`power_unit`, `show_power_unit`).
 
-- **EV icon changed to `mdi:car`**: Simpler, bolder silhouette reads more clearly in white against the coloured circle backgrounds.
+- **`ev_icon_color` now works correctly**: The colour picker returns an RGB array but it was being interpolated directly into CSS, producing invalid output. It now goes through the same `toColor()` conversion as `grid_icon_color` and defaults to white. The two ghost options `ev_icon_idle_color` and `ev_icon_charging_color`, which appeared in the editor but were never applied anywhere, have been removed.
 
 ---
 
