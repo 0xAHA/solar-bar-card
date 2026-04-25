@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.4 — Dressed to Console
+
+### Improvements
+
+- **Console badge restyled**: The browser console load message now uses a two-tone pill badge — orange filled label on the left, light orange version number on the right — matching the style used by other popular HA custom cards.
+
+---
+
 ## v2.9.3 — Green Light, Orange Light
 
 ### Improvements

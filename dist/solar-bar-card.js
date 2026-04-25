@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.9.3 - EV charging icon colour follows grid state + config UI label polish
+// Version 2.9.4 - Console badge style + config label fixes
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -3152,4 +3152,8 @@ window.customCards.push({
   documentationURL: 'https://github.com/0xAHA/solar-bar-card'
 });
 
-console.info('%c🌞 Solar Bar Card v2.9.3 loaded!', 'color: #4CAF50; font-weight: bold;');
+console.info(
+  '%c SOLAR-BAR-CARD %c v2.9.4 ',
+  'color:#fff;background:#f57c00;font-weight:700;padding:2px 4px;border-radius:4px 0 0 4px;',
+  'color:#f57c00;background:#fff3e0;font-weight:700;padding:2px 4px;border-radius:0 4px 4px 0;'
+);
