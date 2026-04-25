@@ -206,6 +206,7 @@ class SolarBarCard extends HTMLElement {
       ev_history_entity: null,
       consumer_1_history_entity: null,
       consumer_2_history_entity: null,
+      ev_icon_color: null,
       // Power unit display
       power_unit: 'kW',
       show_power_unit: true,
@@ -1800,7 +1801,7 @@ class SolarBarCard extends HTMLElement {
 
         .ev-icon ha-icon {
           --mdc-icon-size: 18px;
-          color: white;
+          color: ${colors.ev_icon_color || 'white'};
         }
 
         .ev-icon.idle {
@@ -2649,6 +2650,7 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Grid Icon Export Color",
       grid_icon_idle_color: "Grid Icon Idle Color",
       grid_icon_color: "Grid Icon Tower Color",
+      ev_icon_color: "EV Car Icon Color",
       show_stats: "Show Individual Stats",
       show_legend: "Show Legend",
       show_legend_values: "Show Legend Values",
@@ -2736,6 +2738,7 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Custom background color for the grid icon circle when exporting.",
       grid_icon_idle_color: "Custom background color for the grid icon circle when idle (no import/export).",
       grid_icon_color: "Color of the transmission tower icon inside the circle (default: black).",
+      ev_icon_color: "Color of the car icon inside the EV circle (default: white).",
       show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
@@ -2948,7 +2951,8 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "grid_icon_import_color", selector: { color_rgb: {} } },
               { name: "grid_icon_export_color", selector: { color_rgb: {} } },
               { name: "grid_icon_idle_color", selector: { color_rgb: {} } },
-              { name: "grid_icon_color", selector: { color_rgb: {} } }
+              { name: "grid_icon_color", selector: { color_rgb: {} } },
+              { name: "ev_icon_color", selector: { color_rgb: {} } }
             ]
           },
           {

@@ -10,7 +10,9 @@
 
 ### Bug Fixes
 
-- **EV car icon colour simplified**: `ev_icon_color`, `ev_icon_idle_color`, and `ev_icon_charging_color` have all been removed. The first two were ghost options that did nothing; `ev_icon_color` was wired up but broken — the `color_rgb` selector returns an array which was used raw in CSS, producing invalid output. The car symbol is now always white, consistent with the house icon, and the circle background already communicates state (grey when idle, orange when importing, green when net-zero/exporting).
+- **EV car icon colour now works correctly**: `ev_icon_color` was broken — the `color_rgb` selector returns an array but it was interpolated directly into CSS without conversion, producing invalid output. It now goes through the same `toColor()` path as `grid_icon_color`, so setting it via the editor works as expected. Defaults to white. The ghost options `ev_icon_idle_color` and `ev_icon_charging_color` (which appeared in the UI but were never applied) remain removed.
+
+- **EV icon changed to `mdi:car`**: Simpler, bolder silhouette reads more clearly in white against the coloured circle backgrounds.
 
 ---
 
