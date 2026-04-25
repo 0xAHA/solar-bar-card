@@ -2653,8 +2653,7 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Grid Icon Export Color",
       grid_icon_idle_color: "Grid Icon Idle Color",
       grid_icon_color: "Grid Icon Tower Color",
-      ev_icon_idle_color: "EV Icon Idle Color",
-      ev_icon_charging_color: "EV Icon Charging Color",
+      ev_icon_color: "EV Car Icon Color",
       show_stats: "Show Individual Stats",
       show_legend: "Show Legend",
       show_legend_values: "Show Legend Values",
@@ -2742,8 +2741,7 @@ class SolarBarCardEditor extends HTMLElement {
       grid_icon_export_color: "Custom background color for the grid icon circle when exporting.",
       grid_icon_idle_color: "Custom background color for the grid icon circle when idle (no import/export).",
       grid_icon_color: "Color of the transmission tower icon inside the circle (default: black).",
-      ev_icon_idle_color: "Custom color for the EV icon when idle (not charging, no excess solar).",
-      ev_icon_charging_color: "Custom color for the EV icon when actively charging.",
+      ev_icon_color: "Color of the car symbol inside the EV circle (default: black). The circle background is automatically orange when importing from the grid or green when exporting/net-zero.",
       show_stats: "Display individual power statistics above the bar (dynamic layout - adapts to configured entities)",
       show_legend: "Display color-coded legend below the bar",
       show_legend_values: "Show current kW values in the legend",
@@ -2957,8 +2955,6 @@ class SolarBarCardEditor extends HTMLElement {
               { name: "grid_icon_export_color", selector: { color_rgb: {} } },
               { name: "grid_icon_idle_color", selector: { color_rgb: {} } },
               { name: "grid_icon_color", selector: { color_rgb: {} } },
-              { name: "ev_icon_idle_color", selector: { color_rgb: {} } },
-              { name: "ev_icon_charging_color", selector: { color_rgb: {} } },
               { name: "ev_icon_color", selector: { color_rgb: {} } }
             ]
           },
