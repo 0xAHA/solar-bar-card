@@ -10,9 +10,7 @@
 
 ### Bug Fixes
 
-- **EV icon car colour now configurable in the editor**: `ev_icon_color` controls the colour of the car symbol inside the EV circle and was already functional, but was missing from the editor label map so it appeared as the raw key name `ev_icon_color`. It now shows as **EV Car Icon Color** with a helper tooltip.
-
-- **Removed ghost EV colour options**: `ev_icon_idle_color` and `ev_icon_charging_color` appeared in the config UI but were never wired up — they did nothing. Both have been removed. The circle background is handled automatically (grey when idle, orange when importing, green when net-zero/exporting) and the car symbol colour is controlled by **EV Car Icon Color**.
+- **EV car icon colour simplified**: `ev_icon_color`, `ev_icon_idle_color`, and `ev_icon_charging_color` have all been removed. The first two were ghost options that did nothing; `ev_icon_color` was wired up but broken — the `color_rgb` selector returns an array which was used raw in CSS, producing invalid output. The car symbol is now always white, consistent with the house icon, and the circle background already communicates state (grey when idle, orange when importing, green when net-zero/exporting).
 
 ---
 
