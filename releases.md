@@ -2,6 +2,18 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.5 — Blur No More
+
+### Performance
+
+- **Massive GPU usage reduction**: The battery flow animation was consuming up to 50% GPU on modern hardware (including an RTX 3090) due to a `feGaussianBlur` SVG filter applied to a path that was simultaneously running a 60fps SMIL `stroke-dashoffset` animation. When a filter is combined with a SMIL animation, the browser cannot cache the rasterized output — it re-rasterizes the full element and re-runs the blur kernel on every frame, indefinitely. The filter has been removed; the animated dashed line and flow particles are fully preserved.
+
+- **Eliminated `transition: all` on interactive elements**: Five elements (`.battery-indicator`, `.grid-icon`, `.house-icon`, `.bar-segment`, `.ev-icon`) used `transition: all 0.3s ease`, which forces the browser to track and interpolate every CSS property simultaneously on any state change — including paint-heavy properties like `box-shadow` and `background`. Each is now scoped to only the properties that actually animate (`transform`, `background-color`, `border-color`, etc.).
+
+- **Battery SOC bar now uses GPU compositing**: The battery fill bar switched from `width: X%` (triggers layout reflow) to `transform: scaleX(X)` (GPU-composited, zero layout cost). The redundant `border-radius` on the fill was also removed — the parent container's `overflow: hidden` already handles clipping.
+
+---
+
 ## v2.9.4 — Dressed to Console
 
 ### Improvements
