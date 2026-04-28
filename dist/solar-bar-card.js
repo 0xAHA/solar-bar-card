@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.9.6 - Fix Usage stat mirroring Production when self_consumption_entity is set
+// Version 2.9.6 - Fix Usage stat mirror + show Grid Idle tile when entity configured
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -2075,6 +2075,11 @@ class SolarBarCard extends HTMLElement {
                 </div>
                 <div class="stat-value">${fmtPow(totalGridImport)}${isInline ? renderDetail(importDetailText) : ''}</div>
                 ${!isInline ? renderDetail(importDetailText) : ''}
+              </div>
+            ` : (grid_power_entity || export_entity || import_entity) ? `
+              <div class="stat" data-entity="${grid_power_entity || export_entity || import_entity}" data-action-key="export" title="${this.getLabel('grid_idle')}">
+                <div class="stat-label">${this.getLabel('grid_idle')}</div>
+                <div class="stat-value">${fmtPow(0)}</div>
               </div>
             ` : null
           ].filter(Boolean);
