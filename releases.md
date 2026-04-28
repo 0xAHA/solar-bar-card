@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.6 — What's Your Usage?
+
+### Bug Fixes
+
+- **Usage stat no longer mirrors Solar Production**: When `self_consumption_entity` was configured, the Usage stat tile was incorrectly displaying a physics-derived fallback value (`solar − export + import + battery`) rather than the actual entity reading. For users who have no grid or battery entities configured, this fallback collapses to just `solarProduction`, making Usage appear identical to Solar. The tile now always shows the value from your configured `self_consumption_entity` directly.
+
+---
+
 ## v2.9.5 — Blur No More
 
 ### Performance
