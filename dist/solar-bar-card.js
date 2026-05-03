@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.9.6 - Fix Usage stat mirror + show Grid Idle tile when entity configured
+// Version 2.9.7 - GPU performance: disable_animation, CSS dash animation, will-change, prefers-reduced-motion
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
