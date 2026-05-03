@@ -2,6 +2,22 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.7 — Still No Chill
+
+### Performance
+
+- **`disable_animation` config option**: New toggle that stops all moving animations — flow particles, the animated dashed battery line, everything. The card still updates live; only the motion stops. Useful for high-DPI displays, low-power devices, or anyone who suspects the animations are driving GPU load. Set `disable_animation: true` in your card YAML or toggle it in the visual editor.
+
+- **Battery dashed-line animation migrated from SMIL to CSS**: The `stroke-dashoffset` animation on the battery flow path was a SMIL attribute animation, which browsers run on the main thread and software-render each frame. It's now a CSS `@keyframes` animation injected directly into the SVG, which browsers can compositor-thread and GPU-accelerate.
+
+- **`will-change: transform` on all animated particles**: Energy flow ellipses and battery flow circles now carry `will-change: transform`, hinting the browser to promote each particle to its own GPU compositor layer before animation starts — avoiding per-frame paint promotion overhead.
+
+- **Reduced EV charging glow to single shadow layer**: The `.ev-icon.charging` glow was a double box-shadow (`0 0 10px` + `0 0 22px`). Collapsed to a single `0 0 12px` — half the blur passes, same visual effect.
+
+- **`prefers-reduced-motion` media query**: Users who have "reduce motion" set in their OS accessibility settings now automatically get all animations disabled via a CSS media query, with no card config needed.
+
+---
+
 ## v2.9.6 — Watts Actually Happening
 
 ### Bug Fixes
