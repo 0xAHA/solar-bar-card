@@ -2,11 +2,95 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
-## v2.9.1 — Community Pick
+## v2.9.8 — Community Pick
 
 ### New Features
 
 - **HA 2026.6 card picker suggestions**: Solar Bar Card now registers as a suggested card in the Home Assistant card picker. When a user selects a `sensor` entity with `device_class: power` or `device_class: energy` whose entity ID or friendly name contains a solar keyword (`solar`, `pv`, `photovoltaic`, `production`, or `panel`), Solar Bar Card appears in the "Community" suggestions section. Selecting it pre-fills `production_entity` with the chosen entity — ready to configure the rest via the visual editor.
+
+---
+
+## v2.9.7 — Still No Chill
+
+### Performance
+
+- **`disable_animation` config option**: New toggle that stops all moving animations — flow particles, the animated dashed battery line, everything. The card still updates live; only the motion stops. Useful for high-DPI displays, low-power devices, or anyone who suspects the animations are driving GPU load. Set `disable_animation: true` in your card YAML or toggle it in the visual editor.
+
+- **Battery dashed-line animation migrated from SMIL to CSS**: The `stroke-dashoffset` animation on the battery flow path was a SMIL attribute animation, which browsers run on the main thread and software-render each frame. It's now a CSS `@keyframes` animation injected directly into the SVG, which browsers can compositor-thread and GPU-accelerate.
+
+- **`will-change: transform` on all animated particles**: Energy flow ellipses and battery flow circles now carry `will-change: transform`, hinting the browser to promote each particle to its own GPU compositor layer before animation starts — avoiding per-frame paint promotion overhead.
+
+- **Reduced EV charging glow to single shadow layer**: The `.ev-icon.charging` glow was a double box-shadow (`0 0 10px` + `0 0 22px`). Collapsed to a single `0 0 12px` — half the blur passes, same visual effect.
+
+- **`prefers-reduced-motion` media query**: Users who have "reduce motion" set in their OS accessibility settings now automatically get all animations disabled via a CSS media query, with no card config needed.
+
+---
+
+## v2.9.6 — Watts Actually Happening
+
+### Bug Fixes
+
+- **Usage stat no longer mirrors Solar Production**: When `self_consumption_entity` was configured, the Usage stat tile was incorrectly displaying a physics-derived fallback value (`solar − export + import + battery`) rather than the actual entity reading. For users who have no grid or battery entities configured, this fallback collapses to just `solarProduction`, making Usage appear identical to Solar. The tile now always shows the value from your configured `self_consumption_entity` directly.
+
+- **Grid stat tile now stays visible when the grid is idle**: Previously, the Grid tile disappeared entirely whenever export and import were both 0 W — which happens during pure self-consumption (all solar goes directly to the house, no grid interaction). Users with a grid entity configured would see no grid tile at all, making it hard to tell whether the entity was wired up correctly. The tile now shows **Grid Idle / 0 W** whenever a grid entity is configured, regardless of current flow.
+
+---
+
+## v2.9.5 — Blur No More
+
+### Performance
+
+- **Massive GPU usage reduction**: The battery flow animation was consuming up to 50% GPU on modern hardware (including an RTX 3090) due to a `feGaussianBlur` SVG filter applied to a path that was simultaneously running a 60fps SMIL `stroke-dashoffset` animation. When a filter is combined with a SMIL animation, the browser cannot cache the rasterized output — it re-rasterizes the full element and re-runs the blur kernel on every frame, indefinitely. The filter has been removed; the animated dashed line and flow particles are fully preserved.
+
+- **Eliminated `transition: all` on interactive elements**: Five elements (`.battery-indicator`, `.grid-icon`, `.house-icon`, `.bar-segment`, `.ev-icon`) used `transition: all 0.3s ease`, which forces the browser to track and interpolate every CSS property simultaneously on any state change — including paint-heavy properties like `box-shadow` and `background`. Each is now scoped to only the properties that actually animate (`transform`, `background-color`, `border-color`, etc.).
+
+- **Battery SOC bar now uses GPU compositing**: The battery fill bar switched from `width: X%` (triggers layout reflow) to `transform: scaleX(X)` (GPU-composited, zero layout cost). The redundant `border-radius` on the fill was also removed — the parent container's `overflow: hidden` already handles clipping.
+
+---
+
+## v2.9.4 — Dressed to Console
+
+### Improvements
+
+- **Console badge restyled**: The browser console load message now uses a two-tone pill badge — orange filled label on the left, light orange version number on the right — matching the style used by other popular HA custom cards.
+
+- **EV icon changed to `mdi:car`**: Simpler, bolder silhouette that reads more clearly in white against the coloured circle backgrounds.
+
+### Bug Fixes
+
+- **`Power Unit` and `Show Power Unit` now display correctly in the config editor**: Both fields were missing from the editor's label map and rendered as raw field names (`power_unit`, `show_power_unit`).
+
+- **`ev_icon_color` now works correctly**: The colour picker returns an RGB array but it was being interpolated directly into CSS, producing invalid output. It now goes through the same `toColor()` conversion as `grid_icon_color` and defaults to white. The two ghost options `ev_icon_idle_color` and `ev_icon_charging_color`, which appeared in the editor but were never applied anywhere, have been removed.
+
+---
+
+## v2.9.3 — Green Light, Orange Light
+
+### Improvements
+
+- **EV charging icon now shows grid state colour**: While the EV is actively charging, the circle was always grey. It now mirrors the grid icon — orange when the grid is importing (you're drawing power from the grid to charge), green when net-zero or exporting (the car is running on solar/battery). The yellow glow remains in both states to indicate active charging.
+
+- **Config editor label polish**: The power unit dropdown now reads "Unit of measure" with options "kW — kilowatts" and "W — watts". The unit toggle reads "Show unit label (kW / W)" for clarity. The decimal places dropdown now has a proper "Power decimal places" label instead of displaying the raw field name.
+
+---
+
+## v2.9.2 — Watt's the Legend?
+
+### Bug Fixes
+
+- **Legend values now respect `power_unit` setting**: When `power_unit: W` was configured, legend values for Solar, Usage, Export, and Battery were still displayed in kW — only Import and EV happened to use the correct formatter. All six legend items now consistently use the `fmtPow()` helper, so the unit shown in the legend always matches the unit chosen in your card configuration.
+
+---
+
+## v2.9.1 — Polish & Fixes
+
+### Improvements
+
+- **EV icon: solid circle design**: The EV circle has been restyled to match the grid icon's solid filled-circle approach — the ring border is gone. States are now communicated via fill color: idle is a dimmed grey circle; when excess solar covers ≥50% of the EV charger capacity the circle turns orange; at ≥100% it turns green. When the EV is actively charging the circle stays grey with a yellow/orange outer glow to indicate live charging without conflicting with the solar-availability colors.
+
+### Bug Fixes
+
+- **Battery SOC entity not appearing in config UI**: The `battery_soc_entity` selector was filtering strictly by `device_class: "battery"`, which excluded valid sensors (e.g. from ESPHome, MQTT, or custom integrations) that report a percentage without a device class set. The selector now also includes any sensor with `unit_of_measurement: "%"`, so these entities show up in the dropdown without any changes to the sensor itself.
 
 ---
 
