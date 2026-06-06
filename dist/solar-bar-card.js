@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 2.9.8 - Community Pick: HA 2026.6 card picker suggestions
+// Version 2.9.9 - Three's Company: Consumer 3 as EV slot alternative
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -3174,7 +3174,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c SOLAR-BAR-CARD %c v2.9.8 ',
+  '%c SOLAR-BAR-CARD %c v2.9.9 ',
   'color:#fff;background:#f57c00;font-weight:700;padding:2px 4px;border-radius:4px 0 0 4px;',
   'color:#f57c00;background:#fff3e0;font-weight:700;padding:2px 4px;border-radius:0 4px 4px 0;'
 );

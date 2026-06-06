@@ -2,6 +2,12 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.9 — Three's Company
+
+- **Consumer 3 — EV slot alternative**: Users without an EV can now configure a third consumer tile (`consumer_3_entity`) that occupies the stats row slot previously reserved for EV. Works identically to Consumers 1 and 2 — optional display name, daily energy history sensor, idle visibility via `show_consumers_when_idle`, and a tap action. If `ev_charger_sensor` is also configured, EV takes priority and Consumer 3 is ignored, keeping the two features mutually exclusive. Resolves [#109](https://github.com/0xAHA/solar-bar-card/issues/109).
+
+---
+
 ## v2.9.8 — Community Pick
 
 ### New Features
