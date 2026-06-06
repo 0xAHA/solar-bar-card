@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v2.9.1 — Community Pick
+
+### New Features
+
+- **HA 2026.6 card picker suggestions**: Solar Bar Card now registers as a suggested card in the Home Assistant card picker. When a user selects a `sensor` entity with `device_class: power` or `device_class: energy` whose entity ID or friendly name contains a solar keyword (`solar`, `pv`, `photovoltaic`, `production`, or `panel`), Solar Bar Card appears in the "Community" suggestions section. Selecting it pre-fills `production_entity` with the chosen entity — ready to configure the rest via the visual editor.
+
+---
+
 ## v2.9.0 — Template Whisperer
 
 ### New Features
