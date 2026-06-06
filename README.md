@@ -21,7 +21,7 @@ A real-time solar power distribution card for Home Assistant. Visualize how your
 - **Color-coded power bar** — solar (green), grid import (red), grid export (blue), EV charging (orange), with unused capacity and forecast overlay
 - **Battery integration** — adjacent battery bar with proportional sizing, animated charge/discharge flow lines, and SOC indicator
 - **Stats tiles** — dynamic tile layout that adapts to your setup (solar, import/export, usage, battery, EV, additional consumers) with auto-scaling fonts on narrow screens
-- **Consumers** — EV charger and up to 2 additional power consumers (heat pump, pool, hot water, etc.) in a single config section
+- **Consumers** — EV charger and up to 2 additional power consumers (heat pump, pool, hot water, etc.), or swap the EV slot for a 3rd consumer if you don't have an EV
 - **Daily energy tracking** — connect daily kWh sensors for net import/export position with green/red indicator
 - **EV charger support** — automatic solar vs grid split, dedicated EV circle icon (solid fill: orange at >50% solar, green at >100%, charging glow when active), animated flow dots, potential capacity display
 - **Solar forecast** — Solcast auto-detection or custom forecast sensor with visual indicator
@@ -112,6 +112,9 @@ show_legend: true
 | `consumer_2_entity` | string | `null` | Power sensor for a second additional consumer. Same behavior as Consumer 1. |
 | `consumer_2_name` | string | `null` | Display name for Consumer 2 (e.g., "Hot Water", "AC"). |
 | `consumer_2_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 2. Shows daily total on tile when stats detail is enabled. |
+| `consumer_3_entity` | string | `null` | Power sensor for a third consumer — only shown when `ev_charger_sensor` is **not** configured. Mutually exclusive with EV: if both are set, EV takes priority. |
+| `consumer_3_name` | string | `null` | Display name for Consumer 3 (e.g., "Dryer", "Pool Heater"). Defaults to "Consumer 3" if not set. |
+| `consumer_3_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 3. Shows daily total on tile when stats detail is enabled. |
 | `show_ev_when_idle` | boolean | `false` | Always show EV tile even when not charging. When off (default), tile only appears while actively charging. |
 | `show_consumers_when_idle` | boolean | `false` | When enabled, consumer tiles always show (even at 0 kW), like the battery tile. When disabled, consumer tiles only appear while the consumer is actively drawing power (> 0 kW). |
 
@@ -217,6 +220,7 @@ Tap actions support `more-info` (default, shows entity history), `navigate` (go 
 | `tap_action_ev` | object | `{action: "more-info"}` | Tap action for EV elements (stats tile, legend). |
 | `tap_action_consumer_1` | object | `{action: "more-info"}` | Tap action for Consumer 1 stats tile. |
 | `tap_action_consumer_2` | object | `{action: "more-info"}` | Tap action for Consumer 2 stats tile. |
+| `tap_action_consumer_3` | object | `{action: "more-info"}` | Tap action for Consumer 3 stats tile. |
 
 **Note:** Language is automatically detected from your Home Assistant setting. Supported: English, German, French, Spanish, Italian, Dutch, Portuguese, Polish, Swedish, Danish, Norwegian. Custom labels always take priority over translations.
 
