@@ -212,6 +212,7 @@ Tap actions support `more-info` (default, shows entity history), `navigate` (go 
 
 | Option | Type | Default | Description |
 |---|---|---|---|
+| `tap_action_card` | object | `null` | Tap action for the card header title. Requires `show_header: true`. Use `navigate` to jump to a dedicated dashboard without affecting entity taps. |
 | `tap_action_solar` | object | `{action: "more-info"}` | Tap action for Solar elements (stats tile, bar segment, legend). |
 | `tap_action_import` | object | `{action: "more-info"}` | Tap action for Import elements (stats tile, grid icon when importing, legend). |
 | `tap_action_export` | object | `{action: "more-info"}` | Tap action for Export elements (stats tile, grid icon when exporting, legend). |
