@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-3.0.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-3.1.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -21,7 +21,7 @@ A real-time solar power distribution card for Home Assistant. Visualize how your
 - **Color-coded power bar** — solar (green), grid import (red), grid export (blue), EV charging (orange), with unused capacity and forecast overlay
 - **Battery integration** — adjacent battery bar with proportional sizing, animated charge/discharge flow lines, and SOC indicator
 - **Stats tiles** — dynamic tile layout that adapts to your setup (solar, import/export, usage, battery, EV, additional consumers) with auto-scaling fonts on narrow screens
-- **Consumers** — EV charger and up to 2 additional power consumers (heat pump, pool, hot water, etc.), or swap the EV slot for a 3rd consumer if you don't have an EV
+- **Unlimited consumers** — add as many power consumers as you need (heat pump, pool, hot water, AC, etc.) with automatic row wrapping (max 3 per row, configurable)
 - **Daily energy tracking** — connect daily kWh sensors for net import/export position with green/red indicator
 - **EV charger support** — automatic solar vs grid split, dedicated EV circle icon (solid fill: orange at >50% solar, green at >100%, charging glow when active), animated flow dots, potential capacity display
 - **Solar forecast** — Solcast auto-detection or custom forecast sensor with visual indicator
@@ -106,17 +106,55 @@ show_legend: true
 | `ev_icon_color` | color | `null` | Color of the car icon symbol inside the EV circle. Defaults to the theme's primary text color for idle/ready states, and white when charging (solid fill). Set this when the default doesn't contrast well against your circle color — e.g., `"black"` for light-colored EV palette themes. |
 | `car_charger_load` | number | `0` | EV charger capacity in kW. When set, shows a grey dashed bar segment for potential/unused charging capacity. |
 | `ev_history_entity` | string | `null` | Daily EV energy sensor (kWh). Shows daily total on the EV stats tile when stats detail is enabled. |
-| `consumer_1_entity` | string | `null` | Power sensor for an additional consumer (e.g., heat pump, pool heater, hot water). Appears as a stats tile only — no bar segment. |
-| `consumer_1_name` | string | `null` | Display name for Consumer 1 (e.g., "Heat Pump", "Pool"). Defaults to "Consumer 1" if not set. |
-| `consumer_1_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 1. Shows daily total on tile when stats detail is enabled. |
-| `consumer_2_entity` | string | `null` | Power sensor for a second additional consumer. Same behavior as Consumer 1. |
-| `consumer_2_name` | string | `null` | Display name for Consumer 2 (e.g., "Hot Water", "AC"). |
-| `consumer_2_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 2. Shows daily total on tile when stats detail is enabled. |
-| `consumer_3_entity` | string | `null` | Power sensor for a third consumer — only shown when `ev_charger_sensor` is **not** configured. Mutually exclusive with EV: if both are set, EV takes priority. |
-| `consumer_3_name` | string | `null` | Display name for Consumer 3 (e.g., "Dryer", "Pool Heater"). Defaults to "Consumer 3" if not set. |
-| `consumer_3_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 3. Shows daily total on tile when stats detail is enabled. |
+| `consumers` | array | `[]` | **Unlimited consumers array.** Each consumer has `entity`, `name`, `history_entity`, and optional `icon`. Tiles are displayed in rows of max 3 (configurable). See example below. |
+| `consumers_per_row` | number | `3` | Maximum number of consumer tiles per row. Extra consumers wrap to the next row. |
+| `consumer_1_entity` | string | `null` | *(Legacy)* Power sensor for an additional consumer. Prefer using the `consumers` array for new setups. |
+| `consumer_1_name` | string | `null` | *(Legacy)* Display name for Consumer 1. |
+| `consumer_1_history_entity` | string | `null` | *(Legacy)* Daily energy sensor (kWh) for Consumer 1. |
+| `consumer_2_entity` | string | `null` | *(Legacy)* Power sensor for a second additional consumer. |
+| `consumer_2_name` | string | `null` | *(Legacy)* Display name for Consumer 2. |
+| `consumer_2_history_entity` | string | `null` | *(Legacy)* Daily energy sensor (kWh) for Consumer 2. |
+| `consumer_3_entity` | string | `null` | *(Legacy)* Power sensor for a third consumer — only shown when `ev_charger_sensor` is **not** configured. |
+| `consumer_3_name` | string | `null` | *(Legacy)* Display name for Consumer 3. |
+| `consumer_3_history_entity` | string | `null` | *(Legacy)* Daily energy sensor (kWh) for Consumer 3. |
 | `show_ev_when_idle` | boolean | `false` | Always show EV tile even when not charging. When off (default), tile only appears while actively charging. |
 | `show_consumers_when_idle` | boolean | `false` | When enabled, consumer tiles always show (even at 0 kW), like the battery tile. When disabled, consumer tiles only appear while the consumer is actively drawing power (> 0 kW). |
+
+**Unlimited consumers example:**
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+export_entity: sensor.grid_export_power
+show_stats: true
+consumers_per_row: 3
+consumers:
+  - entity: sensor.heat_pump_power
+    name: Heat Pump
+    history_entity: sensor.heat_pump_daily_energy
+    icon: mdi:heat-pump
+  - entity: sensor.pool_heater_power
+    name: Pool Heater
+    history_entity: sensor.pool_heater_daily_energy
+    icon: mdi:pool
+  - entity: sensor.hot_water_power
+    name: Hot Water
+    history_entity: sensor.hot_water_daily_energy
+    icon: mdi:water-boiler
+  - entity: sensor.airco_power
+    name: Airco
+    icon: mdi:air-conditioner
+  - entity: sensor.dryer_power
+    name: Dryer
+    icon: mdi:tumble-dryer
+  - entity: sensor.dishwasher_power
+    name: Dishwasher
+    icon: mdi:dishwasher
+```
+
+This will display consumers in 2 rows of 3 tiles each below the main stats row.
 
 ### Solar Forecast
 

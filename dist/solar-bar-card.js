@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 3.0.0 - Card tap action for header navigation
+// Version 3.1.0 - Unlimited consumers with dynamic row layout
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -22,6 +22,9 @@ class SolarBarCard extends HTMLElement {
     }
 
     // Check if any relevant entity states have changed
+    // Build list of all consumer entities (legacy + new array format)
+    const allConsumerEntities = this._getAllConsumerEntities();
+    
     const relevantEntities = [
       this.config.production_entity,
       this.config.self_consumption_entity,
@@ -42,13 +45,9 @@ class SolarBarCard extends HTMLElement {
       this.config.export_history_entity,
       this.config.header_sensor_1?.entity,
       this.config.header_sensor_2?.entity,
-      this.config.consumer_1_entity,
-      this.config.consumer_2_entity,
-      this.config.consumer_3_entity,
       this.config.ev_history_entity,
-      this.config.consumer_1_history_entity,
-      this.config.consumer_2_history_entity,
-      this.config.consumer_3_history_entity
+      // Add all consumer entities dynamically
+      ...allConsumerEntities.flatMap(c => [c.entity, c.history_entity].filter(Boolean))
     ].filter(Boolean);
 
     const shouldUpdate = relevantEntities.some(
@@ -200,16 +199,22 @@ class SolarBarCard extends HTMLElement {
       // Stats detail position: 'below' (3rd row) or 'inline' (slash-separated on value row)
       stats_detail_position: 'below',
       // Additional consumer entities (tiles only, no bar segments)
+      // Legacy support for consumer_1/2/3 - prefer using consumers array
       consumer_1_entity: null,
       consumer_1_name: null,
       consumer_2_entity: null,
       consumer_2_name: null,
       consumer_3_entity: null,
       consumer_3_name: null,
+      // New: Array of consumers for unlimited consumer support
+      // Format: [{ entity: 'sensor.x', name: 'Name', history_entity: 'sensor.x_daily' }, ...]
+      consumers: [],
+      // Max consumers per row in stats tiles (default 3)
+      consumers_per_row: 3,
       show_consumers_when_idle: false,
       // EV idle visibility
       show_ev_when_idle: false,
-      // History entities for EV and consumers
+      // History entities for EV and consumers (legacy)
       ev_history_entity: null,
       consumer_1_history_entity: null,
       consumer_2_history_entity: null,
@@ -229,6 +234,55 @@ class SolarBarCard extends HTMLElement {
     // Re-subscribe label templates whenever config changes
     if (this._hass) this._setupLabelTemplates();
     this.updateCard();
+  }
+
+  // Get all consumers merged from legacy (consumer_1/2/3) and new array format
+  _getAllConsumerEntities() {
+    const consumers = [];
+    
+    // Add legacy consumers (consumer_1, consumer_2, consumer_3)
+    if (this.config.consumer_1_entity) {
+      consumers.push({
+        entity: this.config.consumer_1_entity,
+        name: this.config.consumer_1_name || 'Consumer 1',
+        history_entity: this.config.consumer_1_history_entity,
+        action_key: 'consumer_1'
+      });
+    }
+    if (this.config.consumer_2_entity) {
+      consumers.push({
+        entity: this.config.consumer_2_entity,
+        name: this.config.consumer_2_name || 'Consumer 2',
+        history_entity: this.config.consumer_2_history_entity,
+        action_key: 'consumer_2'
+      });
+    }
+    if (this.config.consumer_3_entity && !this.config.ev_charger_sensor) {
+      // Consumer 3 only active when EV is not configured (legacy behavior)
+      consumers.push({
+        entity: this.config.consumer_3_entity,
+        name: this.config.consumer_3_name || 'Consumer 3',
+        history_entity: this.config.consumer_3_history_entity,
+        action_key: 'consumer_3'
+      });
+    }
+    
+    // Add consumers from new array format
+    if (Array.isArray(this.config.consumers)) {
+      this.config.consumers.forEach((consumer, index) => {
+        if (consumer && consumer.entity) {
+          consumers.push({
+            entity: consumer.entity,
+            name: consumer.name || `Consumer ${consumers.length + 1}`,
+            history_entity: consumer.history_entity || null,
+            icon: consumer.icon || null,
+            action_key: `consumer_${index + 4}` // Start from 4 to not conflict with legacy
+          });
+        }
+      });
+    }
+    
+    return consumers;
   }
 
   getConfig() {
@@ -2070,11 +2124,11 @@ class SolarBarCard extends HTMLElement {
           const exportDetailText = hasHistoryData && netPosition !== null ? `${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh` : hasHistoryData && dailyExport !== null ? `+${dailyExport.toFixed(decimal_places)} kWh` : null;
           const importDetailText = hasHistoryData && netPosition !== null ? `${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh` : hasHistoryData && dailyImport !== null ? `-${dailyImport.toFixed(decimal_places)} kWh` : null;
 
-          // Resolve history values for EV and consumers
+          // Resolve history values for EV
           const evDailyEnergy = ev_history_entity ? this.getSensorValue(ev_history_entity) : null;
-          const c1DailyEnergy = consumer_1_history_entity ? this.getSensorValue(consumer_1_history_entity) : null;
-          const c2DailyEnergy = consumer_2_history_entity ? this.getSensorValue(consumer_2_history_entity) : null;
-          const c3DailyEnergy = consumer_3_history_entity ? this.getSensorValue(consumer_3_history_entity) : null;
+          
+          // Get all consumers (legacy + new array format)
+          const allConsumers = this._getAllConsumerEntities();
 
           // Core tiles (always present): Solar, Usage, Export/Import
           const coreTiles = [
@@ -2138,52 +2192,43 @@ class SolarBarCard extends HTMLElement {
               </div>
             `);
           }
-          // Additional consumer tiles
-          if (consumer_1_entity) {
-            const c1Power = this.getSensorValue(consumer_1_entity) || 0;
-            if (c1Power > 0 || show_consumers_when_idle) {
-              const c1DetailText = c1DailyEnergy !== null ? `${c1DailyEnergy.toFixed(decimal_places)} kWh` : null;
+          
+          // Dynamic consumer tiles - supports unlimited consumers
+          const consumersPerRow = this.config.consumers_per_row || 3;
+          allConsumers.forEach((consumer) => {
+            const power = this.getSensorValue(consumer.entity) || 0;
+            if (power > 0 || show_consumers_when_idle) {
+              const dailyEnergy = consumer.history_entity ? this.getSensorValue(consumer.history_entity) : null;
+              const detailText = dailyEnergy !== null ? `${dailyEnergy.toFixed(decimal_places)} kWh` : null;
+              const iconHtml = consumer.icon ? `<ha-icon icon="${consumer.icon}" style="--mdc-icon-size: 14px; margin-right: 4px;"></ha-icon>` : '';
               extraTiles.push(`
-                <div class="stat" data-entity="${consumer_1_entity}" data-action-key="consumer_1" title="${this.getLabel('click_history')}">
-                  <div class="stat-label">${consumer_1_name || 'Consumer 1'}</div>
-                  <div class="stat-value">${fmtPow(c1Power)}${isInline ? renderDetail(c1DetailText) : ''}</div>
-                  ${!isInline ? renderDetail(c1DetailText) : ''}
+                <div class="stat" data-entity="${consumer.entity}" data-action-key="${consumer.action_key}" title="${this.getLabel('click_history')}">
+                  <div class="stat-label">${iconHtml}${consumer.name}</div>
+                  <div class="stat-value">${fmtPow(power)}${isInline ? renderDetail(detailText) : ''}</div>
+                  ${!isInline ? renderDetail(detailText) : ''}
                 </div>
               `);
             }
-          }
-          if (consumer_2_entity) {
-            const c2Power = this.getSensorValue(consumer_2_entity) || 0;
-            if (c2Power > 0 || show_consumers_when_idle) {
-              const c2DetailText = c2DailyEnergy !== null ? `${c2DailyEnergy.toFixed(decimal_places)} kWh` : null;
-              extraTiles.push(`
-                <div class="stat" data-entity="${consumer_2_entity}" data-action-key="consumer_2" title="${this.getLabel('click_history')}">
-                  <div class="stat-label">${consumer_2_name || 'Consumer 2'}</div>
-                  <div class="stat-value">${fmtPow(c2Power)}${isInline ? renderDetail(c2DetailText) : ''}</div>
-                  ${!isInline ? renderDetail(c2DetailText) : ''}
-                </div>
-              `);
-            }
-          }
-          if (consumer_3_entity && !ev_charger_sensor) {
-            const c3Power = this.getSensorValue(consumer_3_entity) || 0;
-            if (c3Power > 0 || show_consumers_when_idle) {
-              const c3DetailText = c3DailyEnergy !== null ? `${c3DailyEnergy.toFixed(decimal_places)} kWh` : null;
-              extraTiles.push(`
-                <div class="stat" data-entity="${consumer_3_entity}" data-action-key="consumer_3" title="${this.getLabel('click_history')}">
-                  <div class="stat-label">${consumer_3_name || 'Consumer 3'}</div>
-                  <div class="stat-value">${fmtPow(c3Power)}${isInline ? renderDetail(c3DetailText) : ''}</div>
-                  ${!isInline ? renderDetail(c3DetailText) : ''}
-                </div>
-              `);
-            }
-          }
+          });
 
-          // Layout: ≤1 extra → single row; 2+ extras → two rows
-          if (extraTiles.length <= 1) {
+          // Layout: core tiles in first row, extra tiles in subsequent rows (max consumersPerRow per row)
+          const buildRows = (tiles, perRow) => {
+            const rows = [];
+            for (let i = 0; i < tiles.length; i += perRow) {
+              rows.push(tiles.slice(i, i + perRow));
+            }
+            return rows;
+          };
+          
+          if (extraTiles.length === 0) {
+            return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}</div></div>`;
+          } else if (extraTiles.length <= 1) {
             return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}${extraTiles.join('')}</div></div>`;
           } else {
-            return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}</div><div class="power-stats">${extraTiles.join('')}</div></div>`;
+            // Multiple extra tiles: core in first row, extras in subsequent rows (max consumersPerRow per row)
+            const extraRows = buildRows(extraTiles, consumersPerRow);
+            const extraRowsHtml = extraRows.map(row => `<div class="power-stats">${row.join('')}</div>`).join('');
+            return `<div class="power-stats-container"><div class="power-stats">${coreTiles.join('')}</div>${extraRowsHtml}</div>`;
           }
         })() : ''}
 
