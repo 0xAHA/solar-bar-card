@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.0.1 — Double Booked
+
+### Bug Fixes
+
+- **"Usage" figure now consistent across the stat tile, house icon, and legend**: When an EV charger was configured, the Usage stat tile at the top of the card correctly showed house-only consumption (either from your `self_consumption_entity`, or the physics-derived total with EV subtracted), but the bar's house icon tooltip and the legend's "Usage" entry always showed the full physics-based `solar − export + import + battery` total — which already includes EV charging. Since EV charging is also broken out as its own tile/segment, this made the Usage value look inflated and inconsistent between the top of the card and the bar/legend below, especially for users whose `self_consumption_entity` is a helper that nets out EV power. All three now derive from the same value, and EV usage is no longer double-counted under the "Usage" label. The bar's separate "Total usage" scale marker (used with `show_usage_indicator`) is intentionally unchanged, as it's meant to reflect whole-home draw including EV. Resolves [#112](https://github.com/0xAHA/solar-bar-card/issues/112).
+
+---
+
 ## v3.0.0 — Tap to Navigate
 
 - **Card-level tap action (`tap_action_card`)**: The header title is now clickable when `tap_action_card` is configured. Set it to `navigate` to jump to a dedicated solar dashboard without interfering with the individual entity tap actions on stats tiles, bar segments, or legend items. Requires `show_header: true`. Resolves [#110](https://github.com/0xAHA/solar-bar-card/issues/110).
