@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.0.2 — No More SMILing (pre-release)
+
+### Bug Fixes
+
+- **Flow dots migrated from SVG SMIL to plain JS animation**: The moving particles on the energy-flow lines and battery-flow line were positioned using SVG SMIL (`animateMotion` + `mpath`), which some mobile WebViews render inconsistently or not at all — the dots would simply never appear, while the rest of the card worked normally. They're now positioned every frame via `getPointAtLength()` + `requestAnimationFrame`, which behaves identically across browsers instead of depending on each engine's SMIL implementation. Also gates dot creation on `prefers-reduced-motion` directly, since that preference previously only stopped the CSS-based battery dash line, not the SMIL dots. Investigating [#114](https://github.com/0xAHA/solar-bar-card/issues/114) — marked pre-release pending confirmation from the reporter that this resolves it.
+
+---
+
 ## v3.0.1 — Double Booked
 
 ### Bug Fixes
