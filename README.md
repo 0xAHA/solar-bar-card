@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-3.0.2-blue.svg)
+![Version](https://img.shields.io/badge/Version-3.0.3-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -116,6 +116,7 @@ show_legend: true
 | `consumer_3_name` | string | `null` | Display name for Consumer 3 (e.g., "Dryer", "Pool Heater"). Defaults to "Consumer 3" if not set. |
 | `consumer_3_history_entity` | string | `null` | Daily energy sensor (kWh) for Consumer 3. Shows daily total on tile when stats detail is enabled. |
 | `show_ev_when_idle` | boolean | `false` | Always show EV tile even when not charging. When off (default), tile only appears while actively charging. |
+| `show_ev_potential_when_idle` | boolean | `true` | Show the grey dashed EV potential capacity segment on the bar while the EV charger is idle (default on, preserving existing behavior). Turn off to hide it whenever `ev_charger_sensor` reports 0 kW, keeping the bar focused on live power flows. |
 | `show_consumers_when_idle` | boolean | `false` | When enabled, consumer tiles always show (even at 0 kW), like the battery tile. When disabled, consumer tiles only appear while the consumer is actively drawing power (> 0 kW). |
 
 ### Solar Forecast
