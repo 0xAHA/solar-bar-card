@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.0.3 — Out of Sight, Out of Mind
+
+### New Features
+
+- **`show_ev_potential_when_idle` config option**: The grey dashed "EV potential" bar segment (driven by `car_charger_load`) was always rendered whenever the EV charger wasn't actively charging — by design, it's meant to give an at-a-glance read on how much of the charger's capacity current solar output could cover. For setups with a large charger capacity relative to inverter size, that static block can dominate the bar and add visual noise when the car simply isn't plugged in. This new boolean (default `true`, preserving existing behavior) lets you hide the segment entirely whenever `ev_charger_sensor` reports 0 kW, keeping the bar focused on live power flow; it reappears the moment charging starts. Resolves [#115](https://github.com/0xAHA/solar-bar-card/issues/115).
+
+---
+
 ## v3.0.2 — No More SMILing (pre-release)
 
 ### Bug Fixes
