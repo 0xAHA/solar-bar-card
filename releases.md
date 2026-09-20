@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.0.4 — Borrowed Sunshine
+
+### Bug Fixes
+
+- **Battery-to-grid export no longer shows up as solar**: The solar bar's export segment (and the "solar → grid" flow animation) was built straight from the raw grid export sensor, with no check against how much solar was actually being produced. On systems where the battery can discharge directly to the grid (export/arbitrage setups), that meant exported power sourced entirely or partly from the battery was rendered as if solar produced it — the solar bar could show more power flowing out than `production_entity` was reporting, and the flow-line origin traced back to a solar icon that wasn't the real source. The solar bar's export segment is now capped at what solar actually has left over after covering home, EV, and battery charging — the bar always sums to actual solar production, which was the card's original intent all along. Whatever export isn't accounted for by solar is attributed to the battery instead: it's called out separately, as a thin export-colored strip along the battery bar (sized to the exported share of current battery discharge), in the battery bar's tooltip, in a new "Battery Export" legend entry, and as its own battery→grid flow animation when `show_energy_flow` is enabled. Resolves [#117](https://github.com/0xAHA/solar-bar-card/issues/117).
+
+---
+
 ## v3.0.3 — Out of Sight, Out of Mind
 
 ### New Features

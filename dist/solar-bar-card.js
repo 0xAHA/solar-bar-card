@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 3.0.3 - Option to hide EV potential bar segment when charger is idle
+// Version 3.0.4 - Solar bar now excludes battery-sourced export from solar attribution
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -821,15 +821,23 @@ class SolarBarCard extends HTMLElement {
     const solarAvailableForBattery = Math.max(0, solarProduction - solarToLoad);
     const solarToBattery = batteryCharging ? Math.min(batteryPower, solarAvailableForBattery) : 0;
 
+    // Export can be solar-sourced, battery-sourced (battery discharging to grid), or both.
+    // The solar bar must never claim more than solarProduction actually produced, so cap
+    // its export segment at whatever solar has left over after home/EV/battery-charge;
+    // whatever export remains unaccounted for is coming from the battery.
+    const solarSurplus = Math.max(0, solarProduction - solarToHome - solarToEv - solarToBattery);
+    const solarToGridExport = Math.min(exportPower, solarSurplus);
+    const batteryToGrid = batteryDischarging ? Math.max(0, exportPower - solarToGridExport) : 0;
+
     // Calculate unused capacity - must account for all segments being shown in the bar
-    // Segments: solarToHome + solarToEv + solarToBattery + exportPower + evDisplayPower + unused = inverter_size
-    const unusedCapacityKw = Math.max(0, inverter_size - solarToHome - solarToEv - solarToBattery - exportPower - evDisplayPower);
+    // Segments: solarToHome + solarToEv + solarToBattery + solarToGridExport + evDisplayPower + unused = inverter_size
+    const unusedCapacityKw = Math.max(0, inverter_size - solarToHome - solarToEv - solarToBattery - solarToGridExport - evDisplayPower);
 
     // Calculate percentages for bar segments
     // Solar bar now only shows solar-sourced power (home, EV, battery charging, export, unused)
     const solarHomePercent = (solarToHome / inverter_size) * 100;
     const solarEvPercent = (solarToEv / inverter_size) * 100;
-    const exportPercent = (exportPower / inverter_size) * 100;
+    const exportPercent = (solarToGridExport / inverter_size) * 100;
     const evPotentialPercent = (evDisplayPower / inverter_size) * 100;
     const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
     const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
@@ -1103,15 +1111,17 @@ class SolarBarCard extends HTMLElement {
 
       // Flow state flags
       const solarToHomeFlow = hasSolar && totalHouseConsumption > 0 && show_house_icon;
-      const exportFlow = hasSolar && exportPower > flowThreshold && gridX !== null;
+      const exportFlow = hasSolar && solarToGridExport > flowThreshold && gridX !== null;
       const batteryChargeFlow = hasSolar && batteryCharging && battX !== null;
-      const batteryDischargeFlow = batteryDischarging && battX !== null && show_house_icon;
+      const batteryToHouseAmount = Math.max(0, batteryToLoad - batteryToGrid);
+      const batteryDischargeFlow = batteryDischarging && batteryToHouseAmount > flowThreshold && battX !== null && show_house_icon;
+      const batteryToGridFlow = batteryDischarging && batteryToGrid > flowThreshold && battX !== null && gridX !== null;
       const gridImportFlow = hasGridImport && gridX !== null && show_house_icon;
       const solarToEvFlow = hasSolar && solarToEv > flowThreshold && evX !== null;
       const gridToEvFlow = gridToEv > flowThreshold && evX !== null && gridX !== null;
 
       const leftBusActive = solarToHomeFlow || batteryDischargeFlow || gridImportFlow || batteryChargeFlow || solarToEvFlow || gridToEvFlow;
-      const rightBusActive = exportFlow || gridImportFlow;
+      const rightBusActive = exportFlow || gridImportFlow || batteryToGridFlow;
 
       // ── Static bus infrastructure (single neutral dashed line) ──
       // Bus lines are drawn based on element *presence*, not active flow —
@@ -1175,7 +1185,7 @@ class SolarBarCard extends HTMLElement {
         energyFlowPaths.push({
           path: `M ${solarX} ${barBottom} L ${solarX} ${busY - ry} Q ${solarX} ${busY} ${solarX + rx} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`,
           color: colors.export, id: 'solarToGrid',
-          power: exportPower, hDist: Math.abs(solarX - gridX)
+          power: solarToGridExport, hDist: Math.abs(solarX - gridX)
         });
       }
 
@@ -1193,7 +1203,16 @@ class SolarBarCard extends HTMLElement {
         energyFlowPaths.push({
           path: `M ${battX} ${barBottom} L ${battX} ${busY} L ${houseX + rx} ${busY} Q ${houseX} ${busY} ${houseX} ${busY - ry} L ${houseX} ${barBottom}`,
           color: colors.battery_discharge, id: 'battToHouse',
-          power: batteryToLoad, hDist: Math.abs(battX - houseX)
+          power: batteryToHouseAmount, hDist: Math.abs(battX - houseX)
+        });
+      }
+
+      // Battery → Grid (discharging to export): down stub → right on bus → curve up → grid
+      if (batteryToGridFlow) {
+        energyFlowPaths.push({
+          path: `M ${battX} ${barBottom} L ${battX} ${busY} L ${gridX - rx} ${busY} Q ${gridX} ${busY} ${gridX} ${busY - ry} L ${gridX} ${barBottom}`,
+          color: colors.battery_discharge, id: 'battToGrid',
+          power: batteryToGrid, hDist: Math.abs(battX - gridX)
         });
       }
 
@@ -1246,7 +1265,7 @@ class SolarBarCard extends HTMLElement {
     // "grid" (right-side): export, import — rebuild only on grid direction change
     // "ev": EV flows — independent of grid state
     const stableFlows = energyFlowPaths.filter(f => ['solarToHouse', 'solarToBatt', 'battToHouse'].includes(f.id));
-    const gridFlows = energyFlowPaths.filter(f => ['solarToGrid', 'gridToHouse'].includes(f.id));
+    const gridFlows = energyFlowPaths.filter(f => ['solarToGrid', 'gridToHouse', 'battToGrid'].includes(f.id));
     const evFlows = energyFlowPaths.filter(f => ['solarToEv', 'gridToEv'].includes(f.id));
 
     const dotDims = `${dotRx.toFixed(1)}:${dotRy}`;
@@ -1614,6 +1633,15 @@ class SolarBarCard extends HTMLElement {
           background: linear-gradient(90deg, var(--battery-bar-color), var(--battery-bar-color));
           transform-origin: left center;
           transition: transform 0.3s ease;
+        }
+
+        .battery-export-indicator {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 4px;
+          background: var(--solar-export-color);
+          z-index: 6;
         }
 
         .bar-overlay-label {
@@ -2234,8 +2262,9 @@ class SolarBarCard extends HTMLElement {
                 </div>
               ` : ''}
               ${hasBattery && show_battery_indicator ? `
-                <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" data-action-key="battery" title="${this.getLabel('click_history')}">
+                <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" data-action-key="battery" title="${this.getLabel('battery')}: ${fmtPow(Math.abs(batteryPower))}${batteryToGrid > 0.05 ? ` (${fmtPow(batteryToGrid)} ${this.getLabel('export')})` : ''} - ${this.getLabel('click_history')}">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="transform: scaleX(${(batterySOC / 100).toFixed(4)})"></div>
+                  ${batteryToGrid > 0.05 ? `<div class="battery-export-indicator" style="width: ${Math.min(100, (batteryToGrid / batteryToLoad) * 100)}%" title="${this.getLabel('battery')} ${this.getLabel('export')}: ${fmtPow(batteryToGrid)}"></div>` : ''}
                   ${shouldShowSegmentText(batteryBarWidth, `${batterySOC.toFixed(battery_soc_decimal_places)} %`, 100) ? `<div class="bar-overlay-label">${batterySOC.toFixed(battery_soc_decimal_places)} %</div>` : ''}
                 </div>
               ` : ''}
@@ -2244,7 +2273,7 @@ class SolarBarCard extends HTMLElement {
                   ${solarHomePercent > 0 ? `<div class="bar-segment solar-home-segment" style="width: ${solarHomePercent}%">${show_bar_values && solarToHome > 0.1 && shouldShowSegmentText(solarHomePercent, segmentText(segment_text_solar_home, solarToHome, 'solar', solarHomePercent) || `${fmtPow(solarToHome)}`, powerBarWidth) ? (segmentText(segment_text_solar_home, solarToHome, 'solar', solarHomePercent) || `${fmtPow(solarToHome)}`) : ''}</div>` : ''}
                   ${solarEvPercent > 0 ? `<div class="bar-segment solar-ev-segment" style="width: ${solarEvPercent}%">${show_bar_values && solarToEv > 0.1 && shouldShowSegmentText(solarEvPercent, segmentText(segment_text_solar_ev, solarToEv, 'ev', solarEvPercent) || `${fmtPow(solarToEv)} ${this.getLabel('ev')}`, powerBarWidth) ? (segmentText(segment_text_solar_ev, solarToEv, 'ev', solarEvPercent) || `${fmtPow(solarToEv)} ${this.getLabel('ev')}`) : ''}</div>` : ''}
                   ${batteryChargePercent > 0 ? `<div class="bar-segment battery-charge-segment" style="width: ${batteryChargePercent}%">${show_bar_values && solarToBattery > 0.1 && shouldShowSegmentText(batteryChargePercent, segmentText(segment_text_battery_charge, solarToBattery, 'battery', batteryChargePercent) || `${fmtPow(solarToBattery)} ${this.getLabel('battery')}`, powerBarWidth) ? (segmentText(segment_text_battery_charge, solarToBattery, 'battery', batteryChargePercent) || `${fmtPow(solarToBattery)} ${this.getLabel('battery')}`) : ''}</div>` : ''}
-                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, segmentText(segment_text_export, exportPower, 'export', exportPercent) || `${fmtPow(exportPower)} ${this.getLabel('export')}`, powerBarWidth) ? (segmentText(segment_text_export, exportPower, 'export', exportPercent) || `${fmtPow(exportPower)} ${this.getLabel('export')}`) : ''}</div>` : ''}
+                  ${exportPercent > 0 ? `<div class="bar-segment export-segment" style="width: ${exportPercent}%">${show_bar_values && shouldShowSegmentText(exportPercent, segmentText(segment_text_export, solarToGridExport, 'export', exportPercent) || `${fmtPow(solarToGridExport)} ${this.getLabel('export')}`, powerBarWidth) ? (segmentText(segment_text_export, solarToGridExport, 'export', exportPercent) || `${fmtPow(solarToGridExport)} ${this.getLabel('export')}`) : ''}</div>` : ''}
                   ${evPotentialPercent > 0 ? `<div class="bar-segment car-charger-segment" style="width: ${evPotentialPercent}%">${show_bar_values && shouldShowSegmentText(evPotentialPercent, segmentText(segment_text_ev_potential, car_charger_load, 'ev', evPotentialPercent) || `${fmtPow(car_charger_load)} ${this.getLabel('ev')}`, powerBarWidth) ? (segmentText(segment_text_ev_potential, car_charger_load, 'ev', evPotentialPercent) || `${fmtPow(car_charger_load)} ${this.getLabel('ev')}`) : ''}</div>` : ''}
                   ${unusedPercent > 0 ? `<div class="bar-segment unused-segment" style="width: ${unusedPercent}%"></div>` : ''}
                 </div>
@@ -2312,10 +2341,16 @@ class SolarBarCard extends HTMLElement {
                   <span>${this.getLabel('usage')}${show_legend_values ? ` ${fmtPow(houseUsageDisplay)}` : ''}</span>
                 </div>
               ` : ''}
-              ${exportPower > 0 ? `
+              ${solarToGridExport > 0 ? `
                 <div class="legend-item" data-entity="${grid_power_entity || export_entity}" data-action-key="export" title="${this.getLabel('click_history')}">
                   <div class="legend-color export-color"></div>
-                  <span>${this.getLabel('export')}${show_legend_values ? ` ${fmtPow(exportPower)}` : ''}</span>
+                  <span>${this.getLabel('export')}${show_legend_values ? ` ${fmtPow(solarToGridExport)}` : ''}</span>
+                </div>
+              ` : ''}
+              ${batteryToGrid > 0.05 ? `
+                <div class="legend-item" data-entity="${grid_power_entity || export_entity}" data-action-key="export" title="${this.getLabel('click_history')}">
+                  <div class="legend-color export-color"></div>
+                  <span>${this.getLabel('battery')} ${this.getLabel('export')}${show_legend_values ? ` ${fmtPow(batteryToGrid)}` : ''}</span>
                 </div>
               ` : ''}
               ${totalGridImport > 0 ? `
@@ -3350,7 +3385,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c SOLAR-BAR-CARD %c v3.0.3 ',
+  '%c SOLAR-BAR-CARD %c v3.0.4 ',
   'color:#fff;background:#f57c00;font-weight:700;padding:2px 4px;border-radius:4px 0 0 4px;',
   'color:#f57c00;background:#fff3e0;font-weight:700;padding:2px 4px;border-radius:0 4px 4px 0;'
 );
