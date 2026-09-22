@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 3.0.4 - Solar bar now excludes battery-sourced export from solar attribution
+// Version 3.0.5 - Remove battery-export bar strip that misread as a state-of-charge indicator
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -1635,15 +1635,6 @@ class SolarBarCard extends HTMLElement {
           transition: transform 0.3s ease;
         }
 
-        .battery-export-indicator {
-          position: absolute;
-          top: 0;
-          left: 0;
-          height: 4px;
-          background: var(--solar-export-color);
-          z-index: 6;
-        }
-
         .bar-overlay-label {
           position: absolute;
           top: 50%;
@@ -2264,7 +2255,6 @@ class SolarBarCard extends HTMLElement {
               ${hasBattery && show_battery_indicator ? `
                 <div class="battery-bar-wrapper ${isIdle ? 'standby' : ''}" style="width: ${batteryBarWidth}%" data-entity="${battery_soc_entity}" data-action-key="battery" title="${this.getLabel('battery')}: ${fmtPow(Math.abs(batteryPower))}${batteryToGrid > 0.05 ? ` (${fmtPow(batteryToGrid)} ${this.getLabel('export')})` : ''} - ${this.getLabel('click_history')}">
                   <div class="battery-bar-fill ${batteryCharging ? 'charging' : batteryDischarging ? 'discharging' : batterySOC < 20 ? 'low' : batterySOC < 50 ? 'medium' : ''}" style="transform: scaleX(${(batterySOC / 100).toFixed(4)})"></div>
-                  ${batteryToGrid > 0.05 ? `<div class="battery-export-indicator" style="width: ${Math.min(100, (batteryToGrid / batteryToLoad) * 100)}%" title="${this.getLabel('battery')} ${this.getLabel('export')}: ${fmtPow(batteryToGrid)}"></div>` : ''}
                   ${shouldShowSegmentText(batteryBarWidth, `${batterySOC.toFixed(battery_soc_decimal_places)} %`, 100) ? `<div class="bar-overlay-label">${batterySOC.toFixed(battery_soc_decimal_places)} %</div>` : ''}
                 </div>
               ` : ''}
@@ -3385,7 +3375,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c SOLAR-BAR-CARD %c v3.0.4 ',
+  '%c SOLAR-BAR-CARD %c v3.0.5 ',
   'color:#fff;background:#f57c00;font-weight:700;padding:2px 4px;border-radius:4px 0 0 4px;',
   'color:#f57c00;background:#fff3e0;font-weight:700;padding:2px 4px;border-radius:0 4px 4px 0;'
 );
