@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-3.0.4-blue.svg)
+![Version](https://img.shields.io/badge/Version-3.0.5-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -242,7 +242,7 @@ Tap actions support `more-info` (default, shows entity history), `navigate` (go 
 
 The grid icon changes dynamically: green when exporting, orange when importing. When solar < consumption, a dashed outline shows total demand while the solid fill shows actual solar contribution.
 
-The solar bar always sums to actual solar production — it never shows more than `production_entity` is currently reporting. If your battery discharges straight to the grid (common with export/arbitrage setups), that power isn't solar and won't inflate the solar bar's export segment. Instead, a thin export-colored strip appears along the top of the battery bar, sized to the exported share of the current battery discharge, with the battery bar's tooltip and the legend both breaking out the "Battery Export" amount separately from solar export.
+The solar bar always sums to actual solar production — it never shows more than `production_entity` is currently reporting. If your battery discharges straight to the grid (common with export/arbitrage setups), that power isn't solar and won't inflate the solar bar's export segment. Instead, it's broken out separately: the battery bar's tooltip states the split (e.g. "Battery: 3.0 kW (1.0 kW Export)"), and the legend adds a "Battery Export" entry alongside the regular solar "Export" entry.
 
 ---
 

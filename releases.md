@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.0.5 — Green With Confusion
+
+### Bug Fixes
+
+- **Removed the battery-export strip introduced in v3.0.4**: That release added a thin export-colored line along the top of the battery bar to flag when part of a battery's discharge was heading to the grid rather than the house. In practice it read as a second, unrelated bar sitting on top of the state-of-charge fill — sized to the exported *share* of current discharge, not to SOC, so it didn't track what the rest of the battery bar was showing and just looked like a rendering glitch. Resolves [#119](https://github.com/0xAHA/solar-bar-card/issues/119). The underlying fix from v3.0.4 (the solar bar no longer over-claims export that's actually coming from the battery) is untouched — that information is still available via the battery bar's tooltip and the "Battery Export" legend entry, just without the extra bar segment.
+
+---
+
 ## v3.0.4 — Borrowed Sunshine
 
 ### Bug Fixes
