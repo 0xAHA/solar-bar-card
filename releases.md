@@ -2,6 +2,14 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.0.6 — Watt's the Difference
+
+### Bug Fixes
+
+- **Daily energy sensors now convert Wh/MWh (and bare W) to kWh**: The "daily total" sensors (`production_history_entity`, `consumption_history_entity`, `import_history_entity`, `export_history_entity`, `ev_history_entity`, `consumer_1/2/3_history_entity`) are all labeled "kWh" in the card, and the config editor's entity picker explicitly offers `kWh`, `Wh`, and `MWh` sensors for them — but the actual reading never converted anything except a bare `W` on the EV/consumer fields. A sensor reporting in `Wh` (common for smaller daily-total integrations, including many custom/template "additional consumer" sensors like a heat pump) was read as if it were already `kWh`, showing a figure 1000x too large. All eight fields now convert `Wh`/`W` (÷1000) and `MWh` (×1000) to `kWh` based on the sensor's actual reported unit, regardless of what unit the card assumes. Resolves [#121](https://github.com/0xAHA/solar-bar-card/issues/121).
+
+---
+
 ## v3.0.5 — Green With Confusion
 
 ### Bug Fixes
