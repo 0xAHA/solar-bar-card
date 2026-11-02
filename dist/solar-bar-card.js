@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 3.0.5 - Remove battery-export bar strip that misread as a state-of-charge indicator
+// Version 3.0.6 - Daily energy sensors now convert Wh/MWh to kWh correctly
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -864,6 +864,9 @@ class SolarBarCard extends HTMLElement {
       const importState = this._hass.states[import_history_entity];
       if (importState) {
         dailyImport = parseFloat(importState.state);
+        const importUnit = importState.attributes.unit_of_measurement;
+        if (importUnit === 'Wh' || importUnit === 'W') dailyImport = dailyImport / 1000;
+        else if (importUnit === 'MWh') dailyImport = dailyImport * 1000;
         if (!isNaN(dailyImport)) hasHistoryData = true;
       }
     }
@@ -872,6 +875,9 @@ class SolarBarCard extends HTMLElement {
       const exportState = this._hass.states[export_history_entity];
       if (exportState) {
         dailyExport = parseFloat(exportState.state);
+        const exportUnit = exportState.attributes.unit_of_measurement;
+        if (exportUnit === 'Wh' || exportUnit === 'W') dailyExport = dailyExport / 1000;
+        else if (exportUnit === 'MWh') dailyExport = dailyExport * 1000;
         if (!isNaN(dailyExport)) hasHistoryData = true;
       }
     }
@@ -880,6 +886,9 @@ class SolarBarCard extends HTMLElement {
       const prodState = this._hass.states[production_history_entity];
       if (prodState) {
         dailyProduction = parseFloat(prodState.state);
+        const prodUnit = prodState.attributes.unit_of_measurement;
+        if (prodUnit === 'Wh' || prodUnit === 'W') dailyProduction = dailyProduction / 1000;
+        else if (prodUnit === 'MWh') dailyProduction = dailyProduction * 1000;
         if (!isNaN(dailyProduction)) hasProdHistoryData = true;
       }
     }
@@ -888,6 +897,9 @@ class SolarBarCard extends HTMLElement {
       const consState = this._hass.states[consumption_history_entity];
       if (consState) {
         dailyConsumption = parseFloat(consState.state);
+        const consUnit = consState.attributes.unit_of_measurement;
+        if (consUnit === 'Wh' || consUnit === 'W') dailyConsumption = dailyConsumption / 1000;
+        else if (consUnit === 'MWh') dailyConsumption = dailyConsumption * 1000;
         if (!isNaN(dailyConsumption)) hasConsHistoryData = true;
       }
     }
@@ -2108,10 +2120,10 @@ class SolarBarCard extends HTMLElement {
           const importDetailText = hasHistoryData && netPosition !== null ? `${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh` : hasHistoryData && dailyImport !== null ? `-${dailyImport.toFixed(decimal_places)} kWh` : null;
 
           // Resolve history values for EV and consumers
-          const evDailyEnergy = ev_history_entity ? this.getSensorValue(ev_history_entity) : null;
-          const c1DailyEnergy = consumer_1_history_entity ? this.getSensorValue(consumer_1_history_entity) : null;
-          const c2DailyEnergy = consumer_2_history_entity ? this.getSensorValue(consumer_2_history_entity) : null;
-          const c3DailyEnergy = consumer_3_history_entity ? this.getSensorValue(consumer_3_history_entity) : null;
+          const evDailyEnergy = ev_history_entity ? this.getEnergyValueInKwh(ev_history_entity) : null;
+          const c1DailyEnergy = consumer_1_history_entity ? this.getEnergyValueInKwh(consumer_1_history_entity) : null;
+          const c2DailyEnergy = consumer_2_history_entity ? this.getEnergyValueInKwh(consumer_2_history_entity) : null;
+          const c3DailyEnergy = consumer_3_history_entity ? this.getEnergyValueInKwh(consumer_3_history_entity) : null;
 
           // Core tiles (always present): Solar, Usage, Export/Import
           const coreTiles = [
@@ -2653,6 +2665,25 @@ class SolarBarCard extends HTMLElement {
     const unit = this._hass.states[entityId].attributes.unit_of_measurement;
     if (unit === 'W') {
       value = value / 1000;
+    }
+
+    return isNaN(value) ? 0 : value;
+  }
+
+  // Daily/cumulative energy sensors (production, consumption, EV, consumer history) are
+  // configured for kWh, but HA integrations commonly report Wh, MWh, or even bare W
+  // instead - convert to kWh so a sensor's reported unit doesn't silently inflate or
+  // shrink its value by 1000x. 'W' is kept for backward compatibility with the EV/consumer
+  // history fields, which previously went through getSensorValue's W-to-kW handling.
+  getEnergyValueInKwh(entityId) {
+    if (!entityId || !this._hass.states[entityId]) return 0;
+    let value = parseFloat(this._hass.states[entityId].state);
+
+    const unit = this._hass.states[entityId].attributes.unit_of_measurement;
+    if (unit === 'Wh' || unit === 'W') {
+      value = value / 1000;
+    } else if (unit === 'MWh') {
+      value = value * 1000;
     }
 
     return isNaN(value) ? 0 : value;
@@ -3375,7 +3406,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c SOLAR-BAR-CARD %c v3.0.5 ',
+  '%c SOLAR-BAR-CARD %c v3.0.6 ',
   'color:#fff;background:#f57c00;font-weight:700;padding:2px 4px;border-radius:4px 0 0 4px;',
   'color:#f57c00;background:#fff3e0;font-weight:700;padding:2px 4px;border-radius:0 4px 4px 0;'
 );
