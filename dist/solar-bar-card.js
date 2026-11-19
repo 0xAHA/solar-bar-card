@@ -1,6 +1,6 @@
 // solar-bar-card.js
 // Enhanced Solar Bar Card with battery support and animated flow visualization
-// Version 3.0.6 - Daily energy sensors now convert Wh/MWh to kWh correctly
+// Version 3.1.0 - Optional inverter_size_entity for a dynamic (seasonal/rolling-max) bar scale
 
 import { COLOR_PALETTES, getCardColors, getPaletteOptions } from './solar-bar-card-palettes.js';
 
@@ -23,6 +23,7 @@ class SolarBarCard extends HTMLElement {
 
     // Check if any relevant entity states have changed
     const relevantEntities = [
+      this.config.inverter_size_entity,
       this.config.production_entity,
       this.config.self_consumption_entity,
       this.config.export_entity,
@@ -143,6 +144,7 @@ class SolarBarCard extends HTMLElement {
 
     this.config = {
       inverter_size: 10,
+      inverter_size_entity: null,
       show_header: false,
       show_weather: false,
       show_stats: false,
@@ -518,6 +520,7 @@ class SolarBarCard extends HTMLElement {
 
     const {
       inverter_size = 10,
+      inverter_size_entity = null,
       production_entity,
       self_consumption_entity,
       export_entity,
@@ -749,10 +752,20 @@ class SolarBarCard extends HTMLElement {
     } else if (peak_forecast_entity) {
       peakForecastPower = this.getSensorValue(peak_forecast_entity) || 0;
     }
-    const peakForecastPotential = Math.min(peakForecastPower, inverter_size);
+    // Solar bar full-scale. inverter_size_entity (e.g. an input_number changed per season, or a
+    // Statistics helper tracking a rolling 30-day max) overrides the static inverter_size so the
+    // bar can read "full" when production is as good as it currently gets. Falls back to the
+    // static value if the entity is missing/unavailable/non-positive. A dynamic value can lag
+    // reality (first sunny day after a dull month), so it never drops below current production
+    // - that keeps the solar segments from overflowing past 100%. The battery bar's proportional
+    // width deliberately stays on the static inverter_size: the hardware doesn't shrink in winter.
+    const dynamicInverterSize = inverter_size_entity ? this.getSensorValue(inverter_size_entity) : 0;
+    const solarScaleKw = dynamicInverterSize > 0 ? Math.max(dynamicInverterSize, solarProduction) : inverter_size;
+
+    const peakForecastPotential = Math.min(peakForecastPower, solarScaleKw);
 
     const currentOutput = solarProduction;
-    const anticipatedPotential = Math.min(forecastSolar, inverter_size);
+    const anticipatedPotential = Math.min(forecastSolar, solarScaleKw);
 
     // Check if system is idle (no solar production and no consumption)
     const isIdle = solarProduction === 0 && selfConsumption === 0 && exportPower === 0 && gridImportPower === 0 && batteryIdle;
@@ -830,19 +843,19 @@ class SolarBarCard extends HTMLElement {
     const batteryToGrid = batteryDischarging ? Math.max(0, exportPower - solarToGridExport) : 0;
 
     // Calculate unused capacity - must account for all segments being shown in the bar
-    // Segments: solarToHome + solarToEv + solarToBattery + solarToGridExport + evDisplayPower + unused = inverter_size
-    const unusedCapacityKw = Math.max(0, inverter_size - solarToHome - solarToEv - solarToBattery - solarToGridExport - evDisplayPower);
+    // Segments: solarToHome + solarToEv + solarToBattery + solarToGridExport + evDisplayPower + unused = solarScaleKw
+    const unusedCapacityKw = Math.max(0, solarScaleKw - solarToHome - solarToEv - solarToBattery - solarToGridExport - evDisplayPower);
 
     // Calculate percentages for bar segments
     // Solar bar now only shows solar-sourced power (home, EV, battery charging, export, unused)
-    const solarHomePercent = (solarToHome / inverter_size) * 100;
-    const solarEvPercent = (solarToEv / inverter_size) * 100;
-    const exportPercent = (solarToGridExport / inverter_size) * 100;
-    const evPotentialPercent = (evDisplayPower / inverter_size) * 100;
-    const unusedPercent = (unusedCapacityKw / inverter_size) * 100;
-    const anticipatedPercent = (anticipatedPotential / inverter_size) * 100;
-    const peakForecastPercent = (peakForecastPotential / inverter_size) * 100;
-    const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / inverter_size) * 100 : 0;
+    const solarHomePercent = (solarToHome / solarScaleKw) * 100;
+    const solarEvPercent = (solarToEv / solarScaleKw) * 100;
+    const exportPercent = (solarToGridExport / solarScaleKw) * 100;
+    const evPotentialPercent = (evDisplayPower / solarScaleKw) * 100;
+    const unusedPercent = (unusedCapacityKw / solarScaleKw) * 100;
+    const anticipatedPercent = (anticipatedPotential / solarScaleKw) * 100;
+    const peakForecastPercent = (peakForecastPotential / solarScaleKw) * 100;
+    const batteryChargePercent = solarToBattery > 0 ? (solarToBattery / solarScaleKw) * 100 : 0;
 
     // Grid state for icon (not shown in bar anymore)
     //const hasGridImport = totalGridImport > 0.05;
@@ -970,7 +983,9 @@ class SolarBarCard extends HTMLElement {
     const headerSensor2Data = getHeaderSensorData(header_sensor_2);
 
     // Usage indicator line (shows where total usage is on the solar bar when solar doesn't cover it)
-    const usagePercent = (selfConsumption / inverter_size) * 100;
+    // Pinned at the bar's end when usage exceeds the scale (far likelier with a low winter
+    // inverter_size_entity value) instead of being clipped out of sight by overflow: hidden.
+    const usagePercent = Math.min(100, (selfConsumption / solarScaleKw) * 100);
     const showUsageIndicator = selfConsumption > solarProduction && selfConsumption > 0.05;
 
     // Calculate proportional widths for adjacent bars (if battery configured AND visible)
@@ -2243,7 +2258,7 @@ class SolarBarCard extends HTMLElement {
               <div class="solar-bar-label">
                 <span>${this.getLabel('power_flow')}</span>
                 <span class="capacity-label">
-                  ${hasBattery && show_battery_indicator ? `${this.getLabel('battery')} ${batterySOC.toFixed(battery_soc_decimal_places)} % | ` : ''}0 - ${fmtPow(inverter_size)}
+                  ${hasBattery && show_battery_indicator ? `${this.getLabel('battery')} ${batterySOC.toFixed(battery_soc_decimal_places)} % | ` : ''}0 - ${fmtPow(solarScaleKw)}
                 </span>
               </div>
             ` : ''}
@@ -2293,7 +2308,7 @@ class SolarBarCard extends HTMLElement {
                 ` : ''}
                 ${showUsageIndicator ? `
                   <div class="usage-indicator"
-                       style="left: ${usagePercent}%"
+                       style="left: min(${usagePercent}%, calc(100% - 3px))"
                        title="${this.getLabel('total_usage')}: ${fmtPow(totalHouseConsumption)}"></div>
                 ` : ''}
               </div>
@@ -2815,6 +2830,7 @@ class SolarBarCardEditor extends HTMLElement {
   _computeLabel(schema) {
     const labels = {
       inverter_size: "Inverter Size",
+      inverter_size_entity: "Inverter Size Entity (Dynamic Scale)",
       production_entity: "Solar Production Sensor",
       self_consumption_entity: "Self Consumption Sensor",
       export_entity: "Export to Grid Sensor",
@@ -2910,6 +2926,7 @@ class SolarBarCardEditor extends HTMLElement {
   _computeHelper(schema) {
     const helpers = {
       inverter_size: "Your solar system's maximum capacity in kW",
+      inverter_size_entity: "Optional - overrides Inverter Size for the solar bar's full scale (kW or W), e.g. a seasonal input_number or a Statistics helper tracking max production over 30 days. Falls back to Inverter Size when unavailable",
       production_entity: "Sensor showing current solar production power",
       self_consumption_entity: "Sensor showing power used by your home (includes EV charging if active)",
       export_entity: "Sensor showing power exported to the grid",
@@ -3017,6 +3034,7 @@ class SolarBarCardEditor extends HTMLElement {
             default: 10,
             selector: { number: { min: 1, max: 100, step: 0.1, mode: "box", unit_of_measurement: "kW" } }
           },
+          { name: "inverter_size_entity", selector: { entity: { filter: [{ domain: ["sensor", "input_number", "number"] }] } } },
           {
             type: "grid",
             schema: [
@@ -3406,7 +3424,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c SOLAR-BAR-CARD %c v3.0.6 ',
+  '%c SOLAR-BAR-CARD %c v3.1.0 ',
   'color:#fff;background:#f57c00;font-weight:700;padding:2px 4px;border-radius:4px 0 0 4px;',
   'color:#f57c00;background:#fff3e0;font-weight:700;padding:2px 4px;border-radius:0 4px 4px 0;'
 );

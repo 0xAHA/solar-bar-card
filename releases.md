@@ -2,6 +2,23 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.1.0 — A Scale for All Seasons
+
+### New Features
+
+- **`inverter_size_entity` config option (dynamic bar scale)**: Previously the solar bar's full scale was always the static `inverter_size`, so in winter a system producing all it could still looked like it was barely trying. You can now point `inverter_size_entity` at a `sensor`, `input_number` or `number` entity (kW or W, converted automatically) to set the scale instead. Good options are a Statistics helper tracking max production over the last 30 days, a seasonal `input_number`, or a Solcast peak-forecast sensor. Resolves [#123](https://github.com/0xAHA/solar-bar-card/issues/123).
+  - **Never overflows**: a rolling max lags behind the first properly sunny day, so the scale is always at least current solar production, and the bar can't go past 100%.
+  - **Safe fallback**: if the entity is missing, `unavailable`, non-numeric or ≤ 0, the card uses the static `inverter_size`.
+  - **Battery bar left alone**: the battery bar's proportional width still uses the static `inverter_size`, so it doesn't change size with the seasons.
+  - **Live updates**: the card redraws when the helper's value changes, and the "0 – X kW" bar label shows the scale in use.
+  - Also available in the visual editor, right under Inverter Size.
+
+### Improvements
+
+- **Usage indicator stays visible past the end of the bar**: when total usage is above the bar's scale (much more likely with a low winter scale), the dashed usage line now sits at the end of the bar instead of disappearing past the edge. Its tooltip still shows the real figure.
+
+---
+
 ## v3.0.6 — Watt's the Difference
 
 ### Bug Fixes
