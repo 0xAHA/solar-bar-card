@@ -880,7 +880,10 @@ class SolarBarCard extends HTMLElement {
         const importUnit = importState.attributes.unit_of_measurement;
         if (importUnit === 'Wh' || importUnit === 'W') dailyImport = dailyImport / 1000;
         else if (importUnit === 'MWh') dailyImport = dailyImport * 1000;
+        // Unavailable/unknown -> null (not NaN), so netPosition and the tile detail text fall
+        // back to whichever side is valid instead of rendering "NaN kWh"
         if (!isNaN(dailyImport)) hasHistoryData = true;
+        else dailyImport = null;
       }
     }
 
@@ -892,6 +895,7 @@ class SolarBarCard extends HTMLElement {
         if (exportUnit === 'Wh' || exportUnit === 'W') dailyExport = dailyExport / 1000;
         else if (exportUnit === 'MWh') dailyExport = dailyExport * 1000;
         if (!isNaN(dailyExport)) hasHistoryData = true;
+        else dailyExport = null;
       }
     }
 
@@ -2133,6 +2137,9 @@ class SolarBarCard extends HTMLElement {
           // Resolve detail text for export/import tiles
           const exportDetailText = hasHistoryData && netPosition !== null ? `${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh` : hasHistoryData && dailyExport !== null ? `+${dailyExport.toFixed(decimal_places)} kWh` : null;
           const importDetailText = hasHistoryData && netPosition !== null ? `${netPosition >= 0 ? '+' : ''}${netPosition.toFixed(decimal_places)} kWh` : hasHistoryData && dailyImport !== null ? `-${dailyImport.toFixed(decimal_places)} kWh` : null;
+          // Grid Idle: net position if both sides are available (identical in both texts above),
+          // otherwise whichever single-sided daily total is configured
+          const idleDetailText = exportDetailText || importDetailText;
 
           // Resolve history values for EV and consumers
           const evDailyEnergy = ev_history_entity ? this.getEnergyValueInKwh(ev_history_entity) : null;
@@ -2174,8 +2181,13 @@ class SolarBarCard extends HTMLElement {
               </div>
             ` : (grid_power_entity || export_entity || import_entity) ? `
               <div class="stat" data-entity="${grid_power_entity || export_entity || import_entity}" data-action-key="export" title="${this.getLabel('grid_idle')}">
-                <div class="stat-label">${this.getLabel('grid_idle')}</div>
-                <div class="stat-value">${fmtPow(0)}</div>
+                <div class="stat-label">
+                  ${show_net_indicator && netPosition !== null ? `<span class="net-indicator-spacer"></span>` : ''}
+                  ${this.getLabel('grid_idle')}
+                  ${show_net_indicator && netPosition !== null ? `<span class="net-indicator ${netPosition >= 0 ? 'net-export' : 'net-import'}"></span>` : ''}
+                </div>
+                <div class="stat-value">${fmtPow(0)}${isInline ? renderDetail(idleDetailText) : ''}</div>
+                ${!isInline ? renderDetail(idleDetailText) : ''}
               </div>
             ` : null
           ].filter(Boolean);

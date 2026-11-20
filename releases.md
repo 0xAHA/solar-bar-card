@@ -17,6 +17,11 @@
 
 - **Usage indicator stays visible past the end of the bar**: when total usage is above the bar's scale (much more likely with a low winter scale), the dashed usage line now sits at the end of the bar instead of disappearing past the edge. Its tooltip still shows the real figure.
 
+### Bug Fixes
+
+- **Grid Idle tile now shows the daily import/export figure**: with `import_history_entity` and/or `export_history_entity` configured, the Grid tile showed the day's kWh while importing or exporting, but the figure disappeared as soon as grid power hit 0 and the tile switched to "Grid Idle". The idle tile now shows the same figure as the other two: the net position when both entities are set, otherwise whichever one-sided daily total you have. It also shows the green/red net import/export dot, and follows `stats_detail_position` and `show_stats_detail` like every other tile. Resolves [#125](https://github.com/0xAHA/solar-bar-card/issues/125).
+- **No more "NaN kWh" on the Grid tile**: if one of the two history entities was `unavailable` or `unknown` (common for a moment at the midnight reset or when an integration restarts), the net calculation still ran and the tile showed "NaN kWh" with a red "net importer" dot. The unavailable side is now ignored, and the tile shows the valid one-sided figure until both are back.
+
 ---
 
 ## v3.0.6 — Watt's the Difference
