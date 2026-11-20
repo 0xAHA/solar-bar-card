@@ -2,6 +2,28 @@
 
 <a href="https://www.buymeacoffee.com/0xAHA" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## v3.1.0 — A Scale for All Seasons
+
+### New Features
+
+- **`inverter_size_entity` config option (dynamic bar scale)**: Previously the solar bar's full scale was always the static `inverter_size`, so in winter a system producing all it could still looked like it was barely trying. You can now point `inverter_size_entity` at a `sensor`, `input_number` or `number` entity (kW or W, converted automatically) to set the scale instead. Good options are a Statistics helper tracking max production over the last 30 days, a seasonal `input_number`, or a Solcast peak-forecast sensor. Resolves [#123](https://github.com/0xAHA/solar-bar-card/issues/123).
+  - **Never overflows**: a rolling max lags behind the first properly sunny day, so the scale is always at least current solar production, and the bar can't go past 100%.
+  - **Safe fallback**: if the entity is missing, `unavailable`, non-numeric or ≤ 0, the card uses the static `inverter_size`.
+  - **Battery bar left alone**: the battery bar's proportional width still uses the static `inverter_size`, so it doesn't change size with the seasons.
+  - **Live updates**: the card redraws when the helper's value changes, and the "0 – X kW" bar label shows the scale in use.
+  - Also available in the visual editor, right under Inverter Size.
+
+### Improvements
+
+- **Usage indicator stays visible past the end of the bar**: when total usage is above the bar's scale (much more likely with a low winter scale), the dashed usage line now sits at the end of the bar instead of disappearing past the edge. Its tooltip still shows the real figure.
+
+### Bug Fixes
+
+- **Grid Idle tile now shows the daily import/export figure**: with `import_history_entity` and/or `export_history_entity` configured, the Grid tile showed the day's kWh while importing or exporting, but the figure disappeared as soon as grid power hit 0 and the tile switched to "Grid Idle". The idle tile now shows the same figure as the other two: the net position when both entities are set, otherwise whichever one-sided daily total you have. It also shows the green/red net import/export dot, and follows `stats_detail_position` and `show_stats_detail` like every other tile. Resolves [#125](https://github.com/0xAHA/solar-bar-card/issues/125).
+- **No more "NaN kWh" on the Grid tile**: if one of the two history entities was `unavailable` or `unknown` (common for a moment at the midnight reset or when an integration restarts), the net calculation still ran and the tile showed "NaN kWh" with a red "net importer" dot. The unavailable side is now ignored, and the tile shows the valid one-sided figure until both are back.
+
+---
+
 ## v3.0.6 — Watt's the Difference
 
 ### Bug Fixes

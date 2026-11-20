@@ -3,7 +3,7 @@
 A real-time solar power distribution card for Home Assistant. Visualize how your solar energy flows between home consumption, grid export/import, battery storage, EV charging, and additional consumers — all in a single, intuitive bar chart.
 
 ![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![Version](https://img.shields.io/badge/Version-3.0.6-blue.svg)
+![Version](https://img.shields.io/badge/Version-3.1.0-blue.svg)
 [![GitHub Issues](https://img.shields.io/github/issues/0xAHA/solar-bar-card.svg)](https://github.com/0xAHA/solar-bar-card/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/0xAHA/solar-bar-card.svg?style=social)](https://github.com/0xAHA/solar-bar-card)
 
@@ -77,6 +77,7 @@ show_legend: true
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `inverter_size` | number | `10` | Maximum solar system capacity in kW. Defines the bar's full-scale range. |
+| `inverter_size_entity` | string | `null` | Optional entity (`sensor`, `input_number` or `number`, in kW or W) that overrides `inverter_size` as the solar bar's full scale, e.g. a seasonal helper or a rolling 30-day max. The scale never drops below current production. Falls back to `inverter_size` when the entity is unavailable or ≤ 0. The battery bar's width still uses the static `inverter_size`. See [Seasonal Scaling](#seasonal-scaling). |
 | `production_entity` | string | required | Solar production power sensor. Must report in W or kW (auto-converted). |
 | `self_consumption_entity` | string | required | Home power consumption sensor (total home load including EV if active). |
 | `grid_power_entity` | string | `null` | Combined grid sensor (positive=export, negative=import). Use this OR separate import/export sensors below. |
@@ -318,6 +319,21 @@ show_stats: true
 show_stats_detail: false
 show_bar_label: false
 show_legend: false
+```
+
+### Seasonal Scaling
+
+A fixed `inverter_size` leaves the bar looking mostly empty in winter, even when the panels are producing as much as they can. Point `inverter_size_entity` at a helper so that "full" tracks what your system can actually do right now.
+
+The easiest helper is a **rolling 30-day maximum**: go to *Settings → Devices & Services → Helpers → Create Helper → Statistics*, pick your solar production sensor, set the characteristic to **Maximum** and the max age to **30 days**. The Statistics helper rebuilds its window from the recorder after a restart, and the recorder keeps only 10 days by default. To keep the full 30 days, raise `purge_keep_days`, or use a shorter max age. You can also use an `input_number` that you (or an automation) change with the seasons, or a Solcast peak-forecast sensor for a scale that changes daily.
+
+```yaml
+type: custom:solar-bar-card
+inverter_size: 10                                 # fallback if the helper is unavailable
+inverter_size_entity: sensor.solar_max_30_days    # Statistics helper (max, 30 days)
+production_entity: sensor.solar_production_power
+self_consumption_entity: sensor.home_consumption
+grid_power_entity: sensor.grid_power
 ```
 
 ---
